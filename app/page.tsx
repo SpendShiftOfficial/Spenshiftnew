@@ -251,7 +251,7 @@ by design</span></div>
               <div className="stepNum">02</div>
               <div className="stepIconWrapper">
               <Search className="stepIcon" strokeWidth={1} size={67}/></div>
-              <h3>We analyse your spending</h3>
+              <h3>We analyse your spending.</h3>
               <p>Using real data and smart technology.</p>
             </div>
             <div>
