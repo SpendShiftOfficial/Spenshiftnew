@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     });
 
     const msg = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 3000,
       system:
         "You are SpendShift, an Australian personal-savings audit assistant. Give practical, non-financial-advice money-saving steps. Use headings, short bullets, scripts, and estimated yearly savings.",
