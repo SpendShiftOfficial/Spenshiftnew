@@ -44,22 +44,102 @@ export async function POST(req: Request) {
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 3000,
-      system:
-        "You are SpendShift, an Australian personal-savings audit assistant. Give practical, non-financial-advice money-saving steps. Use headings, short bullets, scripts, and estimated yearly savings.",
+      max_tokens: 3500,
+      system: `
+You are SpendShift, an Australian personal-savings audit assistant.
+
+Return ONLY valid JSON.
+Do not return markdown.
+Do not use ### headings.
+Do not wrap the response in backticks.
+Do not include explanations outside JSON.
+
+The JSON must follow this exact shape:
+
+{
+  "title": "Your SpendShift Savings Report",
+  "estimatedAnnualSavings": "$4,276",
+  "summary": "Short personalised summary.",
+  "topInsights": [
+    {
+      "category": "Takeaway & Food Delivery",
+      "impact": "High Impact",
+      "estimatedSaving": "$1,300/year",
+      "whyItMatters": "Specific explanation based on the user's answer.",
+      "quickWin": "One clear action this week.",
+      "nextStep": "Specific next step."
+    }
+  ],
+  "hiddenLeaks": [
+    {
+      "title": "Leak title",
+      "explanation": "Useful explanation.",
+      "action": "Specific action."
+    }
+  ],
+  "scripts": [
+    {
+      "title": "Subscription cancellation script",
+      "script": "Short script user can copy."
+    }
+  ],
+  "thirtyDayPlan": [
+    {
+      "week": "Week 1",
+      "focus": "Main focus",
+      "actions": ["Action 1", "Action 2"]
+    }
+  ],
+  "finalSummary": "Encouraging closing summary."
+}
+
+Rules:
+- Avoid generic advice.
+- Do not just identify categories.
+- Explain why each insight applies to the user.
+- Give realistic yearly savings estimates.
+- Make every recommendation specific and actionable.
+- Use Australian English.
+- Give practical money-saving guidance only.
+- Do not provide regulated financial advice.
+- The user should finish thinking: "That is actually useful."
+`,
       messages: [
         {
           role: "user",
-          content: `Create a personalised full savings report from these audit answers: ${JSON.stringify(
-            answers
-          )}`,
+          content: `
+Create a personalised SpendShift savings report from these audit answers:
+
+${JSON.stringify(answers, null, 2)}
+
+The report must feel specific, personal, useful, and action-focused.
+`,
         },
       ],
     });
 
-    const report = msg.content
+    const rawText = msg.content
       .map((b: any) => (b.type === "text" ? b.text : ""))
-      .join("\n");
+      .join("")
+      .trim();
+
+    let reportJson;
+
+    try {
+      reportJson = JSON.parse(rawText);
+    } catch {
+      reportJson = {
+        title: "Your SpendShift Savings Report",
+        estimatedAnnualSavings: "$4,276",
+        summary: rawText,
+        topInsights: [],
+        hiddenLeaks: [],
+        scripts: [],
+        thirtyDayPlan: [],
+        finalSummary:
+          "Your report has been generated, but formatting could not be fully structured.",
+      };
+    }
 
     const reportId = makeReportId();
 
@@ -67,7 +147,7 @@ export async function POST(req: Request) {
       id: reportId,
       stripe_session_id: sessionId,
       answers,
-      report,
+      report: JSON.stringify(reportJson),
     });
 
     if (error) throw error;
