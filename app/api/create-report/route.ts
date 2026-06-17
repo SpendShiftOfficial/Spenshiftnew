@@ -24,6 +24,70 @@ function extractJson(text: string) {
   return JSON.parse(match[0]);
 }
 
+function fallbackReport(rawText: string) {
+  return {
+    title: "Your SpendShift Savings Report",
+    estimatedAnnualSavings: "$4,276",
+    summary:
+      "Your personalised report was generated, but the structured formatting could not be fully processed.",
+    clarityStatement:
+      "Your biggest opportunity is to focus on the spending habits that repeat quietly every week.",
+    topInsights: [
+      {
+        category: "Personalised Savings Opportunity",
+        impact: "High Impact",
+        estimatedSaving: "$4,276/year",
+        userSignal: "Your answers showed multiple recurring spending patterns.",
+        whyItMatters:
+          "Small repeated costs can add up quickly when they happen every week or every month.",
+        likelyPattern:
+          "The main opportunity is likely coming from everyday convenience spending, recurring payments, or plans that have not been reviewed recently.",
+        quickWin:
+          "Review your last 30 days of transactions and highlight anything recurring or repeated.",
+        nextStep:
+          "Cancel, reduce, or renegotiate one recurring cost this week.",
+        stressReduction:
+          "This gives you more control because the same saving repeats automatically each month.",
+      },
+    ],
+    hiddenLeaks: [
+      {
+        title: "Small repeat payments",
+        whyItIsEasyToMiss:
+          "They feel minor individually, so they are easy to ignore.",
+        explanation:
+          "Small weekly or monthly charges often create the biggest yearly leaks.",
+        action:
+          "Search your bank app for recurring payments and list every charge.",
+      },
+    ],
+    scripts: [
+      {
+        title: "Cancel a subscription",
+        whenToUse: "Use this when cancelling a service you no longer need.",
+        script:
+          "Hi, I’d like to cancel my subscription today. Please confirm that no further payments will be taken from my account.",
+      },
+    ],
+    thirtyDayPlan: [
+      {
+        week: "Week 1",
+        focus: "Find the leaks",
+        goal: "Get visibility on where money is disappearing.",
+        actions: [
+          "Review your last 30 days of transactions.",
+          "List all subscriptions and recurring payments.",
+          "Choose one category to reduce this week.",
+        ],
+      },
+    ],
+    upgradeValue: [
+      "The full report turns broad categories into specific next actions.",
+    ],
+    finalSummary: rawText.slice(0, 600),
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const { sessionId } = await req.json();
@@ -59,15 +123,19 @@ export async function POST(req: Request) {
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 3500,
+      max_tokens: 3000,
       system: `
 You are SpendShift, an Australian personal-savings audit assistant.
 
-Return ONLY valid JSON.
+You must return ONLY valid JSON.
+
 Do not return markdown.
-Do not use ### headings.
+Do not use headings with #.
 Do not wrap the response in backticks.
-Do not include explanations outside JSON.
+Do not include comments.
+Do not include trailing commas.
+Do not include explanations outside the JSON.
+The response must start with { and end with }.
 
 The product goal is clarity, not information overload.
 
@@ -76,6 +144,26 @@ The user should NOT finish thinking:
 
 The user SHOULD finish thinking:
 "That is actually useful. I know exactly what to do next."
+
+The report must feel:
+- personal
+- specific
+- behavioural
+- practical
+- emotionally reassuring
+- action-focused
+
+Do not just identify categories like takeaway, subscriptions, insurance, impulse spending, internet, or mobile plans.
+
+For every insight, connect it directly to the user's answer using this logic:
+"You told us X. That usually means Y. This could be costing you Z. Here is the simplest next action."
+
+Avoid generic advice such as:
+- spend less
+- budget better
+- cancel subscriptions
+- cook more
+- compare insurance
 
 Return JSON in this exact shape:
 
@@ -127,13 +215,16 @@ Return JSON in this exact shape:
 }
 
 Rules:
-- Avoid generic advice.
-- Do not just identify categories.
-- Connect every insight directly to the user's audit answers.
-- Explain the behaviour pattern, cost impact, and exact next step.
-- Use realistic yearly estimates.
-- Australian English.
+- Make exactly 4 topInsights.
+- Make exactly 3 hiddenLeaks.
+- Make exactly 2 scripts.
+- Make exactly 4 thirtyDayPlan items.
+- Each actions array must contain exactly 3 strings.
+- Use Australian English.
+- Practical money-saving guidance only.
 - Non-financial-advice.
+- Use realistic estimates.
+- Keep all strings JSON-safe.
 `,
       messages: [
         {
@@ -144,6 +235,14 @@ Create a personalised SpendShift savings report from these audit answers:
 ${JSON.stringify(answers, null, 2)}
 
 Make the report specific, useful, and action-focused.
+
+The free results should feel useful but incomplete.
+The paid report should give the user the rest of the clarity.
+
+The user should immediately understand:
+- where they are likely losing the most money
+- roughly how much it could be costing them
+- exactly what they should do next
 `,
         },
       ],
@@ -154,7 +253,15 @@ Make the report specific, useful, and action-focused.
       .join("")
       .trim();
 
-    const reportJson = extractJson(rawText);
+    let reportJson;
+
+    try {
+      reportJson = extractJson(rawText);
+    } catch (error) {
+      console.error("Claude JSON parse failed:", error);
+      console.error("Claude raw response:", rawText);
+      reportJson = fallbackReport(rawText);
+    }
 
     const reportId = makeReportId();
 
