@@ -9,66 +9,102 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-type Report = {
-  title: string;
-  estimatedAnnualSavings: string;
-  summary: string;
-  clarityStatement?: string;
-  topInsights: {
-    category: string;
-    impact: string;
-    estimatedSaving: string;
-    userSignal?: string;
-    whyItMatters: string;
-    likelyPattern?: string;
-    quickWin: string;
-    nextStep: string;
-    stressReduction?: string;
-  }[];
-  hiddenLeaks: {
-    title: string;
-    whyItIsEasyToMiss?: string;
-    explanation: string;
-    action: string;
-  }[];
-  scripts: {
-    title: string;
-    whenToUse?: string;
-    script: string;
-  }[];
-  thirtyDayPlan: {
-    week: string;
-    focus: string;
-    goal?: string;
-    actions: string[];
-  }[];
-  upgradeValue?: string[];
-  finalSummary: string;
-};
-
-function safeParseReport(value: any): Report {
+function cleanOldJson(report: string): string {
   try {
-    if (typeof value === "object") return value;
-
-    let parsed = JSON.parse(value);
+    const parsed = JSON.parse(report);
 
     if (typeof parsed === "string") {
-      parsed = JSON.parse(parsed);
+      return parsed;
     }
 
-    return parsed;
+    if (parsed?.summary) {
+      return parsed.summary;
+    }
+
+    return report;
   } catch {
-    return {
-      title: "Your SpendShift Savings Report",
-      estimatedAnnualSavings: "$4,276",
-      summary: "Your personalised report has been generated.",
-      topInsights: [],
-      hiddenLeaks: [],
-      scripts: [],
-      thirtyDayPlan: [],
-      finalSummary: "",
-    };
+    return report;
   }
+}
+
+function getSavings(report: string): string {
+  const match = report.match(/\$[\d,]+\/year/);
+  return match ? match[0] : "$4,276/year";
+}
+
+function renderReport(report: string) {
+  const text = cleanOldJson(report);
+
+  const lines: string[] = text
+    .split("\n")
+    .filter((line: string) => line.trim() !== "");
+
+  return lines.map((line: string, index: number) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("# ")) {
+      return (
+        <h1 className="docTitle" key={index}>
+          {trimmed.replace("# ", "")}
+        </h1>
+      );
+    }
+
+    if (trimmed.startsWith("## ")) {
+      return (
+        <h2 className="docHeading" key={index}>
+          {trimmed.replace("## ", "")}
+        </h2>
+      );
+    }
+
+    if (trimmed.startsWith("### ")) {
+      return (
+        <h3 className="docSubheading" key={index}>
+          {trimmed.replace("### ", "")}
+        </h3>
+      );
+    }
+
+    if (trimmed.startsWith("- ")) {
+      return (
+        <div className="docBullet" key={index}>
+          <CheckCircle2 size={18} fill="#059625" stroke="white" />
+          <span>{trimmed.replace("- ", "")}</span>
+        </div>
+      );
+    }
+
+    if (
+      trimmed.startsWith("Impact:") ||
+      trimmed.startsWith("Estimated saving:") ||
+      trimmed.startsWith("What your answer revealed:") ||
+      trimmed.startsWith("Why this matters:") ||
+      trimmed.startsWith("Likely pattern:") ||
+      trimmed.startsWith("Quick win:") ||
+      trimmed.startsWith("Next step:") ||
+      trimmed.startsWith("Why this reduces stress:") ||
+      trimmed.startsWith("When to use:") ||
+      trimmed.startsWith("Script:") ||
+      trimmed.startsWith("Focus:") ||
+      trimmed.startsWith("Actions:")
+    ) {
+      const [label, ...rest] = trimmed.split(":");
+
+      return (
+        <div className="docInfoRow" key={index}>
+          <b>{label}:</b>
+          <span>{rest.join(":").trim()}</span>
+        </div>
+      );
+    }
+
+    return (
+      <p className="docParagraph" key={index}>
+        {trimmed}
+      </p>
+    );
+  });
 }
 
 export default async function ReportPage({
@@ -86,7 +122,8 @@ export default async function ReportPage({
 
   if (!data) notFound();
 
-  const report = safeParseReport(data.report);
+  const reportText = cleanOldJson(data.report);
+  const savings = getSavings(reportText);
 
   return (
     <div className="auditPage">
@@ -107,23 +144,23 @@ export default async function ReportPage({
               </span>
             </h1>
 
-            <p>{report.summary}</p>
-
-            {report.clarityStatement && (
-              <div className="clarityBox">
-                {report.clarityStatement}
-              </div>
-            )}
+            <p>
+              Your personalised SpendShift report is ready. It includes your
+              highest-impact leaks, practical next steps, scripts, and a 30-day
+              action plan.
+            </p>
 
             <div className="reportMeta">
               <span>
                 <CheckCircle2 size={18} fill="#059625" stroke="white" />
                 Full report unlocked
               </span>
+
               <span>
                 <Sparkles size={18} color="#059625" />
                 AI-generated insights
               </span>
+
               <span>
                 <CalendarDays size={18} color="#059625" />
                 Saved report URL
@@ -133,7 +170,7 @@ export default async function ReportPage({
 
           <div className="greenPanel">
             <span className="badge">Total Recoverable Cash Found</span>
-            <h2>{report.estimatedAnnualSavings}/year</h2>
+            <h2>{savings}</h2>
             <p>
               Your report includes priority leaks, action steps, scripts, and a
               30-day savings plan.
@@ -151,14 +188,14 @@ export default async function ReportPage({
               <FileText size={34} color="#059625" />
               <div>
                 <b>Potential annual savings</b>
-                <strong>{report.estimatedAnnualSavings}</strong>
+                <strong>{savings}</strong>
               </div>
             </div>
 
             <ul>
-              <li>Top insights: {report.topInsights.length}</li>
-              <li>Hidden leaks: {report.hiddenLeaks.length}</li>
-              <li>Scripts included: {report.scripts.length}</li>
+              <li>Personalised money leaks</li>
+              <li>Hidden spending patterns</li>
+              <li>Scripts included</li>
               <li>30-day action plan included</li>
             </ul>
           </aside>
@@ -166,157 +203,14 @@ export default async function ReportPage({
           <article className="reportDocument">
             <div className="documentHeader">
               <span className="pill">Unlocked Personalised Report</span>
-              <h2>{report.title}</h2>
+              <h2>Your SpendShift Savings Report</h2>
               <p>
                 This report is saved at <b>/report/{id}</b>. You can revisit it
                 anytime.
               </p>
             </div>
 
-            <div className="documentBody">
-              <section className="docSection">
-                <h2>Executive Summary</h2>
-                <p>{report.summary}</p>
-              </section>
-
-              <section className="docSection">
-                <h2>Your Top Money Leaks</h2>
-
-                {report.topInsights.map((item, index) => (
-                  <article className="insightCard" key={index}>
-                    <div className="insightTop">
-                      <span className="pill">
-                        {String(index + 1).padStart(2, "0")} {item.impact}
-                      </span>
-                      <strong>{item.estimatedSaving}</strong>
-                    </div>
-
-                    <h3>{item.category}</h3>
-
-                    {item.userSignal && (
-                      <div className="insightBlock">
-                        <b>What your answer revealed</b>
-                        <p>{item.userSignal}</p>
-                      </div>
-                    )}
-
-                    <div className="insightBlock">
-                      <b>Why this matters for you</b>
-                      <p>{item.whyItMatters}</p>
-                    </div>
-
-                    {item.likelyPattern && (
-                      <div className="insightBlock">
-                        <b>Likely pattern</b>
-                        <p>{item.likelyPattern}</p>
-                      </div>
-                    )}
-
-                    <div className="insightBlock green">
-                      <b>Quick win</b>
-                      <p>{item.quickWin}</p>
-                    </div>
-
-                    <div className="insightBlock">
-                      <b>Next step</b>
-                      <p>{item.nextStep}</p>
-                    </div>
-
-                    {item.stressReduction && (
-                      <div className="insightBlock soft">
-                        <b>Why this reduces stress</b>
-                        <p>{item.stressReduction}</p>
-                      </div>
-                    )}
-                  </article>
-                ))}
-              </section>
-
-              <section className="docSection">
-                <h2>Hidden Leaks You Might Not Have Considered</h2>
-
-                {report.hiddenLeaks.map((item, index) => (
-                  <article className="miniDocCard" key={index}>
-                    <h3>{item.title}</h3>
-
-                    {item.whyItIsEasyToMiss && (
-                      <p>
-                        <b>Why it’s easy to miss:</b>{" "}
-                        {item.whyItIsEasyToMiss}
-                      </p>
-                    )}
-
-                    <p>{item.explanation}</p>
-
-                    <div className="actionBox">
-                      <b>Action:</b> {item.action}
-                    </div>
-                  </article>
-                ))}
-              </section>
-
-              <section className="docSection">
-                <h2>Scripts You Can Use</h2>
-
-                {report.scripts.map((item, index) => (
-                  <article className="scriptCard" key={index}>
-                    <h3>{item.title}</h3>
-
-                    {item.whenToUse && (
-                      <p>
-                        <b>When to use:</b> {item.whenToUse}
-                      </p>
-                    )}
-
-                    <p>{item.script}</p>
-                  </article>
-                ))}
-              </section>
-
-              <section className="docSection">
-                <h2>30-Day Action Plan</h2>
-
-                {report.thirtyDayPlan.map((item, index) => (
-                  <article className="weekCard" key={index}>
-                    <span className="pill">{item.week}</span>
-                    <h3>{item.focus}</h3>
-
-                    {item.goal && <p>{item.goal}</p>}
-
-                    <ul>
-                      {item.actions.map((action, i) => (
-                        <li key={i}>
-                          <CheckCircle2
-                            size={18}
-                            fill="#059625"
-                            stroke="white"
-                          />
-                          {action}
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                ))}
-              </section>
-
-              {report.upgradeValue && report.upgradeValue.length > 0 && (
-                <section className="docSection">
-                  <h2>What Your Full Report Revealed</h2>
-
-                  {report.upgradeValue.map((item, index) => (
-                    <div className="docBullet" key={index}>
-                      <CheckCircle2 size={18} fill="#059625" stroke="white" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </section>
-              )}
-
-              <section className="docSection finalSummary">
-                <h2>Final Clarity Summary</h2>
-                <p>{report.finalSummary}</p>
-              </section>
-            </div>
+            <div className="documentBody">{renderReport(data.report)}</div>
           </article>
         </section>
       </main>
