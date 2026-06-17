@@ -9,6 +9,21 @@ function makeReportId() {
   return `rpt_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function extractJson(text: string) {
+  const cleaned = text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const match = cleaned.match(/\{[\s\S]*\}/);
+
+  if (!match) {
+    throw new Error("Claude did not return JSON");
+  }
+
+  return JSON.parse(match[0]);
+}
+
 export async function POST(req: Request) {
   try {
     const { sessionId } = await req.json();
@@ -62,40 +77,6 @@ The user should NOT finish thinking:
 The user SHOULD finish thinking:
 "That is actually useful. I know exactly what to do next."
 
-The report must feel:
-- personal
-- specific
-- behavioural
-- practical
-- emotionally reassuring
-- action-focused
-
-Do not just identify categories like takeaway, subscriptions, insurance, impulse spending, internet, or mobile plans.
-
-For every insight, connect it directly to the user's answer using this logic:
-
-"You told us X. That usually means Y. This could be costing you Z. Here is the simplest next action."
-
-Avoid generic advice such as:
-- spend less
-- budget better
-- cancel subscriptions
-- cook more
-- compare insurance
-
-Instead, explain:
-1. why the issue applies to this user,
-2. what behaviour pattern is likely happening,
-3. roughly how much it may be costing per year,
-4. what they should do first,
-5. what they should do this week,
-6. how this reduces stress or gives them more control.
-
-The full report must feel significantly deeper than the free preview.
-
-The free preview gives curiosity.
-The paid report gives clarity and execution.
-
 Return JSON in this exact shape:
 
 {
@@ -146,12 +127,13 @@ Return JSON in this exact shape:
 }
 
 Rules:
+- Avoid generic advice.
+- Do not just identify categories.
+- Connect every insight directly to the user's audit answers.
+- Explain the behaviour pattern, cost impact, and exact next step.
+- Use realistic yearly estimates.
 - Australian English.
-- Practical money-saving guidance only.
 - Non-financial-advice.
-- Use realistic estimates, not exaggerated promises.
-- Make every insight feel earned from the audit answers.
-- Keep language simple and emotionally clear.
 `,
       messages: [
         {
@@ -161,17 +143,7 @@ Create a personalised SpendShift savings report from these audit answers:
 
 ${JSON.stringify(answers, null, 2)}
 
-Important:
-The free results should feel useful but incomplete.
-The paid report should feel like it gives the user the rest of the clarity.
-
-Make the user immediately understand:
-- where they are likely losing the most money,
-- roughly how much it could be costing them,
-- exactly what they should do next.
-
-Avoid generic or obvious advice.
-Every recommendation must connect directly to the user's answers.
+Make the report specific, useful, and action-focused.
 `,
         },
       ],
@@ -182,23 +154,7 @@ Every recommendation must connect directly to the user's answers.
       .join("")
       .trim();
 
-    let reportJson;
-
-    try {
-      reportJson = JSON.parse(rawText);
-    } catch {
-      reportJson = {
-        title: "Your SpendShift Savings Report",
-        estimatedAnnualSavings: "$4,276",
-        summary: rawText,
-        topInsights: [],
-        hiddenLeaks: [],
-        scripts: [],
-        thirtyDayPlan: [],
-        finalSummary:
-          "Your report has been generated, but formatting could not be fully structured.",
-      };
-    }
+    const reportJson = extractJson(rawText);
 
     const reportId = makeReportId();
 

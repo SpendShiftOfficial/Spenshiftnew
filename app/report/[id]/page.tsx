@@ -13,39 +13,55 @@ type Report = {
   title: string;
   estimatedAnnualSavings: string;
   summary: string;
+  clarityStatement?: string;
   topInsights: {
     category: string;
     impact: string;
     estimatedSaving: string;
+    userSignal?: string;
     whyItMatters: string;
+    likelyPattern?: string;
     quickWin: string;
     nextStep: string;
+    stressReduction?: string;
   }[];
   hiddenLeaks: {
     title: string;
+    whyItIsEasyToMiss?: string;
     explanation: string;
     action: string;
   }[];
   scripts: {
     title: string;
+    whenToUse?: string;
     script: string;
   }[];
   thirtyDayPlan: {
     week: string;
     focus: string;
+    goal?: string;
     actions: string[];
   }[];
+  upgradeValue?: string[];
   finalSummary: string;
 };
 
-function safeParseReport(report: string): Report {
+function safeParseReport(value: any): Report {
   try {
-    return JSON.parse(report);
+    if (typeof value === "object") return value;
+
+    let parsed = JSON.parse(value);
+
+    if (typeof parsed === "string") {
+      parsed = JSON.parse(parsed);
+    }
+
+    return parsed;
   } catch {
     return {
       title: "Your SpendShift Savings Report",
       estimatedAnnualSavings: "$4,276",
-      summary: report,
+      summary: "Your personalised report has been generated.",
       topInsights: [],
       hiddenLeaks: [],
       scripts: [],
@@ -92,6 +108,12 @@ export default async function ReportPage({
             </h1>
 
             <p>{report.summary}</p>
+
+            {report.clarityStatement && (
+              <div className="clarityBox">
+                {report.clarityStatement}
+              </div>
+            )}
 
             <div className="reportMeta">
               <span>
@@ -171,10 +193,24 @@ export default async function ReportPage({
 
                     <h3>{item.category}</h3>
 
+                    {item.userSignal && (
+                      <div className="insightBlock">
+                        <b>What your answer revealed</b>
+                        <p>{item.userSignal}</p>
+                      </div>
+                    )}
+
                     <div className="insightBlock">
                       <b>Why this matters for you</b>
                       <p>{item.whyItMatters}</p>
                     </div>
+
+                    {item.likelyPattern && (
+                      <div className="insightBlock">
+                        <b>Likely pattern</b>
+                        <p>{item.likelyPattern}</p>
+                      </div>
+                    )}
 
                     <div className="insightBlock green">
                       <b>Quick win</b>
@@ -185,6 +221,13 @@ export default async function ReportPage({
                       <b>Next step</b>
                       <p>{item.nextStep}</p>
                     </div>
+
+                    {item.stressReduction && (
+                      <div className="insightBlock soft">
+                        <b>Why this reduces stress</b>
+                        <p>{item.stressReduction}</p>
+                      </div>
+                    )}
                   </article>
                 ))}
               </section>
@@ -195,7 +238,16 @@ export default async function ReportPage({
                 {report.hiddenLeaks.map((item, index) => (
                   <article className="miniDocCard" key={index}>
                     <h3>{item.title}</h3>
+
+                    {item.whyItIsEasyToMiss && (
+                      <p>
+                        <b>Why it’s easy to miss:</b>{" "}
+                        {item.whyItIsEasyToMiss}
+                      </p>
+                    )}
+
                     <p>{item.explanation}</p>
+
                     <div className="actionBox">
                       <b>Action:</b> {item.action}
                     </div>
@@ -209,6 +261,13 @@ export default async function ReportPage({
                 {report.scripts.map((item, index) => (
                   <article className="scriptCard" key={index}>
                     <h3>{item.title}</h3>
+
+                    {item.whenToUse && (
+                      <p>
+                        <b>When to use:</b> {item.whenToUse}
+                      </p>
+                    )}
+
                     <p>{item.script}</p>
                   </article>
                 ))}
@@ -221,6 +280,8 @@ export default async function ReportPage({
                   <article className="weekCard" key={index}>
                     <span className="pill">{item.week}</span>
                     <h3>{item.focus}</h3>
+
+                    {item.goal && <p>{item.goal}</p>}
 
                     <ul>
                       {item.actions.map((action, i) => (
@@ -237,6 +298,19 @@ export default async function ReportPage({
                   </article>
                 ))}
               </section>
+
+              {report.upgradeValue && report.upgradeValue.length > 0 && (
+                <section className="docSection">
+                  <h2>What Your Full Report Revealed</h2>
+
+                  {report.upgradeValue.map((item, index) => (
+                    <div className="docBullet" key={index}>
+                      <CheckCircle2 size={18} fill="#059625" stroke="white" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </section>
+              )}
 
               <section className="docSection finalSummary">
                 <h2>Final Clarity Summary</h2>
