@@ -1,5 +1,7 @@
 "use client";
 import Header from "@/components/Header";
+import Icon1 from "next/image";
+import Icon2 from "next/image";
 import { useEffect, useState } from "react";
 import {
   CheckCircle,
@@ -10,8 +12,16 @@ import {
   Wallet,
   BarChart3,
   Search,
+  Info,
+  FileClock,
   Lightbulb,
+  Utensils,
+  Zap,
+  TrendingUp,
+  ChartNoAxesCombined,
+  CheckCircle2Icon,
 } from "lucide-react";
+import { BsCheckCircleFill } from "react-icons/bs";
 const leaks = [
   ["HIGH IMPACT", "Takeaway & Food Delivery", "$1,300"],
   ["HIGH IMPACT", "Insurance Overpayment", "$900"],
@@ -183,32 +193,48 @@ export default function Results() {
     <div className="auditPage">
       <Header simple />
       <main className="container">
+        <div className="main-section-results">
         <section className="resultsHero">
-          <div>
-            <h1 style={{ fontSize: 48 }}>
-              We found your{" "}
+          <div className="content-wrap-first">
+            <h1 style={{ fontSize: 55 }}>
+              We found your{" "} <br />
               <span style={{ color: "#059625" }}>biggest money leaks</span>
             </h1>
             <p>
               Based on your answers, we identified areas where you could be
               overpaying every year.
             </p>
-            <p>
-              ✅ Your data is private & secure
-              <br />✅ Fixed insights. Real savings.
-            </p>
+            <div className="audit-page-label">
+              <div>   <ShieldCheck size={34} /></div>
+              <div><p>
+              Your data is private & secure</p>
+              
+            </div>
+            </div>
+             <div className="audit-page-label">
+              <div>   <ChartNoAxesCombined size={34} /></div>
+              <div>
+                <p>Fixed insights. Real savings.</p>
+              
+            </div>
+            </div>
+            
           </div>
-          <div className="greenPanel">
+          <div className="greenPanel"
+          style={{ 
+    backgroundImage: "url('/result/panelbg.png')", 
+  }}>
             <span className="badge">Total Recoverable Cash Found</span>
-            <h2 style={{ fontSize: 46 }}>$2,300 - $4,800/year</h2>
-            <p>
-              This is a range based on your feedback. Your actual savings may be
+            <h2 style={{ fontSize: 65 }}>$2,300 - $4,800/year</h2>
+            <p className="conclu-para">
+             <Info size={34} /> This is a range based on your feedback. Your actual savings may be
               higher or lower.
             </p>
             <button onClick={pay} className="btn white">
               {busy ? "Opening checkout..." : "Get My Full Savings Plan"}
             </button>
           </div>
+          
         </section>
         <div className="leakTabs">
           {leaks.map((l) => (
@@ -219,6 +245,8 @@ export default function Results() {
             </div>
           ))}
         </div>
+</div>
+        
         <h2>Your Top 3 money leaks</h2>
         <section className="mainResults">
           <div>
@@ -228,11 +256,12 @@ export default function Results() {
                   0{idx + 1} {l[0]}
                 </span>
                 <h3>{l[1]}</h3>
+                <div className="add-bg">
                 <p>
                   Based on your answers, this category looks like one of your
                   strongest opportunities.
                 </p>
-                <div className="savings">Save {l[2]} per year</div>
+                <div className="savings"><span>Save</span> {l[2]} <span>per year</span></div></div>
                 <p className="mini">
                   Full monthly action steps and scripts are included in your
                   unlocked report.
@@ -240,44 +269,58 @@ export default function Results() {
               </article>
             ))}
             <div className="safe">
-              <Lock color="#059625" />
-              <div>
-                <b>These are just the big ones.</b>
-                <p>
-                  Your full report includes personalised insights across 10+
+            <div className="trend-ng-class">
+            <Zap color="#059625" size={81} /></div>
+            <div>
+              <b>These are just the big ones.</b>
+              <p className="mini">
+                Your full report includes personalised insights across 10+
                   categories.
-                </p>
-              </div>
+              </p>
             </div>
           </div>
+            
+          </div>
           <aside className="panel reportBox">
-            <span className="pill">Unlock Your Full Potential</span>
+            <span className="pill"><BsCheckCircleFill size={20} color="#059625" /> Unlock Your <span>Full Potential</span></span>
             <h2>Get your personalised action plan</h2>
-            <p>
-              ✅ See all money leaks
-              <br />✅ Get exact savings
-              <br />✅ Step-by-step action plan
-              <br />✅ Track your progress
+          
+            <p className="list-item">
+              <BsCheckCircleFill size={15} color="#059625" /> See all your money leaks
             </p>
-            <div className="card">
-              <b>Your Full Report</b>
+            <p className="list-item">
+              <BsCheckCircleFill size={15} color="#059625" /> Get your exact savings
+            </p>
+            <p className="list-item">
+              <BsCheckCircleFill size={15} color="#059625" /> Step-by-step action plan
+            </p>
+            <p className="list-item">
+              <BsCheckCircleFill size={15} color="#059625" /> Track your progress
+            </p>
+            <p className="list-item">
+              <BsCheckCircleFill size={15} color="#059625" /> Save more, stress less
+            </p>
+
+          
+            <div className="card unlock-card">
+              <h5><FileClock size={25} color="#059625" />Your Full Report</h5>
+              <p><FileClock size={25} color="#fff" /> Potential annual savings</p>
               <div className="savings">$4,276</div>
+              <div className="top-bar-leaks">
               <p>
-                Top leaks found: 12
-                <br />
-                Action plan steps: 18
-              </p>
-              <div className="locked">
-                Claude AI generated report preview with scripts, cancellation
-                templates, bill negotiation steps, subscription cleanup, weekly
-                savings routine and 30-day plan.
+                <div>Top leaks found:</div> <div> 12</div></p>
+                
+               <p><div> Action plan steps:</div> <div>18</div></p>
+             
               </div>
+            
             </div>
-            <button onClick={pay} className="unlock">
-              {busy ? "Redirecting..." : "Unlock My Full Report"}
-            </button>
+            <button onClick={pay} className="unlock flex items-center justify-center gap-2">
+  <Lock size={20} color="#fff" />
+  <span>{busy ? "Redirecting..." : "Unlock My Full Report"}</span>
+</button>
             <p className="mini">
-              Secure Stripe payment. Report generated by Claude AI.
+              Get instant access to your customized step-by-step negotiation scripts and direct cancellation links.
             </p>
           </aside>
         </section>
