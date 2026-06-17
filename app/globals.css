@@ -1171,6 +1171,151 @@ article.panel.leak p.mini {
   filter: blur(7px);
   user-select: none;
 }
+span.reportStatus svg {
+    background: #059625;
+    width: 37px;
+    height: 37px;
+    padding: 7px;
+    border-radius: 30px;
+    stroke: #fff;
+}
+.unlockreport-bg .greenPanel h2 {
+    font-size: 50px;
+    line-height: 60px;
+}
+.reportMeta span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.unlockreport-bg aside.reportSummaryCard h2 {
+    font-size: 40px;
+    color: #44a844;
+    font-family: 'Mona Sans';
+    font-weight: 600;
+}
+.documentHeader {background: #cccccc24;padding: 20px;margin-top: 20px;border-radius: 20px;}
+
+.documentHeader span.pill {
+    font-size: 20px;
+    font-weight: 500;
+    padding: 10px 30px;
+    display: flex;
+    width: max-content;
+    gap: 10px;
+    align-items: center;
+}
+.documentHeader p {
+    margin: 0;
+    padding: 0;
+}
+.documentBody {
+    background: #cccccc30;
+    padding: 20px 40px;
+    border-radius: 20px;
+    margin: 20px 0px;
+}
+h2.docHeading:before {
+    content: '';
+    position: absolute;
+    background: #fff;
+    width: 8px;
+    height: 8px;
+    border-radius: 30px;
+    border: 2px solid;
+    left: 0;
+    top: 9px;
+}
+
+h2.docHeading {
+    font-size: 20px;
+    color: #059625;
+    position: relative;
+    padding-left: 20px;
+}
+h3.docSubheading:before {
+    content: "";
+    background: #fff;
+    border: 1px solid;
+    width: 23px;
+    height: 0px;
+    position: absolute;
+    top: 12px;
+    left: 0;
+    color: #a9a7a7;
+}
+
+h3.docSubheading {
+    color: #1c1c1c;
+    padding-left: 40px;
+    font-size: 17px;
+    position: relative;
+}
+p.docParagraph {
+    font-family: 'Inter';
+    color: #000;
+    font-size: 18px;
+}
+.documentBody h1.docTitle {
+    display: none;
+}
+.documentHeader h2 {
+    font-size: 40px;
+    margin: 10px 0;
+    line-height: 50px;
+    color: #059625;
+}
+.potential-report {
+    padding: 11px 39px;
+}
+.summaryBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.summaryBox div strong {
+    color: #289625;
+    font-size: 17px;
+    margin-left: 10px;
+}
+
+.summaryBox div b {
+    font-size: 22px;
+    font-weight: 400;
+    color: #333;
+}
+.reportMeta {
+    gap: 20px;
+    display: flex;
+    align-items: center;
+    background: #f1f1f1;
+    padding: 10px 10px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+aside.reportSummaryCard .pill {
+    font-weight: 500;
+    font-size: 19px;
+    padding: 7px 30px;
+}
+span.reportStatus {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 30px;
+    font-family: 'Mona Sans';
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #252525;
+}
+.unlockreport-bg {
+    background: #fff;
+    padding: 30px 50px;
+    margin-top: 20px;
+    border-radius: 40px;
+    border: 3px solid #95dd98;
+    box-shadow: 0px 0px 11px #ccc;
+}
 .reportBox {
   position: sticky;
   top: 95px;

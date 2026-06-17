@@ -7,6 +7,7 @@ import {
   Sparkles,
   ShieldCheck,
   CalendarDays,
+  LockOpen,
 } from "lucide-react";
 
 function cleanOldJson(report: string): string {
@@ -130,6 +131,7 @@ export default async function ReportPage({
       <Header simple />
 
       <main className="container reportUnlockedPage">
+        <div className="unlockreport-bg">
         <section className="resultsHero reportHero">
           <div>
             <span className="reportStatus">
@@ -168,7 +170,10 @@ export default async function ReportPage({
             </div>
           </div>
 
-          <div className="greenPanel">
+          <div className="greenPanel"
+          style={{ 
+    backgroundImage: "url('/result/panelbg.png')", 
+  }}>
             <span className="badge">Total Recoverable Cash Found</span>
             <h2>{savings}</h2>
             <p>
@@ -191,18 +196,25 @@ export default async function ReportPage({
                 <strong>{savings}</strong>
               </div>
             </div>
-
-            <ul>
-              <li>Personalised money leaks</li>
-              <li>Hidden spending patterns</li>
-              <li>Scripts included</li>
-              <li>30-day action plan included</li>
-            </ul>
+            <div className="potential-report">
+             <p className="list-item">
+                          <CheckCircle2 size={15} color="#059625" /> Personalised money leaks
+                        </p>
+                        <p className="list-item">
+                          <CheckCircle2 size={15} color="#059625" /> Hidden spending patterns
+                        </p>
+                        <p className="list-item">
+                          <CheckCircle2 size={15} color="#059625" /> Scripts included
+                        </p>
+                        <p className="list-item">
+                          <CheckCircle2 size={15} color="#059625" /> 30-day action plan included
+                        </p>
+                      </div>
           </aside>
-
+<hr />
           <article className="reportDocument">
             <div className="documentHeader">
-              <span className="pill">Unlocked Personalised Report</span>
+              <span className="pill"><LockOpen size={25} color="#059625" /> Unlocked Personalised Report</span>
               <h2>Your SpendShift Savings Report</h2>
               <p>
                 This report is saved at <b>/report/{id}</b>. You can revisit it
@@ -213,6 +225,7 @@ export default async function ReportPage({
             <div className="documentBody">{renderReport(data.report)}</div>
           </article>
         </section>
+        </div>
       </main>
     </div>
   );
