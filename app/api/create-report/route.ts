@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     const msg = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 3500,
+      max_tokens: 7000,
       system: `
 You are SpendShift, an Australian personal-savings audit assistant.
 
