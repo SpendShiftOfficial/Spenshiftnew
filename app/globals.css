@@ -1678,7 +1678,7 @@ nav.nav a {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .stat span {
     text-transform: capitalize;
     font-family: Inter, sans-serif;
