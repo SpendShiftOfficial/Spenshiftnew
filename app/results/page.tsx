@@ -307,12 +307,16 @@ export default function Results() {
               <p><FileClock size={25} color="#fff" /> Potential annual savings</p>
               <div className="savings">$4,276</div>
               <div className="top-bar-leaks">
-              <p>
-                <div>Top leaks found:</div> <div> 12</div></p>
-                
-               <p><div> Action plan steps:</div> <div>18</div></p>
-             
-              </div>
+  <div className="item">
+    <span>Top leaks found:</span>
+    <span>12</span>
+  </div>
+
+  <div className="item">
+    <span>Action plan steps:</span>
+    <span>18</span>
+  </div>
+</div>
             
             </div>
             <button onClick={pay} className="unlock flex items-center justify-center gap-2">

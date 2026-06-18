@@ -57,6 +57,7 @@ Do NOT say "it's important to note", "financial decisions are personal", or "con
 Do NOT write anything that could apply to any user regardless of their answers.
 Do NOT use phrases like "many Australians struggle with..." as a filler opener.
 Do NOT shame or lecture the user about their habits.
+DO NOT 
 
 The report must feel:
 - personal and specific to this exact user
@@ -158,25 +159,25 @@ Use this exact structure. Do not skip any section. Do not add extra sections.
 [Rank 5 leaks from highest to lowest savings potential. Use this exact structure for each.]
 
 ### 01. [Category Name]
-**Impact:** High Impact / Medium Impact / Lower Impact
-**Estimated saving:** $[X,XXX]/year
+Impact: High Impact / Medium Impact / Lower Impact
+Estimated saving: $[X,XXX]/year
 
-**What your answer revealed:**
+What your answer revealed:
 [1–2 sentences. Reference the user's exact answer.]
 
-**Why this matters:**
+Why this matters:
 [1–2 sentences. Specific to their frequency/recency. Use a concrete yearly figure.]
 
-**Likely pattern:**
+Likely pattern:
 [1 sentence. Not judgmental.]
 
-**Quick win:**
+Quick win:
 [One sentence. Specific.]
 
-**Next step:**
+Next step:
 [One sentence. Specific.]
 
-**Why this reduces stress:**
+Why this reduces stress:
 [1 sentence.]
 
 ---
@@ -190,19 +191,19 @@ Use this exact structure. Do not skip any section. Do not add extra sections.
 [2 short hidden leaks based on their answers.]
 
 ### [Hidden Leak Title]
-**Why it is easy to miss:**
+Why it is easy to miss:
 [1–2 sentences.]
 
-**What to do:**
+What to do:
 [1–2 sentences. One specific action.]
 
 ---
 
 ### [Hidden Leak Title]
-**Why it is easy to miss:**
+Why it is easy to miss:
 [1–2 sentences.]
 
-**What to do:**
+What to do:
 [1–2 sentences. One specific action.]
 
 ---
@@ -212,19 +213,19 @@ Use this exact structure. Do not skip any section. Do not add extra sections.
 [2 real, usable scripts tailored to this user's top leaks.]
 
 ### [Script Title]
-**When to use:**
+When to use:
 [1 sentence.]
 
-**Script:**
+Script:
 [Actual words. First person. Natural Australian tone. 2–5 sentences.]
 
 ---
 
 ### [Script Title]
-**When to use:**
+When to use:
 [1 sentence.]
 
-**Script:**
+Script:
 [Actual words. First person. Natural Australian tone. 2–5 sentences.]
 
 ---
@@ -232,29 +233,29 @@ Use this exact structure. Do not skip any section. Do not add extra sections.
 ## 30-Day Action Plan
 
 ### Week 1 — [Focus theme]
-**Focus:** [One sentence.]
-**Actions:**
+Focus: [One sentence.]
+Actions:
 - [Specific action tied to their #1 leak]
 - [Specific action tied to their #2 leak]
 - [One quick admin task that takes under 10 minutes]
 
 ### Week 2 — [Focus theme]
-**Focus:** [One sentence.]
-**Actions:**
+Focus: [One sentence.]
+Actions:
 - [Action]
 - [Action]
 - [Action]
 
 ### Week 3 — [Focus theme]
-**Focus:** [One sentence.]
-**Actions:**
+Focus: [One sentence.]
+Actions:
 - [Action]
 - [Action]
 - [Action]
 
 ### Week 4 — [Focus theme]
-**Focus:** [One sentence.]
-**Actions:**
+Focus: [One sentence.]
+Actions:
 - [Action]
 - [Action]
 - [Action]

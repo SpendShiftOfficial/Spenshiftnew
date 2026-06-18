@@ -1244,6 +1244,16 @@ h3.docSubheading:before {
     left: 0;
     color: #a9a7a7;
 }
+.top-bar-leaks .item {
+    display: flex;
+    background: #f1eded;
+    margin-top: 10px;
+    justify-content: space-between;
+    padding: 14px 20px;
+    color: #000;
+    border-radius: 10px;
+}
+
 
 h3.docSubheading {
     color: #1c1c1c;
