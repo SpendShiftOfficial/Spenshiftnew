@@ -1679,6 +1679,9 @@ nav.nav a {
 }
 
 @media (max-width: 600px) {
+  .container.footerBottom div {
+    justify-content: center;
+}
   .stat span {
     text-transform: capitalize;
     font-family: Inter, sans-serif;
@@ -1780,11 +1783,12 @@ nav.nav a {
         font-size: 18px !important;
     }
 
-  .footerBottom {
-    text-align: center;
-    margin: 0px auto;
-    display: table;
-}
+     .footerBottom {
+        text-align: center;
+        display: table !important;
+        margin: 0;
+        width: 100%;
+    }
   .steps h3 {
     font-size: 20px !important;
     line-height: 30px !important;
