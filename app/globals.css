@@ -209,7 +209,16 @@ nav.nav a {
 .heroCopy {
   max-width: 535px;
 }
+.docInfoRow span {
+    margin-left: 10px;
+    color: green;
+}
 
+.docInfoRow {
+    margin-bottom: 10px;
+    font-family: 'Mona Sans';
+    font-size: 18px;
+}
 .badge {
   display: inline-flex;
   gap: 8px;
@@ -225,7 +234,7 @@ nav.nav a {
 .hero h1 {
     margin: 18px 0;
     font-size: 65px;
-    line-height: 89px;
+    line-height: 1;
     color: #3B3B3B;
 }
 .hero h1 span,
@@ -1226,7 +1235,21 @@ h2.docHeading:before {
     left: 0;
     top: 9px;
 }
+.docBullet {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 12px;
+    font-size: 14px;
+}
 
+.docBullet svg {
+    background: #daf5d9;
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    border-radius: 30px;
+}
 h2.docHeading {
     font-size: 20px;
     color: #059625;
@@ -1235,14 +1258,14 @@ h2.docHeading {
 }
 h3.docSubheading:before {
     content: "";
+    color: #a9a7a7;
     background: #fff;
     border: 1px solid;
     width: 23px;
-    height: 0px;
+    height: 0;
     position: absolute;
-    top: 12px;
-    left: 0;
-    color: #a9a7a7;
+    top: 32px;
+    left: 10px;
 }
 .top-bar-leaks .item {
     display: flex;
@@ -1256,10 +1279,13 @@ h3.docSubheading:before {
 
 
 h3.docSubheading {
-    color: #1c1c1c;
-    padding-left: 40px;
-    font-size: 17px;
+    color: #00800f;
+    font-size: 19px;
     position: relative;
+    background: #bbf5b978;
+    padding: 20px 50px;
+    border-radius: 10px;
+    text-transform: uppercase;
 }
 p.docParagraph {
     font-family: 'Inter';
@@ -1367,7 +1393,9 @@ span.reportStatus {
   padding: 48px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }
-
+.container.progressWrap {
+    margin-top: 20px;
+}
 .reportBadge {
   display: inline-flex;
   align-items: center;
@@ -1458,8 +1486,59 @@ span.reportStatus {
 .fullReportText h3 {
   font-family: "Mona Sans", sans-serif;
 }
+@media (max-width: 1440px) {
+nav.nav a {
+    font-size: 17px;
+}
+}
+@media (max-width: 1280px) {
+  .footer a, .footer p, .footerBottom .footerCopyright {
+    font-size: 16px;
+}
+  .footerGrid {
+    gap: 10px;
+}
+  .footer h4 {
+    font-size: 19px;
+}
+  .btn {
+    padding: 9px 32px;
+    font-size: 18px;
+}
+  .nav {
+    gap: 23px;
+}
+nav.nav a {
+    font-size: 15px;
+}
+}
+
 
 @media (max-width: 900px) {
+  p.noCard {
+    text-align: left;
+}
+  .floatCard {
+    padding: 10px 10px;
+}
+  .heroVisual {
+    margin: 0 !important;
+    min-height: auto;
+}
+    .phoneFrame1 img {
+        width: 60%;
+        margin: 0 auto;
+        display: table;
+        height: 100%;
+    }
+  .checks {
+    margin: 20px auto;
+    justify-content: center;
+}
+  .heroCopy {
+    margin: 0 auto;
+    text-align: center;
+}
   .unlockedReportBox {
     position: static;
     max-height: none;
@@ -1504,12 +1583,16 @@ span.reportStatus {
   .heroVisual {
     min-height: 650px;
   }
-  .leftCard {
-    left: 6%;
-  }
-  .rightCard {
-    right: 4%;
-  }
+     .leftCard {
+        left: 0%;
+        top: 0;
+        width: 180px;
+    }
+     .rightCard {
+        right: 0%;
+        bottom: 0;
+        width: 180px;
+    }
   .footerGrid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1519,6 +1602,17 @@ span.reportStatus {
   }
 }
 @media (max-width: 800px) {
+  .floatCard b {
+    margin-bottom: 6px;
+    font-size: 15px;
+    line-height: 1;
+    display: block;
+}
+  .floatCard p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+}
   html, body {
     scroll-behavior: smooth;
     overflow-x: hidden;
@@ -1556,9 +1650,10 @@ span.reportStatus {
   .steps:before {
     display: none;
   }
-  .quizInner {
-    padding: 34px 18px;
-  }
+      .quizInner {
+        padding: 34px 18px;
+        margin-top: 20px;
+    }
   .cta {
     display: block;
     text-align: left;
@@ -1574,15 +1669,119 @@ span.reportStatus {
   .mainResults {
     grid-template-columns: 1fr;
   }
-  .footerBottom {
-    display: block;
-  }
+     .footerBottom {
+        display: flex;
+        align-items: center;
+    }
   .miniCards {
     grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 480px) {
+  .summaryBox div b {
+    font-size: 19px;
+}
+      h3.docSubheading:before {
+        top: 29px;
+        width: 16px;
+    }
+  p.docParagraph {
+    font-size: 14px;
+    line-height: 24px;
+}
+
+    h3.docSubheading {
+        padding: 9px 0 9px 31px;
+        font-size: 16px !important;
+    }
+  h2.docHeading:before {
+    top: 15px;
+}
+  .documentBody {
+    padding: 0;
+    background: #ff10;
+}
+  h2.docHeading {
+    font-size: 22px !important;
+    text-align: left !important;
+}
+
+
+  .documentHeader span.pill svg {
+    width: 19px;
+}
+
+.documentHeader span.pill {
+    font-size: 15px;
+    padding: 9px 10px;
+}
+  aside.reportSummaryCard {
+    margin-top: 20px;
+}
+  .reportMeta {
+    display: grid;
+}
+  .unlockreport-bg {
+    padding: 20px 20px;
+    border-radius: 22px;
+    box-shadow: unset;
+    border: 2px solid #95dd98;
+}
+  .unlock-card {
+    padding: 20px 20px;
+}
+  article.panel.leak p {
+    font-size: 14px;
+    line-height: 24px;
+}
+  .main-section-results {
+    padding: 30px 17px;
+    border-radius: 20px;
+}
+  p.conclu-para svg {
+    width: 80px;
+    align-items: flex-start !important;
+    display: flex;
+}
+  .main-section-results {
+    padding: 0 17px;
+}
+  .greenPanel {
+    background: #015d18 !important;
+    border-radius: 12px;
+}
+  .option {
+    font-size: 16px;
+    text-align: left;
+}
+  .quizInner .btn {
+    width: 100%;
+}
+  .auditNote {
+    text-align: left;
+    font-size: 14px;
+    align-items: self-start;
+}
+  .safe {
+    display: block;
+}
+  header.topbar span.mini {
+    font-size: 13px;
+}
+  .footer h4 {
+        font-size: 18px !important;
+    }
+
+  .footerBottom {
+    text-align: center;
+    margin: 0px auto;
+    display: table;
+}
+  .steps h3 {
+    font-size: 20px !important;
+    line-height: 30px !important;
+}
   .quote {
     padding: 20px !important;
 }

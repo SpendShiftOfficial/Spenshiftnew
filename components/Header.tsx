@@ -18,8 +18,8 @@ export default function Header({ simple = false }: { simple?: boolean }) {
           <Image
             src="/logo.png"
             alt="SpendShift"
-            width={180}
-            height={50}
+            width={200}
+            height={60}
             priority
           />
         </Link>
