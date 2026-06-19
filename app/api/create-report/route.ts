@@ -14,9 +14,9 @@ function makeReportId() {
 async function sendReportEmail(email: string, reportId: string) {
   const reportUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/report/${reportId}`;
 
-  const  emailResult= await resend.emails.send({
-    from: "SpendShift <onboarding@resend.dev>",
-    to: email,
+  const result = await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: "graypatrick441@gmail.com", // testing email
     subject: "Your SpendShift Savings Report Is Ready",
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
@@ -48,7 +48,8 @@ async function sendReportEmail(email: string, reportId: string) {
       </div>
     `,
   });
-  console.log("RESEND RESULT:", emailResult);
+
+  console.log("RESEND RESULT:", result);
 }
 
 export async function POST(req: Request) {
