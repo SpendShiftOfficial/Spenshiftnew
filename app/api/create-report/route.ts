@@ -17,35 +17,128 @@ async function sendReportEmail(email: string, reportId: string) {
   const result = await resend.emails.send({
     from: "onboarding@resend.dev",
     to: "graypatrick441@gmail.com", // testing email
-    subject: "Your SpendShift Savings Report Is Ready",
+    subject: "Your SpendShift Report Is Ready — See Your Biggest Savings Opportunities",
     html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
-        <h2>Your SpendShift report is ready</h2>
+      <body style="margin:0; padding:0; background-color:#EDEBE3; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
 
-        <p>
-          Your personalised savings report has been generated and is ready to view.
-        </p>
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    We found your biggest money leaks. Your full report, savings estimate and action plan are ready.
+  </div>
 
-        <p>
-          It includes your biggest money leaks, estimated yearly savings,
-          practical next steps, scripts, and a 30-day action plan.
-        </p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EDEBE3;">
+    <tr>
+      <td align="center" style="padding:48px 16px;">
 
-        <a href="${reportUrl}"
-          style="display:inline-block;background:#059625;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">
-          View My Report
-        </a>
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
 
-        <p style="margin-top:24px;font-size:13px;color:#6b7280;">
-          If the button does not work, copy and paste this link into your browser:<br />
-          ${reportUrl}
-        </p>
+          <!-- Wordmark -->
+          <tr>
+            <td align="center" style="padding-bottom:36px; font-family:Georgia,'Times New Roman',serif;">
+              <span style="font-size:15px; font-weight:400; color:#3A3A34; letter-spacing:3px; text-transform:uppercase;">SpendShift</span>
+            </td>
+          </tr>
 
-        <p style="font-size:12px;color:#6b7280;">
-          Estimates are based on your answers and typical spending patterns.
-          Actual savings may vary. This is general information and not financial advice.
-        </p>
-      </div>
+          <!-- Outer card -->
+          <tr>
+            <td style="background-color:#FFFFFF; border-radius:20px; overflow:hidden;">
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <!-- Hero -->
+                <tr>
+                  <td style="background-color:#16241B; padding:60px 48px 52px 48px;" align="center">
+
+                    <p style="margin:0 0 18px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:#9BB89F;">
+                      Your report is ready
+                    </p>
+
+                    <h1 style="margin:0 0 24px 0; font-family:Georgia,'Times New Roman',serif; font-size:30px; line-height:1.3; font-weight:400; color:#F7F6F1; letter-spacing:-0.2px;">
+                      We found where your<br>money is leaking.
+                    </h1>
+
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+                      <tr><td style="width:40px; height:1px; background-color:#3F5A47; font-size:0; line-height:0;">&nbsp;</td></tr>
+                    </table>
+
+                    <p style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.6; color:#B9C9BB; max-width:380px;">
+                      A personalised breakdown of your biggest savings opportunities, ready to view now.
+                    </p>
+
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding:48px 48px 40px 48px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+                    <p style="margin:0 0 20px 0; font-size:16px; line-height:1.7; color:#2A2A24;">
+                      Hi there,
+                    </p>
+
+                    <p style="margin:0 0 20px 0; font-size:16px; line-height:1.7; color:#2A2A24;">
+                      Based on your answers, we've put together a clear picture of exactly where your money is going &mdash; and the simplest way to fix it.
+                    </p>
+
+                    <p style="margin:0; font-size:16px; line-height:1.7; color:#2A2A24;">
+                      Your report walks through your biggest leaks ranked by impact, an estimated yearly saving built entirely from your own habits, the exact words to use when cancelling or negotiating, and a simple 30-day plan to put it all into action. No spreadsheets, no jargon &mdash; just what matters and what to do next.
+                    </p>
+
+                  </td>
+                </tr>
+
+                <!-- CTA -->
+                <tr>
+                  <td align="center" style="padding:0 48px 16px 48px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="border-radius:999px; background-color:#16241B;">
+                          <a href="${reportUrl}" target="_blank" style="display:inline-block; padding:17px 44px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#F7F6F1; text-decoration:none; border-radius:999px; letter-spacing:0.2px;">
+                            View my full report &rarr;
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Fallback link -->
+                <tr>
+                  <td align="center" style="padding:8px 48px 48px 48px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                    <p style="margin:0; font-size:12.5px; line-height:1.6; color:#A4A398;">
+                      Button not working? Paste this link into your browser:
+                    </p>
+                    <p style="margin:5px 0 0 0; font-size:12.5px; line-height:1.6; word-break:break-all;">
+                      <a href="${reportUrl}" target="_blank" style="color:#3B6D11; text-decoration:none;">${reportUrl}</a>
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:36px 24px 0 24px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;" align="center">
+              <p style="margin:0 0 8px 0; font-size:12px; line-height:1.6; color:#8B8A80;">
+                Estimates are based on your answers and typical spending patterns. Actual savings may vary.
+              </p>
+              <p style="margin:0; font-size:12px; line-height:1.6; color:#8B8A80;">
+                This is general information only, not financial advice.
+              </p>
+              <p style="margin:24px 0 0 0; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#B3B2A6;">
+                SpendShift &middot; Australia
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
     `,
   });
 
