@@ -16,7 +16,7 @@ async function sendReportEmail(email: string, reportId: string) {
 
   const result = await resend.emails.send({
     from: "onboarding@resend.dev",
-    to: "graypatrick441@gmail.com", // testing email
+    to: "addyflurin@gmail.com", // testing email
     subject: "Your SpendShift Savings Report Is Ready",
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
