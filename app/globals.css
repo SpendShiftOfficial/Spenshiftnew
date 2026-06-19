@@ -1490,11 +1490,14 @@ span.reportStatus {
   font-family: "Mona Sans", sans-serif;
 }
 @media (max-width: 1440px) {
+  .nav {
+    gap: 26px;
+}
 nav.nav a {
     font-size: 17px;
 }
 }
-@media (max-width: 1280px) {
+@media (max-width: 1366px) {
   .footer a, .footer p, .footerBottom .footerCopyright {
     font-size: 16px;
 }
@@ -1517,7 +1520,10 @@ nav.nav a {
 }
 
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
+  nav.nav {
+    display: none;
+}
   p.noCard {
     text-align: left;
 }
