@@ -168,32 +168,68 @@ export default function Home() {
         </section>
 
         <section className="stats-section">
-          <div className="container">
-            <div className="stats">
-              <div className="stat">
-                <div><Users size={50} /></div>
-               <div> <strong>10,000+</strong>
-                <span>Australians already <br></br>saving smarter</span></div>
-              </div>
-              <div className="stat">
-               <div><WalletCards size={50} /></div> 
-               <div> <strong>$2,800</strong>
-                <span>Average savings <br></br>found</span></div>
-              </div>
-              <div className="stat">
-                <div><Clock size={50} /></div>
-              <div>  <strong>100%</strong>
-                <span>Private & Secure<br></br>
-by design</span></div>
-              </div>
-              <div className="stat">
-               <div> <ShieldCheck size={50} /></div>
-                <div><strong>Australia</strong>
-                <span>Built for Australians.<br></br> Local. Relevant.</span></div>
-              </div>
-            </div>
-          </div>
-        </section>
+  <div className="container">
+    <div className="stats">
+
+      <div className="stat">
+        <div>
+          <Clock size={50} />
+        </div>
+        <div>
+          <strong>2 Minutes</strong>
+          <span>
+            Complete the audit
+            <br />
+            in under 2 minutes
+          </span>
+        </div>
+      </div>
+
+      <div className="stat">
+        <div>
+          <ShieldCheck size={50} />
+        </div>
+        <div>
+          <strong>Private</strong>
+          <span>
+            No bank access
+            <br />
+            required
+          </span>
+        </div>
+      </div>
+
+      <div className="stat">
+        <div>
+          <WalletCards size={50} />
+        </div>
+        <div>
+          <strong>No Signup</strong>
+          <span>
+            Start instantly
+            <br />
+            with no account
+          </span>
+        </div>
+      </div>
+
+      <div className="stat">
+        <div>
+          <ShieldCheck size={50} />
+        </div>
+        <div>
+          <strong>Australia</strong>
+          <span>
+            Built for Australians
+            <br />
+            and local spending habits
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
         <section className="container" id="why">
           <h2 className="sectionTitle">

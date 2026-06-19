@@ -1,8 +1,7 @@
 "use client";
+
 import Header from "@/components/Header";
-import Icon1 from "next/image";
-import Icon2 from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle,
   Lock,
@@ -15,25 +14,219 @@ import {
   Info,
   FileClock,
   Lightbulb,
-  Utensils,
   Zap,
-  TrendingUp,
   ChartNoAxesCombined,
-  CheckCircle2Icon,
 } from "lucide-react";
 import { BsCheckCircleFill } from "react-icons/bs";
-const leaks = [
-  ["HIGH IMPACT", "Takeaway & Food Delivery", "$1,300"],
-  ["HIGH IMPACT", "Insurance Overpayment", "$900"],
-  ["MEDIUM IMPACT", "Subscriptions", "$650"],
-  ["MEDIUM IMPACT", "Convenience Spending", "$540"],
-  ["LOW IMPACT", "Internet & Mobile Plan", "$420"],
-  ["LOCKED", "10+ Other Categories", "Unlock"],
-];
+
+type Leak = {
+  impact: string;
+  title: string;
+  amount: number;
+  min: number;
+  max: number;
+  answer: string;
+  insight: string;
+};
+
+function money(n: number) {
+  return `$${Math.round(n).toLocaleString()}`;
+}
+
+function midpoint(min: number, max: number) {
+  return Math.round((min + max) / 2 / 50) * 50;
+}
+
+function impact(amount: number) {
+  if (amount >= 1000) return "HIGH IMPACT";
+  if (amount >= 400) return "MEDIUM IMPACT";
+  return "LOW IMPACT";
+}
+
+function rangeFor(answer: string, map: Record<string, [number, number]>) {
+  return map[answer] || [0, 0];
+}
+
+function buildLeaks(answers: string[]): Leak[] {
+  const takeaway = answers[0] || "";
+  const subscriptions = answers[1] || "";
+  const insurance = answers[2] || "";
+  const convenience = answers[3] || "";
+  const mobile = answers[4] || "";
+  const recurring = answers[5] || "";
+  const unplanned = answers[6] || "";
+
+  const items: Omit<Leak, "amount" | "impact">[] = [
+    {
+      title: "Takeaway & Food Delivery",
+      answer: takeaway,
+      min: rangeFor(takeaway, {
+        Never: [0, 0],
+        "1–2 times/week": [600, 1000],
+        "3–5 times/week": [1200, 2000],
+        "Almost daily": [2500, 4000],
+      })[0],
+      max: rangeFor(takeaway, {
+        Never: [0, 0],
+        "1–2 times/week": [600, 1000],
+        "3–5 times/week": [1200, 2000],
+        "Almost daily": [2500, 4000],
+      })[1],
+      insight:
+        takeaway === "Never"
+          ? "You said you rarely rely on takeaway, so this is not likely to be your biggest leak."
+          : `You said you order takeaway ${takeaway}. Reducing just part of that habit could free up a meaningful amount each year.`,
+    },
+    {
+      title: "Subscriptions",
+      answer: subscriptions,
+      min: rangeFor(subscriptions, {
+        "0–2": [0, 100],
+        "3–5": [400, 700],
+        "6–10": [800, 1400],
+        "10+": [1500, 2500],
+        "Not sure": [800, 1400],
+      })[0],
+      max: rangeFor(subscriptions, {
+        "0–2": [0, 100],
+        "3–5": [400, 700],
+        "6–10": [800, 1400],
+        "10+": [1500, 2500],
+        "Not sure": [800, 1400],
+      })[1],
+      insight:
+        subscriptions === "0–2"
+          ? "You have a low subscription count, so there may only be a small saving here."
+          : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could remove unused or forgotten recurring charges.`,
+    },
+    {
+      title: "Insurance Overpayment",
+      answer: insurance,
+      min: rangeFor(insurance, {
+        "Within 6 months": [0, 200],
+        "6–12 months ago": [150, 400],
+        "1–2 years ago": [300, 700],
+        "Over 2 years ago": [500, 1200],
+        "Never / not sure": [600, 1500],
+      })[0],
+      max: rangeFor(insurance, {
+        "Within 6 months": [0, 200],
+        "6–12 months ago": [150, 400],
+        "1–2 years ago": [300, 700],
+        "Over 2 years ago": [500, 1200],
+        "Never / not sure": [600, 1500],
+      })[1],
+      insight:
+        insurance === "Within 6 months"
+          ? "You reviewed insurance recently, so this may not be your highest opportunity."
+          : `You said you last compared insurance ${insurance}. That usually means there may be a better rate available.`,
+    },
+    {
+      title: "Convenience Spending",
+      answer: convenience,
+      min: rangeFor(convenience, {
+        Rarely: [0, 200],
+        "1–2 times/week": [400, 700],
+        "3–5 times/week": [800, 1400],
+        Daily: [1500, 2500],
+      })[0],
+      max: rangeFor(convenience, {
+        Rarely: [0, 200],
+        "1–2 times/week": [400, 700],
+        "3–5 times/week": [800, 1400],
+        Daily: [1500, 2500],
+      })[1],
+      insight:
+        convenience === "Rarely"
+          ? "Convenience spending looks fairly controlled from your answer."
+          : `You said you buy convenience items ${convenience}. Small repeat purchases can quietly add up over a year.`,
+    },
+    {
+      title: "Internet & Mobile Plan",
+      answer: mobile,
+      min: rangeFor(mobile, {
+        "Within 6 months": [0, 100],
+        "6–12 months ago": [100, 200],
+        "Over a year ago": [150, 400],
+        "I honestly don’t know": [150, 400],
+      })[0],
+      max: rangeFor(mobile, {
+        "Within 6 months": [0, 100],
+        "6–12 months ago": [100, 200],
+        "Over a year ago": [150, 400],
+        "I honestly don’t know": [150, 400],
+      })[1],
+      insight:
+        mobile === "Within 6 months"
+          ? "Your plan was reviewed recently, so the saving may be smaller here."
+          : `You said you last compared your plan ${mobile}. Older plans often cost more than newer offers.`,
+    },
+    {
+      title: "Recurring Payment Leakage",
+      answer: recurring,
+      min: rangeFor(recurring, {
+        Monthly: [0, 100],
+        "Every few months": [100, 300],
+        Rarely: [200, 600],
+        "Almost never": [400, 1000],
+      })[0],
+      max: rangeFor(recurring, {
+        Monthly: [0, 100],
+        "Every few months": [100, 300],
+        Rarely: [200, 600],
+        "Almost never": [400, 1000],
+      })[1],
+      insight:
+        recurring === "Monthly"
+          ? "You review recurring payments regularly, so this area looks more controlled."
+          : `You said you review recurring payments ${recurring}. That can allow small charges to continue unnoticed.`,
+    },
+    {
+      title: "Unplanned Purchases",
+      answer: unplanned,
+      min: rangeFor(unplanned, {
+        Rarely: [0, 200],
+        "1–2 times/week": [300, 600],
+        "3–5 times/week": [600, 1200],
+        "Almost daily": [1000, 2000],
+      })[0],
+      max: rangeFor(unplanned, {
+        Rarely: [0, 200],
+        "1–2 times/week": [300, 600],
+        "3–5 times/week": [600, 1200],
+        "Almost daily": [1000, 2000],
+      })[1],
+      insight:
+        unplanned === "Rarely"
+          ? "Unplanned purchases do not look like a major leak from your answer."
+          : `You said you make unplanned purchases ${unplanned}. Adding a little friction could create an immediate saving.`,
+    },
+  ];
+
+  return items
+    .map((item) => {
+      const amount = midpoint(item.min, item.max);
+      return {
+        ...item,
+        amount,
+        impact: impact(amount),
+      };
+    })
+    .filter((item) => item.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+}
+
 export default function Results() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [answers, setAnswers] = useState<string[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("spendshift_answers");
+    if (stored) setAnswers(JSON.parse(stored));
+  }, []);
+
   useEffect(() => {
     let current = 0;
 
@@ -57,29 +250,40 @@ export default function Results() {
       clearTimeout(loadingTimer);
     };
   }, []);
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 2300);
-    return () => clearTimeout(t);
-  }, []);
+
+  const leaks = useMemo(() => buildLeaks(answers), [answers]);
+
+  const totalMin = leaks.reduce((sum, item) => sum + item.min, 0);
+  const totalMax = leaks.reduce((sum, item) => sum + item.max, 0);
+  const totalMid = leaks.reduce((sum, item) => sum + item.amount, 0);
+
+  const topLeaks = leaks.slice(0, 3);
+
   async function pay() {
     setBusy(true);
-    const answers = localStorage.getItem("spendshift_answers") || "[]";
+
+    const storedAnswers = localStorage.getItem("spendshift_answers") || "[]";
+
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers }),
+      body: JSON.stringify({ answers: storedAnswers }),
     });
+
     const data = await res.json();
+
     if (data.url) location.href = data.url;
     else alert(data.error || "Stripe checkout failed");
+
     setBusy(false);
   }
-  if (loading)
+
+  if (loading) {
     return (
       <div className="auditPage">
         <Header simple />
         <div className="container">
-          <div className="progressWrap ">
+          <div className="progressWrap">
             <div className="progressMeta">
               <b>Audit Progress</b>
               <span>Question 8 of 8</span>
@@ -88,22 +292,23 @@ export default function Results() {
               <span style={{ width: "100%" }} />
             </div>
           </div>
-          <div className="analysisCard ">
+
+          <div className="analysisCard">
             <div className="icon" style={{ margin: "0 auto 20px" }}>
               <ShieldCheck />
             </div>
+
             <h2>Analysing your Answers...</h2>
             <p>
-              We're scanning thousands of data points to find your biggest money
-              leaks.
+              We're scanning your answers to estimate your biggest money leaks.
             </p>
+
             <div
               className="circle"
               style={{
-                background: `conic-gradient(
-      #059625 ${progress * 3.6}deg,
-      #e5e7eb 0deg
-    )`,
+                background: `conic-gradient(#059625 ${
+                  progress * 3.6
+                }deg, #e5e7eb 0deg)`,
               }}
             >
               <div>
@@ -112,6 +317,7 @@ export default function Results() {
                 <span>Analysing</span>
               </div>
             </div>
+
             <div className="checksList">
               <div className="checkRow">
                 <div className="left">
@@ -120,7 +326,6 @@ export default function Results() {
                   </div>
                   <span>Reviewing your spending patterns</span>
                 </div>
-
                 <CheckCircle size={20} fill="#059625" color="#fff" />
               </div>
 
@@ -129,9 +334,8 @@ export default function Results() {
                   <div className="iconWrap">
                     <BarChart3 size={18} />
                   </div>
-                  <span>Comparing against smart benchmarks</span>
+                  <span>Comparing against category averages</span>
                 </div>
-
                 {progress >= 30 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : (
@@ -146,7 +350,6 @@ export default function Results() {
                   </div>
                   <span>Identifying overpayment opportunities</span>
                 </div>
-
                 {progress >= 55 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : progress >= 35 ? (
@@ -163,7 +366,6 @@ export default function Results() {
                   </div>
                   <span>Calculating your potential savings</span>
                 </div>
-
                 {progress >= 72 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : progress >= 60 ? (
@@ -173,6 +375,7 @@ export default function Results() {
                 )}
               </div>
             </div>
+
             <div className="safe">
               <div className="trend-ng-class">
                 <Lock color="#059625" size={81} />
@@ -180,7 +383,7 @@ export default function Results() {
               <div>
                 <b>Your data is safe with us</b>
                 <p className="mini">
-                  We use bank-level encryption and never share your information.
+                  We do not need bank access to estimate your savings
                   opportunities.
                 </p>
               </div>
@@ -189,142 +392,196 @@ export default function Results() {
         </div>
       </div>
     );
+  }
+
   return (
     <div className="auditPage">
       <Header simple />
+
       <main className="container">
         <div className="main-section-results">
-        <section className="resultsHero">
-          <div className="content-wrap-first">
-            <h1 style={{ fontSize: 55 }}>
-              We found your{" "} <br />
-              <span style={{ color: "#059625" }}>biggest money leaks</span>
-            </h1>
-            <p>
-              Based on your answers, we identified areas where you could be
-              overpaying every year.
-            </p>
-            <div className="audit-page-label">
-              <div>   <ShieldCheck size={34} /></div>
-              <div><p>
-              Your data is private & secure</p>
-              
+          <section className="resultsHero">
+            <div className="content-wrap-first">
+              <h1 style={{ fontSize: 55 }}>
+                We found your <br />
+                <span style={{ color: "#059625" }}>
+                  biggest money leaks
+                </span>
+              </h1>
+
+              <p>
+                Based on your answers, we identified areas where you could be
+                overpaying every year.
+              </p>
+
+              <div className="audit-page-label">
+                <div>
+                  <ShieldCheck size={34} />
+                </div>
+                <div>
+                  <p>Your data is private & secure</p>
+                </div>
+              </div>
+
+              <div className="audit-page-label">
+                <div>
+                  <ChartNoAxesCombined size={34} />
+                </div>
+                <div>
+                  <p>Real insights. Real savings.</p>
+                </div>
+              </div>
             </div>
+
+            <div
+              className="greenPanel"
+              style={{
+                backgroundImage: "url('/result/panelbg.png')",
+              }}
+            >
+              <span className="badge">Total Recoverable Cash Found</span>
+
+              <h2 style={{ fontSize: 65 }}>
+                {money(totalMin)} - {money(totalMax)}/year
+              </h2>
+
+              <p className="conclu-para">
+                <Info size={34} />
+                Based on your answers, we estimated your annual savings using
+                category averages and conservative reduction targets.
+              </p>
+
+              <button onClick={pay} className="btn white">
+                {busy ? "Opening checkout..." : "Get My Full Savings Plan"}
+              </button>
             </div>
-             <div className="audit-page-label">
-              <div>   <ChartNoAxesCombined size={34} /></div>
-              <div>
-                <p>Fixed insights. Real savings.</p>
-              
+          </section>
+
+          <div className="leakTabs">
+            {leaks.slice(0, 5).map((l) => (
+              <div className="leakTab" key={l.title}>
+                <small>{l.impact}</small>
+                <strong>{money(l.amount)}</strong>
+                <span>{l.title}</span>
+              </div>
+            ))}
+
+            <div className="leakTab">
+              <small>LOCKED</small>
+              <strong>Unlock</strong>
+              <span>Full personalised action plan</span>
             </div>
-            </div>
-            
           </div>
-          <div className="greenPanel"
-          style={{ 
-    backgroundImage: "url('/result/panelbg.png')", 
-  }}>
-            <span className="badge">Total Recoverable Cash Found</span>
-            <h2 style={{ fontSize: 65 }}>$2,300 - $4,800/year</h2>
-            <p className="conclu-para">
-             <Info size={34} /> This is a range based on your feedback. Your actual savings may be
-              higher or lower.
-            </p>
-            <button onClick={pay} className="btn white">
-              {busy ? "Opening checkout..." : "Get My Full Savings Plan"}
-            </button>
-          </div>
-          
-        </section>
-        <div className="leakTabs">
-          {leaks.map((l) => (
-            <div className="leakTab" key={l[1]}>
-              <small>{l[0]}</small>
-              <strong>{l[2]}</strong>
-              <span>{l[1]}</span>
-            </div>
-          ))}
         </div>
-</div>
-        
+
         <h2>Your Top 3 money leaks</h2>
+
         <section className="mainResults">
           <div>
-            {leaks.slice(0, 3).map((l, idx) => (
-              <article className="panel leak" key={l[1]}>
+            {topLeaks.map((l, idx) => (
+              <article className="panel leak" key={l.title}>
                 <span className="pill">
-                  0{idx + 1} {l[0]}
+                  0{idx + 1} {l.impact}
                 </span>
-                <h3>{l[1]}</h3>
+
+                <h3>{l.title}</h3>
+
                 <div className="add-bg">
-                <p>
-                  Based on your answers, this category looks like one of your
-                  strongest opportunities.
-                </p>
-                <div className="savings"><span>Save</span> {l[2]} <span>per year</span></div></div>
+                  <p>{l.insight}</p>
+
+                  <div className="savings">
+                    <span>Save</span> {money(l.amount)}{" "}
+                    <span>per year</span>
+                  </div>
+                </div>
+
                 <p className="mini">
-                  Full monthly action steps and scripts are included in your
-                  unlocked report.
+                  The full report shows exactly what to do next, including
+                  scripts and a 30-day action plan.
                 </p>
               </article>
             ))}
+
             <div className="safe">
-            <div className="trend-ng-class">
-            <Zap color="#059625" size={81} /></div>
-            <div>
-              <b>These are just the big ones.</b>
-              <p className="mini">
-                Your full report includes personalised insights across 10+
-                  categories.
-              </p>
+              <div className="trend-ng-class">
+                <Zap color="#059625" size={81} />
+              </div>
+              <div>
+                <b>These are just the big ones.</b>
+                <p className="mini">
+                  Your full report includes deeper personalised insights,
+                  hidden leaks, scripts, and action steps.
+                </p>
+              </div>
             </div>
           </div>
-            
-          </div>
+
           <aside className="panel reportBox">
-            <span className="pill"><BsCheckCircleFill size={20} color="#059625" /> Unlock Your <span>Full Potential</span></span>
+            <span className="pill">
+              <BsCheckCircleFill size={20} color="#059625" /> Unlock Your{" "}
+              <span>Full Potential</span>
+            </span>
+
             <h2>Get your personalised action plan</h2>
-          
+
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> See all your money leaks
+              <BsCheckCircleFill size={15} color="#059625" /> See all your
+              money leaks
             </p>
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Get your exact savings
+              <BsCheckCircleFill size={15} color="#059625" /> Get your
+              estimated savings
             </p>
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Step-by-step action plan
+              <BsCheckCircleFill size={15} color="#059625" /> Step-by-step
+              action plan
             </p>
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Track your progress
+              <BsCheckCircleFill size={15} color="#059625" /> Scripts you can
+              use
             </p>
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Save more, stress less
+              <BsCheckCircleFill size={15} color="#059625" /> Save more, stress
+              less
             </p>
 
-          
             <div className="card unlock-card">
-              <h5><FileClock size={25} color="#059625" />Your Full Report</h5>
-              <p><FileClock size={25} color="#fff" /> Potential annual savings</p>
-              <div className="savings">$4,276</div>
-              <div className="top-bar-leaks">
-  <div className="item">
-    <span>Top leaks found:</span>
-    <span>12</span>
-  </div>
+              <h5>
+                <FileClock size={25} color="#059625" />
+                Your Full Report
+              </h5>
 
-  <div className="item">
-    <span>Action plan steps:</span>
-    <span>18</span>
-  </div>
-</div>
-            
+              <p>
+                <FileClock size={25} color="#fff" /> Potential annual savings
+              </p>
+
+              <div className="savings">{money(totalMid)}</div>
+
+              <div className="top-bar-leaks">
+                <div className="item">
+                  <span>Top leaks found:</span>
+                  <span>{leaks.length}</span>
+                </div>
+
+                <div className="item">
+                  <span>Action plan steps:</span>
+                  <span>18</span>
+                </div>
+              </div>
             </div>
-            <button onClick={pay} className="unlock flex items-center justify-center gap-2">
-  <Lock size={20} color="#fff" />
-  <span>{busy ? "Redirecting..." : "Unlock My Full Report"}</span>
-</button>
+
+            <button
+              onClick={pay}
+              className="unlock flex items-center justify-center gap-2"
+            >
+              <Lock size={20} color="#fff" />
+              <span>{busy ? "Redirecting..." : "Unlock My Full Report"}</span>
+            </button>
+
             <p className="mini">
-              Get instant access to your customized step-by-step negotiation scripts and direct cancellation links.
+              Estimates are based on your answers and typical spending patterns.
+              Actual savings may vary. This is general information, not
+              financial advice.
             </p>
           </aside>
         </section>

@@ -699,6 +699,9 @@ section#pricing .btn {
 }
 .container.footerBottom a {
     margin-bottom: 0;
+}main.container.reportUnlockedPage {
+    padding-top: 40px;
+    padding-bottom: 40px;
 }
 .footerBottom {
     color: #cdd4cf;
@@ -1755,7 +1758,7 @@ nav.nav a {
     display: flex;
 }
   .main-section-results {
-    padding: 0 17px;
+    padding: 0 17px 17px 17px;
 }
   .greenPanel {
     background: #015d18 !important;
