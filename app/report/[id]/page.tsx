@@ -147,9 +147,9 @@ export default async function ReportPage({
             </h1>
 
             <p>
-              Your personalised SpendShift report is ready. It includes your
-              highest-impact leaks, practical next steps, scripts, and a 30-day
-              action plan.
+                Your biggest opportunities are highlighted below, with estimated yearly
+  savings, quick wins, scripts, and a 30-day action plan to help you take
+  action without feeling overwhelmed.
             </p>
 
             <div className="reportMeta">

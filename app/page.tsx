@@ -54,8 +54,7 @@ export default function Home() {
                 Find your biggest money leaks in under <span>2 minutes.</span>
               </h1>
               <p>
-                We analyse your spending using real data to uncover hidden money
-                leaks and show you exactly how to fix them fast.
+                We analyse your answers to identify likely money leaks and show you where savings opportunities may exist.
               </p>
               <div className="checks">
                 <span>
@@ -96,7 +95,7 @@ export default function Home() {
                   Free results in under 2 minutes. No credit card required.
                 </p>
                 <p className="margin-zero">
-                  <span>Join 10,000+ Australians saving smarter</span>
+                  <span>Built for Australians. Private & secure.</span>
                 </p>
               </div>
             </div>
@@ -307,50 +306,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="container testimonial">
-         <div className="quote">
-  <Quote
-    src="/home/quote-icon.svg"
-    alt="Quote Icon"
-    width={36}
-    height={26}
-    priority
-  />
-
-  <p>
-    SpendShift showed me I was wasting over $3,000 a year on things I'd
-    completely forgotten about. It literally changed the way I manage money.
-  </p>
-
-  <div className="author">
-    <Author
-      src="/home/author-image.svg"
-      alt="Sarah"
-      width={120}
-      height={120}
-      className="authorImage"
-    />
-
-    <div className="authorInfo">
-      <h4>Sarah J.</h4>
-      <span>Melbourne, VIC</span>
-    </div>
-  </div>
-</div>
-          <div className="cards miniCards">
-            <div className="card">
-              <b>Average savings found</b>
-              <div className="savings">$2,800</div>
-              <p>/year</p>
-              <p>Australia-wide</p>
-            </div>
-            <div className="card">
-              <b>Total Aussies already saving</b>
-              <div className="savings">10,000+</div>
-              <p>and counting</p>
-            </div>
-          </div>
-        </section>
+       
 
         <section id="pricing">
           <div className="container">

@@ -247,7 +247,7 @@ Actions:
 ## Final Clarity Summary
 [3–4 sentences. Reference the user's stated goal. Name the total estimated saving one more time.]
 
-Disclaimer:
+## Disclaimer:
 Estimates are based on your answers and typical spending patterns. Actual savings may vary. This is general information and not financial advice.
 
 ## TONE AND STYLE RULES
