@@ -1,12 +1,53 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
+import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 function makeReportId() {
   return `rpt_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function sendReportEmail(email: string, reportId: string) {
+  const reportUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/report/${reportId}`;
+
+  await resend.emails.send({
+    from: "SpendShift <onboarding@resend.dev>",
+    to: email,
+    subject: "Your SpendShift Savings Report Is Ready",
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
+        <h2>Your SpendShift report is ready</h2>
+
+        <p>
+          Your personalised savings report has been generated and is ready to view.
+        </p>
+
+        <p>
+          It includes your biggest money leaks, estimated yearly savings,
+          practical next steps, scripts, and a 30-day action plan.
+        </p>
+
+        <a href="${reportUrl}"
+          style="display:inline-block;background:#059625;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">
+          View My Report
+        </a>
+
+        <p style="margin-top:24px;font-size:13px;color:#6b7280;">
+          If the button does not work, copy and paste this link into your browser:<br />
+          ${reportUrl}
+        </p>
+
+        <p style="font-size:12px;color:#6b7280;">
+          Estimates are based on your answers and typical spending patterns.
+          Actual savings may vary. This is general information and not financial advice.
+        </p>
+      </div>
+    `,
+  });
 }
 
 export async function POST(req: Request) {
@@ -291,9 +332,20 @@ ${JSON.stringify(answers, null, 2)}
       stripe_session_id: sessionId,
       answers,
       report,
+      email: session.customer_details?.email || null,
     });
 
     if (error) throw error;
+
+    const customerEmail = session.customer_details?.email;
+
+    if (customerEmail) {
+      try {
+        await sendReportEmail(customerEmail, reportId);
+      } catch (emailError) {
+        console.error("Resend email failed:", emailError);
+      }
+    }
 
     return NextResponse.json({ reportId });
   } catch (e: any) {
