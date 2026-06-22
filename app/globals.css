@@ -703,6 +703,62 @@ section#pricing .btn {
     padding-top: 40px;
     padding-bottom: 40px;
 }
+.savingsEquivalent {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.savingsEquivalent span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.savingsEquivalent h3 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 22px;
+}
+
+.savingsEquivalent p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.5;
+}
+
+.summaryWowBox {
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.summaryWowBox span {
+  display: block;
+  margin-bottom: 6px;
+  color: #059625;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summaryWowBox strong {
+  display: block;
+  color: #111827;
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.summaryWowBox p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
 .footerBottom {
     color: #cdd4cf;
     border-top: 1px solid #5b5f5c;
@@ -1222,7 +1278,8 @@ span.reportStatus svg {
     padding: 0;
 }
 .documentBody {
-    background: #cccccc30;
+    background: linear-gradient(
+117deg, #cccccc30, transparent);
     padding: 20px 40px;
     border-radius: 20px;
     margin: 20px 0px;
@@ -1843,6 +1900,12 @@ nav.nav a {
 }
 
 @media (max-width: 600px) {
+  .stat strong {
+    font-size: 20px;
+}
+  .potential-report {
+    padding: 0;
+}
   .container.footerBottom div {
     justify-content: center;
 }
@@ -1968,7 +2031,7 @@ nav.nav a {
     font-size: 27px !important;
     line-height: 37px !important;
 }
-.stat {
-    padding: 5px 14px;
-}
+    .stats-section .stat {
+        padding: 0 0;
+    }
 }
