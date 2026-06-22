@@ -47,6 +47,26 @@ function rangeFor(answer: string, map: Record<string, [number, number]>) {
   return map[answer] || [0, 0];
 }
 
+function getSavingsComparison(amount: number) {
+  if (amount >= 4000) {
+    return "That could be enough for a family holiday, several weeks of groceries, or a meaningful emergency buffer.";
+  }
+
+  if (amount >= 2500) {
+    return "That could cover several weeks of groceries or multiple household bills.";
+  }
+
+  if (amount >= 1500) {
+    return "That could cover multiple utility bills or give your savings buffer a real boost.";
+  }
+
+  if (amount >= 500) {
+    return "That could still make a meaningful difference across the year with only a few small changes.";
+  }
+
+  return "Small changes can still create useful savings over time.";
+}
+
 function buildLeaks(answers: string[]): Leak[] {
   const takeaway = answers[0] || "";
   const subscriptions = answers[1] || "";
@@ -56,162 +76,157 @@ function buildLeaks(answers: string[]): Leak[] {
   const recurring = answers[5] || "";
   const unplanned = answers[6] || "";
 
-  const items: Omit<Leak, "amount" | "impact">[] = [
-    {
+  function createLeak({
+    title,
+    answer,
+    range,
+    copy,
+  }: {
+    title: string;
+    answer: string;
+    range: [number, number];
+    copy: (amount: number) => string;
+  }): Leak {
+    const amount = midpoint(range[0], range[1]);
+
+    return {
+      title,
+      answer,
+      min: range[0],
+      max: range[1],
+      amount,
+      impact: impact(amount),
+      insight: copy(amount),
+    };
+  }
+
+  const leaks: Leak[] = [
+    createLeak({
       title: "Takeaway & Food Delivery",
       answer: takeaway,
-      min: rangeFor(takeaway, {
+      range: rangeFor(takeaway, {
         Never: [0, 0],
         "1–2 times/week": [600, 1000],
         "3–5 times/week": [1200, 2000],
         "Almost daily": [2500, 4000],
-      })[0],
-      max: rangeFor(takeaway, {
-        Never: [0, 0],
-        "1–2 times/week": [600, 1000],
-        "3–5 times/week": [1200, 2000],
-        "Almost daily": [2500, 4000],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         takeaway === "Never"
-          ? "You said you rarely rely on takeaway, so this is not likely to be your biggest leak."
-          : `You said you order takeaway ${takeaway}. Reducing just part of that habit could free up a meaningful amount each year.`,
-    },
-    {
+          ? "You said you do not rely on takeaway often, so this is unlikely to be your biggest leak."
+          : `You said you order takeaway ${takeaway}. Reducing just part of that habit could save approximately ${money(
+              amount
+            )} per year.`,
+    }),
+
+    createLeak({
       title: "Subscriptions",
       answer: subscriptions,
-      min: rangeFor(subscriptions, {
+      range: rangeFor(subscriptions, {
         "0–2": [0, 100],
         "3–5": [400, 700],
         "6–10": [800, 1400],
         "10+": [1500, 2500],
         "Not sure": [800, 1400],
-      })[0],
-      max: rangeFor(subscriptions, {
-        "0–2": [0, 100],
-        "3–5": [400, 700],
-        "6–10": [800, 1400],
-        "10+": [1500, 2500],
-        "Not sure": [800, 1400],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         subscriptions === "0–2"
           ? "You have a low subscription count, so there may only be a small saving here."
-          : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could remove unused or forgotten recurring charges.`,
-    },
-    {
+          : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could save approximately ${money(
+              amount
+            )} per year.`,
+    }),
+
+    createLeak({
       title: "Insurance Overpayment",
       answer: insurance,
-      min: rangeFor(insurance, {
+      range: rangeFor(insurance, {
         "Within 6 months": [0, 200],
         "6–12 months ago": [150, 400],
         "1–2 years ago": [300, 700],
         "Over 2 years ago": [500, 1200],
         "Never / not sure": [600, 1500],
-      })[0],
-      max: rangeFor(insurance, {
-        "Within 6 months": [0, 200],
-        "6–12 months ago": [150, 400],
-        "1–2 years ago": [300, 700],
-        "Over 2 years ago": [500, 1200],
-        "Never / not sure": [600, 1500],
-      })[1],
-      insight:
-        insurance === "Within 6 months"
+        "I don’t currently have insurance": [0, 0],
+      }),
+      copy: (amount) =>
+        insurance === "I don’t currently have insurance"
+          ? "You said you do not currently have insurance, so this area has been excluded from your savings estimate."
+          : insurance === "Within 6 months"
           ? "You reviewed insurance recently, so this may not be your highest opportunity."
-          : `You said you last compared insurance ${insurance}. That usually means there may be a better rate available.`,
-    },
-    {
+          : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
+              amount
+            )} per year in potential overpayment.`,
+    }),
+
+    createLeak({
       title: "Convenience Spending",
       answer: convenience,
-      min: rangeFor(convenience, {
+      range: rangeFor(convenience, {
         Rarely: [0, 200],
         "1–2 times/week": [400, 700],
         "3–5 times/week": [800, 1400],
         Daily: [1500, 2500],
-      })[0],
-      max: rangeFor(convenience, {
-        Rarely: [0, 200],
-        "1–2 times/week": [400, 700],
-        "3–5 times/week": [800, 1400],
-        Daily: [1500, 2500],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         convenience === "Rarely"
           ? "Convenience spending looks fairly controlled from your answer."
-          : `You said you buy convenience items ${convenience}. Small repeat purchases can quietly add up over a year.`,
-    },
-    {
+          : `You said you buy convenience items ${convenience}. Small repeat purchases could add up to approximately ${money(
+              amount
+            )} per year.`,
+    }),
+
+    createLeak({
       title: "Internet & Mobile Plan",
       answer: mobile,
-      min: rangeFor(mobile, {
+      range: rangeFor(mobile, {
         "Within 6 months": [0, 100],
         "6–12 months ago": [100, 200],
         "Over a year ago": [150, 400],
         "I honestly don’t know": [150, 400],
-      })[0],
-      max: rangeFor(mobile, {
-        "Within 6 months": [0, 100],
-        "6–12 months ago": [100, 200],
-        "Over a year ago": [150, 400],
-        "I honestly don’t know": [150, 400],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         mobile === "Within 6 months"
           ? "Your plan was reviewed recently, so the saving may be smaller here."
-          : `You said you last compared your plan ${mobile}. Older plans often cost more than newer offers.`,
-    },
-    {
+          : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
+              amount
+            )} per year more than newer offers.`,
+    }),
+
+    createLeak({
       title: "Recurring Payment Leakage",
       answer: recurring,
-      min: rangeFor(recurring, {
+      range: rangeFor(recurring, {
         Monthly: [0, 100],
         "Every few months": [100, 300],
         Rarely: [200, 600],
         "Almost never": [400, 1000],
-      })[0],
-      max: rangeFor(recurring, {
-        Monthly: [0, 100],
-        "Every few months": [100, 300],
-        Rarely: [200, 600],
-        "Almost never": [400, 1000],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         recurring === "Monthly"
           ? "You review recurring payments regularly, so this area looks more controlled."
-          : `You said you review recurring payments ${recurring}. That can allow small charges to continue unnoticed.`,
-    },
-    {
+          : `You said you review recurring payments ${recurring}. That could allow around ${money(
+              amount
+            )} per year in small charges to continue unnoticed.`,
+    }),
+
+    createLeak({
       title: "Unplanned Purchases",
       answer: unplanned,
-      min: rangeFor(unplanned, {
+      range: rangeFor(unplanned, {
         Rarely: [0, 200],
         "1–2 times/week": [300, 600],
         "3–5 times/week": [600, 1200],
         "Almost daily": [1000, 2000],
-      })[0],
-      max: rangeFor(unplanned, {
-        Rarely: [0, 200],
-        "1–2 times/week": [300, 600],
-        "3–5 times/week": [600, 1200],
-        "Almost daily": [1000, 2000],
-      })[1],
-      insight:
+      }),
+      copy: (amount) =>
         unplanned === "Rarely"
           ? "Unplanned purchases do not look like a major leak from your answer."
-          : `You said you make unplanned purchases ${unplanned}. Adding a little friction could create an immediate saving.`,
-    },
+          : `You said you make unplanned purchases ${unplanned}. Adding a little friction could save approximately ${money(
+              amount
+            )} per year.`,
+    }),
   ];
 
-  return items
-    .map((item) => {
-      const amount = midpoint(item.min, item.max);
-      return {
-        ...item,
-        amount,
-        impact: impact(amount),
-      };
-    })
+  return leaks
     .filter((item) => item.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 }
@@ -224,7 +239,14 @@ export default function Results() {
 
   useEffect(() => {
     const stored = localStorage.getItem("spendshift_answers");
-    if (stored) setAnswers(JSON.parse(stored));
+
+    if (stored) {
+      try {
+        setAnswers(JSON.parse(stored));
+      } catch {
+        setAnswers([]);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -258,6 +280,7 @@ export default function Results() {
   const totalMid = leaks.reduce((sum, item) => sum + item.amount, 0);
 
   const topLeaks = leaks.slice(0, 3);
+  const savingsComparison = getSavingsComparison(totalMid);
 
   async function pay() {
     setBusy(true);
@@ -282,12 +305,14 @@ export default function Results() {
     return (
       <div className="auditPage">
         <Header simple />
+
         <div className="container">
           <div className="progressWrap">
             <div className="progressMeta">
               <b>Audit Progress</b>
               <span>Question 8 of 8</span>
             </div>
+
             <div className="bar">
               <span style={{ width: "100%" }} />
             </div>
@@ -299,6 +324,7 @@ export default function Results() {
             </div>
 
             <h2>Analysing your Answers...</h2>
+
             <p>
               We're scanning your answers to estimate your biggest money leaks.
             </p>
@@ -326,6 +352,7 @@ export default function Results() {
                   </div>
                   <span>Reviewing your spending patterns</span>
                 </div>
+
                 <CheckCircle size={20} fill="#059625" color="#fff" />
               </div>
 
@@ -336,6 +363,7 @@ export default function Results() {
                   </div>
                   <span>Comparing against category averages</span>
                 </div>
+
                 {progress >= 30 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : (
@@ -350,6 +378,7 @@ export default function Results() {
                   </div>
                   <span>Identifying overpayment opportunities</span>
                 </div>
+
                 {progress >= 55 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : progress >= 35 ? (
@@ -366,6 +395,7 @@ export default function Results() {
                   </div>
                   <span>Calculating your potential savings</span>
                 </div>
+
                 {progress >= 72 ? (
                   <CheckCircle size={20} fill="#059625" color="#fff" />
                 ) : progress >= 60 ? (
@@ -380,6 +410,7 @@ export default function Results() {
               <div className="trend-ng-class">
                 <Lock color="#059625" size={81} />
               </div>
+
               <div>
                 <b>Your data is safe with us</b>
                 <p className="mini">
@@ -451,6 +482,10 @@ export default function Results() {
                 category averages and conservative reduction targets.
               </p>
 
+              <p className="mini" style={{ color: "#fff", marginTop: 12 }}>
+                {savingsComparison}
+              </p>
+
               <button onClick={pay} className="btn white">
                 {busy ? "Opening checkout..." : "Get My Full Savings Plan"}
               </button>
@@ -506,6 +541,7 @@ export default function Results() {
               <div className="trend-ng-class">
                 <Zap color="#059625" size={81} />
               </div>
+
               <div>
                 <b>These are just the big ones.</b>
                 <p className="mini">
@@ -528,18 +564,22 @@ export default function Results() {
               <BsCheckCircleFill size={15} color="#059625" /> See all your
               money leaks
             </p>
+
             <p className="list-item">
               <BsCheckCircleFill size={15} color="#059625" /> Get your
               estimated savings
             </p>
+
             <p className="list-item">
               <BsCheckCircleFill size={15} color="#059625" /> Step-by-step
               action plan
             </p>
+
             <p className="list-item">
               <BsCheckCircleFill size={15} color="#059625" /> Scripts you can
               use
             </p>
+
             <p className="list-item">
               <BsCheckCircleFill size={15} color="#059625" /> Save more, stress
               less

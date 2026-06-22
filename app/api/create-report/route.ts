@@ -111,6 +111,10 @@ Subscriptions:
 - Not sure: treat as 6–10
 
 Insurance:
+- I don’t currently have insurance: $0/year
+  Do not treat this as insurance overpayment.
+  Do not recommend comparing insurance.
+  If relevant, mention that insurance was excluded from the savings estimate.
 - Within 6 months: $0–$200/year
 - 6–12 months ago: $150–$400/year
 - 1–2 years ago: $300–$700/year

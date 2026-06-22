@@ -76,14 +76,46 @@ function renderReport(report: string) {
       );
     }
 
+    if (trimmed.startsWith("Estimated saving:")) {
+      return (
+        <div className="reportCallout savingCallout" key={index}>
+          <b>Estimated saving</b>
+          <strong>{trimmed.replace("Estimated saving:", "").trim()}</strong>
+        </div>
+      );
+    }
+
+    if (trimmed.startsWith("Why this matters:")) {
+      return (
+        <div className="reportCallout whyCallout" key={index}>
+          <b>Why this matters</b>
+          <p>{trimmed.replace("Why this matters:", "").trim()}</p>
+        </div>
+      );
+    }
+
+    if (trimmed.startsWith("Quick win:")) {
+      return (
+        <div className="reportCallout quickCallout" key={index}>
+          <b>Quick win</b>
+          <p>{trimmed.replace("Quick win:", "").trim()}</p>
+        </div>
+      );
+    }
+
+    if (trimmed.startsWith("Next step:")) {
+      return (
+        <div className="reportCallout nextCallout" key={index}>
+          <b>Next step</b>
+          <p>{trimmed.replace("Next step:", "").trim()}</p>
+        </div>
+      );
+    }
+
     if (
       trimmed.startsWith("Impact:") ||
-      trimmed.startsWith("Estimated saving:") ||
       trimmed.startsWith("What your answer revealed:") ||
-      trimmed.startsWith("Why this matters:") ||
       trimmed.startsWith("Likely pattern:") ||
-      trimmed.startsWith("Quick win:") ||
-      trimmed.startsWith("Next step:") ||
       trimmed.startsWith("Why this reduces stress:") ||
       trimmed.startsWith("When to use:") ||
       trimmed.startsWith("Script:") ||

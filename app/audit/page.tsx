@@ -29,17 +29,18 @@ const qs = [
     options: ["0–2", "3–5", "6–10", "10+", "Not sure"],
     icon: CreditCard,
   },
-  {
-    q: "When did you last compare your insurance?",
-    options: [
-      "Within 6 months",
-      "6–12 months ago",
-      "1–2 years ago",
-      "Over 2 years ago",
-      "Never / not sure",
-    ],
-    icon: ShieldCheck,
-  },
+ {
+  q: "When did you last compare your insurance?",
+  options: [
+    "I don’t currently have insurance",
+    "Within 6 months",
+    "6–12 months ago",
+    "1–2 years ago",
+    "Over 2 years ago",
+    "Never / not sure",
+  ],
+  icon: ShieldCheck,
+},
   {
     q: "How often do you buy convenience items like coffee, drinks, snacks, or quick lunches?",
     options: ["Rarely", "1–2 times/week", "3–5 times/week", "Daily"],
