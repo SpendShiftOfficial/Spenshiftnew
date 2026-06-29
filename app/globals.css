@@ -216,8 +216,9 @@ nav.nav a {
 
 .docInfoRow {
     margin-bottom: 10px;
-    font-family: 'Mona Sans';
+    font-family: Mona Sans;
     font-size: 18px;
+    margin-top: 12px;
 }
 .badge {
   display: inline-flex;
@@ -1592,7 +1593,16 @@ span.reportStatus {
   background: linear-gradient(90deg, #059625, #13bd45);
   animation: reportProgress 1.4s ease-in-out infinite;
 }
-
+.reportCallout.savingCallout b:after {
+    content: ':';
+}
+.reportCallout.savingCallout {
+    gap: 10px;
+    display: flex;
+    color: green;
+    font-size: 20px;
+    text-transform: uppercase;
+}
 @keyframes reportProgress {
   0% {
     transform: translateX(-110%);
@@ -1900,6 +1910,19 @@ nav.nav a {
 }
 
 @media (max-width: 600px) {
+  .reportCallout.savingCallout {
+    font-size: 17px;
+}
+  section#why .card {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+  a.logo {
+    margin: 0 auto;
+}
+  header.topbar a.btn {
+    display: none;
+}
   .stat strong {
     font-size: 20px;
 }
@@ -1919,18 +1942,19 @@ nav.nav a {
   .summaryBox div b {
     font-size: 19px;
 }
-      h3.docSubheading:before {
-        top: 29px;
+          h3.docSubheading:before {
         width: 16px;
+        top: 20px;
     }
   p.docParagraph {
     font-size: 14px;
     line-height: 24px;
 }
 
-    h3.docSubheading {
+      h3.docSubheading {
         padding: 9px 0 9px 31px;
         font-size: 16px !important;
+        line-height: 26px !important;
     }
   h2.docHeading:before {
     top: 15px;
