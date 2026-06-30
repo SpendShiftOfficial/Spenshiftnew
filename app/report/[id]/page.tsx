@@ -196,6 +196,22 @@ function renderReport(report: string) {
       continue;
     }
 
+    if (trimmed.startsWith("Confidence:")) {
+  const currentContent = trimmed.replace("Confidence:", "").trim();
+  const content = currentContent || takeNextContent();
+
+  elements.push(
+    <div className="reportCallout confidenceCallout" key={index}>
+      <div className="calloutHeader">
+        <ShieldCheck size={22} color="#059625" />
+        <b>Confidence</b>
+      </div>
+      <p>{content}</p>
+    </div>
+  );
+  continue;
+}
+
     if (trimmed.startsWith("Why this matters:")) {
       const currentContent = trimmed.replace("Why this matters:", "").trim();
       const content = currentContent || takeNextContent();

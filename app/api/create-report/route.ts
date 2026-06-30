@@ -150,6 +150,23 @@ Total estimated savings = sum of all applicable midpoints. Present as a single c
 
 Savings estimates must feel credible. Mention once that estimates are based on Australian category averages, conservative reduction targets, and spending patterns similar to the user's responses.
 
+## CONFIDENCE RULES
+
+For every Estimated Saving, include a Confidence rating.
+
+Confidence reflects how reliable the estimate is based on the user's answers, not whether the saving is worthwhile.
+
+Use only one of the following:
+
+- High: The user provided a clear behavioural frequency or count (e.g. Daily, Almost daily, 3–5x/week, 10+, Almost never, Never/not sure).
+- Moderate: The estimate depends partly on external pricing or comparison opportunities (e.g. insurance, internet/mobile plans, energy, bank fees).
+- Lower: The estimate is based on limited information, infrequent behaviour, or weaker evidence.
+
+Display it like this:
+
+Estimated saving: $800/year
+Confidence: High
+
 ## PRIORITISATION RULES
 
 Always rank leaks from HIGHEST savings potential to LOWEST.
@@ -201,6 +218,7 @@ Use this exact structure. Do not skip any section. Do not add extra sections.
 ### 01. [Category Name]
 Impact: High Impact / Medium Impact / Lower Impact
 Estimated saving: $[X,XXX]/year
+Confidence: [High / Moderate / Lower]
 
 What your answer revealed:
 [Maximum 2 short sentences]

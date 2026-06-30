@@ -1795,6 +1795,10 @@ span.reportStatus {
   background: #f5f3ff;
   border-color: #ddd6fe;
 }
+.confidenceCallout {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
 .reportCallout p {
     padding-left: 30px;
     padding-top: 10px;
