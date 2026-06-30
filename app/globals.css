@@ -1678,7 +1678,31 @@ span.reportStatus {
 .spin {
   animation: spin 0.9s linear infinite;
 }
+.wowItems {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
 
+.wowItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wowItem p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.savingsEquivalent .wowItem p {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.summaryWowBox .wowItem p {
+  color: #374151;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);

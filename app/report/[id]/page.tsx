@@ -33,42 +33,53 @@ function getSavingsNumber(savings: string): number {
 }
 
 function getSavingsEquivalent(amount: number) {
+  const groceryWeeks = Math.max(1, Math.round(amount / 200));
+  const utilityMonths = Math.max(1, Math.round(amount / 350));
+
   if (amount >= 6000) {
     return {
       label: "What this could mean",
-      title: "A serious savings buffer",
-      text: "That could cover a family holiday, several weeks of groceries, or a meaningful emergency buffer.",
+      title: "That is real breathing room",
+      items: [
+        `Around ${groceryWeeks} weeks of groceries`,
+        "A meaningful family holiday fund",
+        `${utilityMonths} months of household bills`,
+      ],
     };
   }
 
   if (amount >= 4000) {
     return {
       label: "What this could mean",
-      title: "A family holiday or grocery breathing room",
-      text: "That could be enough for a family holiday, or around 20 weeks of groceries at $200/week.",
+      title: "That is more than a small saving",
+      items: [
+        `Around ${groceryWeeks} weeks of groceries`,
+        "A domestic holiday fund",
+        `${utilityMonths} months of utility bills`,
+      ],
     };
   }
 
   if (amount >= 2500) {
     return {
       label: "What this could mean",
-      title: "Weeks of groceries covered",
-      text: "That could cover roughly 12 weeks of groceries at $200/week.",
-    };
-  }
-
-  if (amount >= 1500) {
-    return {
-      label: "What this could mean",
-      title: "Multiple bills covered",
-      text: "That could cover several household bills or give your savings buffer a strong boost.",
+      title: "That could ease everyday pressure",
+      items: [
+        `Around ${groceryWeeks} weeks of groceries`,
+        `${utilityMonths} months of household bills`,
+        "A stronger emergency buffer",
+      ],
     };
   }
 
   return {
     label: "What this could mean",
     title: "Money staying with you",
-    text: "Even a smaller saving means less money quietly disappearing each month.",
+    items: [
+      `Around ${groceryWeeks} weeks of groceries`,
+      "Less money quietly disappearing",
+      "A stronger savings buffer",
+    ],
   };
 }
 
@@ -259,7 +270,14 @@ export default async function ReportPage({
               <div className="savingsEquivalent">
                 <span>{equivalent.label}</span>
                 <h3>{equivalent.title}</h3>
-                <p>{equivalent.text}</p>
+                <div className="wowItems">
+  {equivalent.items.map((item) => (
+    <div className="wowItem" key={item}>
+      <CheckCircle2 size={16} fill="#fff" stroke="#059625" />
+      <p>{item}</p>
+    </div>
+  ))}
+</div>
               </div>
             </div>
           </section>
@@ -281,7 +299,14 @@ export default async function ReportPage({
               <div className="summaryWowBox">
                 <span>{equivalent.label}</span>
                 <strong>{equivalent.title}</strong>
-                <p>{equivalent.text}</p>
+                <div className="wowItems summary">
+  {equivalent.items.map((item) => (
+    <div className="wowItem" key={item}>
+      <CheckCircle2 size={16} fill="#059625" stroke="white" />
+      <p>{item}</p>
+    </div>
+  ))}
+</div>
               </div>
 
               <div className="potential-report">
