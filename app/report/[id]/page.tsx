@@ -1,3 +1,4 @@
+import type React from "react";
 import Header from "@/components/Header";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -94,7 +95,7 @@ function renderReport(report: string) {
     .split("\n")
     .filter((line: string) => line.trim() !== "");
 
-  const elements = [];
+ const elements: React.ReactNode[] = [];
 
   for (let index = 0; index < lines.length; index++) {
     const trimmed = lines[index].trim();
