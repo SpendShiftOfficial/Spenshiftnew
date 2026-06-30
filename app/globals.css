@@ -1714,16 +1714,86 @@ span.reportStatus {
   border-radius: 14px;
   cursor: pointer;
 }
+.savingChecklistItem {
+  transition: all .25s ease;
+}
+.savingChecklistItem input:checked + span {
+  text-decoration: line-through;
+  color: #6b7280;
+}
 
+.savingChecklistItem:has(input:checked) {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+.savingChecklistItem:hover {
+  background: #ecfdf5;
+  border-color: #86efac;
+  transform: translateX(4px);
+}
 .savingChecklistItem input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   accent-color: #059625;
+  cursor: pointer;
 }
 
 .savingChecklistItem span {
   font-weight: 600;
   color: #111827;
+}
+.calloutHeader{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.calloutHeader b{
+    font-size:18px;
+    font-weight:700;
+}
+
+.reportCallout{
+    padding:22px;
+    border-radius:10px;
+    margin:22px 0;
+    border:1px solid #E5E7EB;
+}
+
+.reportCallout p{
+    margin:0;
+    line-height:1.7;
+}
+
+.reportCallout strong{
+    display:block;
+    font-size:24px;
+    font-weight:800;
+    color:#059625;
+}
+
+.savingCallout{
+    background:#F0FDF4;
+    border-color:#BBF7D0;
+}
+
+.quickCallout{
+    background:#F0FDF4;
+    border-color:#86EFAC;
+}
+
+.whyCallout{
+    background:#FFFBEB;
+    border-color:#FDE68A;
+}
+
+.nextCallout{
+    background:#EFF6FF;
+    border-color:#BFDBFE;
+}
+.timeCallout {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
 }
 @keyframes spin {
   to {
@@ -1956,6 +2026,12 @@ nav.nav a {
 }
 
 @media (max-width: 600px) {
+  .calloutHeader b {
+    font-size: 14px;
+}
+  .reportCallout strong {
+    font-size: 15px;
+}
   .reportCallout.savingCallout {
     font-size: 17px;
 }
@@ -2054,10 +2130,11 @@ nav.nav a {
   .main-section-results {
     padding: 0 17px 17px 17px;
 }
-  .greenPanel {
-    background: #015d18 !important;
-    border-radius: 12px;
-}
+    .greenPanel {
+        border-radius: 12px;
+        background: #015d18 !important;
+        padding: 15px;
+    }
   .option {
     font-size: 16px;
     text-align: left;

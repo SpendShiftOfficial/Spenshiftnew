@@ -214,8 +214,14 @@ Likely pattern:
 Quick win:
 [Exactly 1 sentence]
 
+Estimated time:
+[Approximate time required to complete the quick win, e.g. 2 minutes, 5 minutes, 10 minutes, or 15 minutes]
+
 Next step:
 [Exactly 1 sentence]
+
+Estimated time:
+[Approximate time required to complete the next step, e.g. 5 minutes, 10 minutes, 15 minutes, or 30 minutes]
 
 Why this reduces stress:
 [Exactly 1 short sentence]

@@ -8,6 +8,10 @@ import {
   ShieldCheck,
   CalendarDays,
   LockOpen,
+  CircleDollarSign,
+  Lightbulb,
+  ArrowRightCircle,
+  Clock3,
 } from "lucide-react";
 
 function cleanOldJson(report: string): string {
@@ -117,14 +121,14 @@ function renderReport(report: string) {
       );
     }
 
-   if (trimmed.startsWith("☐")) {
-  return (
-    <label className="savingChecklistItem" key={index}>
-      <input type="checkbox" />
-      <span>{trimmed.replace("☐", "").trim()}</span>
-    </label>
-  );
-}
+    if (trimmed.startsWith("☐")) {
+      return (
+        <label className="savingChecklistItem" key={index}>
+          <input type="checkbox" />
+          <span>{trimmed.replace("☐", "").trim()}</span>
+        </label>
+      );
+    }
 
     if (trimmed.startsWith("- ")) {
       return (
@@ -138,8 +142,25 @@ function renderReport(report: string) {
     if (trimmed.startsWith("Estimated saving:")) {
       return (
         <div className="reportCallout savingCallout" key={index}>
-          <b>Estimated saving</b>
+          <div className="calloutHeader">
+            <CircleDollarSign size={22} color="#059625" />
+            <b>Estimated saving</b>
+          </div>
+
           <strong>{trimmed.replace("Estimated saving:", "").trim()}</strong>
+        </div>
+      );
+    }
+
+    if (trimmed.startsWith("Estimated time:")) {
+      return (
+        <div className="reportCallout timeCallout" key={index}>
+          <div className="calloutHeader">
+            <Clock3 size={22} color="#7c3aed" />
+            <b>Estimated time</b>
+          </div>
+
+          <p>{trimmed.replace("Estimated time:", "").trim()}</p>
         </div>
       );
     }
@@ -147,7 +168,11 @@ function renderReport(report: string) {
     if (trimmed.startsWith("Why this matters:")) {
       return (
         <div className="reportCallout whyCallout" key={index}>
-          <b>Why this matters</b>
+          <div className="calloutHeader">
+            <Lightbulb size={22} color="#f59e0b" />
+            <b>Why this matters</b>
+          </div>
+
           <p>{trimmed.replace("Why this matters:", "").trim()}</p>
         </div>
       );
@@ -156,7 +181,11 @@ function renderReport(report: string) {
     if (trimmed.startsWith("Quick win:")) {
       return (
         <div className="reportCallout quickCallout" key={index}>
-          <b>Quick win</b>
+          <div className="calloutHeader">
+            <Sparkles size={22} color="#059625" />
+            <b>Quick win</b>
+          </div>
+
           <p>{trimmed.replace("Quick win:", "").trim()}</p>
         </div>
       );
@@ -165,7 +194,11 @@ function renderReport(report: string) {
     if (trimmed.startsWith("Next step:")) {
       return (
         <div className="reportCallout nextCallout" key={index}>
-          <b>Next step</b>
+          <div className="calloutHeader">
+            <ArrowRightCircle size={22} color="#2563eb" />
+            <b>Next step</b>
+          </div>
+
           <p>{trimmed.replace("Next step:", "").trim()}</p>
         </div>
       );
@@ -198,7 +231,6 @@ function renderReport(report: string) {
     );
   });
 }
-
 export default async function ReportPage({
   params,
 }: {
