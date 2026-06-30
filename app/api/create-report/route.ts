@@ -287,6 +287,16 @@ Actions:
 ## Final Clarity Summary
 [Maximum 3 short sentences. Reference the user's stated goal. Name the total estimated saving one more time. Include one realistic everyday comparison if appropriate. End confidently.]
 
+## Your Savings Checklist
+
+[Create 5 to 7 relevant checklist items based on the user's highest-priority leaks. Use this exact format.]
+
+☐ [Checklist item]
+☐ [Checklist item]
+☐ [Checklist item]
+☐ [Checklist item]
+☐ [Checklist item]
+
 ## Disclaimer:
 Estimates are based on your answers, Australian category averages, conservative reduction targets, and typical spending patterns. Actual savings may vary. This is general information and not financial advice.
 
@@ -307,6 +317,7 @@ Keep every section concise and information-dense.
 - Hidden leaks: maximum 2 short sentences.
 - Scripts: maximum 4 short sentences.
 - Final Clarity Summary: maximum 3 short sentences.
+- Savings Checklist: 5 to 7 short action items only.
 
 Avoid repeating the same idea in different words.
 Every sentence should provide new value.

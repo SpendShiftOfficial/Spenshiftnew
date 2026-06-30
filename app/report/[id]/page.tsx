@@ -117,6 +117,15 @@ function renderReport(report: string) {
       );
     }
 
+   if (trimmed.startsWith("☐")) {
+  return (
+    <label className="savingChecklistItem" key={index}>
+      <input type="checkbox" />
+      <span>{trimmed.replace("☐", "").trim()}</span>
+    </label>
+  );
+}
+
     if (trimmed.startsWith("- ")) {
       return (
         <div className="docBullet" key={index}>
