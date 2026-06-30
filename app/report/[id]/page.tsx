@@ -94,114 +94,153 @@ function renderReport(report: string) {
     .split("\n")
     .filter((line: string) => line.trim() !== "");
 
-  return lines.map((line: string, index: number) => {
-    const trimmed = line.trim();
+  const elements = [];
+
+  for (let index = 0; index < lines.length; index++) {
+    const trimmed = lines[index].trim();
+
+    const nextLine = lines[index + 1]?.trim() || "";
+
+    function takeNextContent() {
+      if (
+        nextLine &&
+        !nextLine.startsWith("#") &&
+        !nextLine.startsWith("☐") &&
+        !nextLine.startsWith("- ") &&
+        !nextLine.includes(":")
+      ) {
+        index++;
+        return nextLine;
+      }
+
+      return "";
+    }
 
     if (trimmed.startsWith("# ")) {
-      return (
+      elements.push(
         <h1 className="docTitle" key={index}>
           {trimmed.replace("# ", "")}
         </h1>
       );
+      continue;
     }
 
     if (trimmed.startsWith("## ")) {
-      return (
+      elements.push(
         <h2 className="docHeading" key={index}>
           {trimmed.replace("## ", "")}
         </h2>
       );
+      continue;
     }
 
     if (trimmed.startsWith("### ")) {
-      return (
+      elements.push(
         <h3 className="docSubheading" key={index}>
           {trimmed.replace("### ", "")}
         </h3>
       );
+      continue;
     }
 
     if (trimmed.startsWith("☐")) {
-      return (
+      elements.push(
         <label className="savingChecklistItem" key={index}>
           <input type="checkbox" />
           <span>{trimmed.replace("☐", "").trim()}</span>
         </label>
       );
+      continue;
     }
 
     if (trimmed.startsWith("- ")) {
-      return (
+      elements.push(
         <div className="docBullet" key={index}>
           <CheckCircle2 size={18} fill="#059625" stroke="white" />
           <span>{trimmed.replace("- ", "")}</span>
         </div>
       );
+      continue;
     }
 
     if (trimmed.startsWith("Estimated saving:")) {
-      return (
+      const currentContent = trimmed.replace("Estimated saving:", "").trim();
+      const content = currentContent || takeNextContent();
+
+      elements.push(
         <div className="reportCallout savingCallout" key={index}>
           <div className="calloutHeader">
             <CircleDollarSign size={22} color="#059625" />
             <b>Estimated saving</b>
           </div>
-
-          <strong>{trimmed.replace("Estimated saving:", "").trim()}</strong>
+          <strong>{content}</strong>
         </div>
       );
+      continue;
     }
 
     if (trimmed.startsWith("Estimated time:")) {
-      return (
+      const currentContent = trimmed.replace("Estimated time:", "").trim();
+      const content = currentContent || takeNextContent();
+
+      elements.push(
         <div className="reportCallout timeCallout" key={index}>
           <div className="calloutHeader">
             <Clock3 size={22} color="#7c3aed" />
             <b>Estimated time</b>
           </div>
-
-          <p>{trimmed.replace("Estimated time:", "").trim()}</p>
+          <p>{content}</p>
         </div>
       );
+      continue;
     }
 
     if (trimmed.startsWith("Why this matters:")) {
-      return (
+      const currentContent = trimmed.replace("Why this matters:", "").trim();
+      const content = currentContent || takeNextContent();
+
+      elements.push(
         <div className="reportCallout whyCallout" key={index}>
           <div className="calloutHeader">
             <Lightbulb size={22} color="#f59e0b" />
             <b>Why this matters</b>
           </div>
-
-          <p>{trimmed.replace("Why this matters:", "").trim()}</p>
+          <p>{content}</p>
         </div>
       );
+      continue;
     }
 
     if (trimmed.startsWith("Quick win:")) {
-      return (
+      const currentContent = trimmed.replace("Quick win:", "").trim();
+      const content = currentContent || takeNextContent();
+
+      elements.push(
         <div className="reportCallout quickCallout" key={index}>
           <div className="calloutHeader">
             <Sparkles size={22} color="#059625" />
             <b>Quick win</b>
           </div>
-
-          <p>{trimmed.replace("Quick win:", "").trim()}</p>
+          <p>{content}</p>
         </div>
       );
+      continue;
     }
 
     if (trimmed.startsWith("Next step:")) {
-      return (
+      const currentContent = trimmed.replace("Next step:", "").trim();
+      const content = currentContent || takeNextContent();
+
+      elements.push(
         <div className="reportCallout nextCallout" key={index}>
           <div className="calloutHeader">
             <ArrowRightCircle size={22} color="#2563eb" />
             <b>Next step</b>
           </div>
-
-          <p>{trimmed.replace("Next step:", "").trim()}</p>
+          <p>{content}</p>
         </div>
       );
+      continue;
     }
 
     if (
@@ -216,20 +255,23 @@ function renderReport(report: string) {
     ) {
       const [label, ...rest] = trimmed.split(":");
 
-      return (
+      elements.push(
         <div className="docInfoRow" key={index}>
           <b>{label}:</b>
           <span>{rest.join(":").trim()}</span>
         </div>
       );
+      continue;
     }
 
-    return (
+    elements.push(
       <p className="docParagraph" key={index}>
         {trimmed}
       </p>
     );
-  });
+  }
+
+  return elements;
 }
 export default async function ReportPage({
   params,
