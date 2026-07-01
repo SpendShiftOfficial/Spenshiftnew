@@ -16,7 +16,6 @@ import {
   Clock,
   FileText,
   Users,
-  Menu,
   Zap,
   BarChart3,
   Smartphone,
