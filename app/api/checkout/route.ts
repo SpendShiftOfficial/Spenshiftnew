@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             product_data: {
               name: "SpendShift Full Savings Report",
             },
-            unit_amount: 1900,
+            unit_amount: 3900,
           },
           quantity: 1,
         },
