@@ -1,8 +1,8 @@
+"use client";
 import Link from "next/link";
 import DeviceImage from "next/image";
 import Header from "@/components/Header";
-import Quote from "next/image";
-import Author from "next/image";
+import { useState } from "react";
 import FooterlogoImage from "next/image";
 import {
   ShieldCheck,
@@ -28,11 +28,79 @@ import {
 import {
   FaFacebookF,
   FaInstagram,
-  FaLinkedinIn,
-  FaYoutube,
-  FaXTwitter,
 } from "react-icons/fa6";
+import { FaTiktok } from "react-icons/fa";
+
 export default function Home() {
+  const [openFaq, setOpenFaq] = useState(0);
+    const faqs = [
+    {
+      question: "What is SpendShift?",
+      answer:
+        "SpendShift is a personalised savings report that helps identify where you could be overspending and highlights practical ways to reduce everyday expenses. It provides tailored suggestions based on the answers you submit.",
+    },
+    {
+      question: "How does it work?",
+      answer:
+        "Answer a series of questions about your spending habits, complete your purchase, and you'll receive your personalised SpendShift report by email shortly afterwards.",
+    },
+    {
+      question: "How much does it cost?",
+      answer:
+        "SpendShift costs A$39 as a one-time payment. There are no subscriptions or ongoing fees.",
+    },
+      {
+      question: "How much does it cost?",
+      answer:
+        "SpendShift costs A$39 as a one-time payment. There are no subscriptions or ongoing fees.",
+    },
+    {
+      question: "Is this a subscription?",
+      answer:
+        "No. You only pay once. There are no recurring charges.",
+    },
+    {
+      question: "When will I receive my report?",
+      answer:
+        "Most reports are delivered within minutes after your payment is successfully processed.",
+    },
+    {
+      question: "Is my report personalised?",
+      answer:
+        "Yes. Your report is generated using the information you provide during the questionnaire, making the recommendations specific to your situation.",
+    },
+    {
+      question: "Is my payment secure?",
+      answer:
+        "Yes. Payments are securely processed using Stripe, including support for Apple Pay where available. SpendShift never stores your payment details.",
+    },
+    {
+      question: "What if I'm not satisfied?",
+      answer:
+        "If you don't believe your report helped you identify meaningful savings, contact us within 30 days and we'll refund your purchase.",
+    },
+    {
+      question: "Will this create a budget for me?",
+      answer:
+        "No. SpendShift focuses on helping you identify potential savings opportunities and practical actions rather than creating a detailed budget.",
+    },
+    {
+      question: "Is this suitable for everyone?",
+      answer:
+        "SpendShift is designed for Australian adults who want to better understand their spending and discover practical ways to save money.",
+    },
+    {
+      question: "Do I need to download anything?",
+      answer:
+        "No. Everything is delivered digitally to your email.",
+    },
+    {
+      question: "Can I use SpendShift more than once?",
+      answer:
+        "Yes. Many people choose to use SpendShift again after their spending habits or financial situation changes.",
+    },
+  ];
+  
   return (
     <>
       <Header />
@@ -305,7 +373,45 @@ export default function Home() {
           </div>
         </section>
 
-       
+      <section id="faq" className="faqSection">
+  <div className="container">
+    <h2 className="sectionTitle">
+      Frequently
+      <br />
+      <span>Questions & Answers</span>
+    </h2>
+    <div className="faqWrapper">
+      {faqs.map((faq, index) => (
+        <div
+          key={index}
+          className={`faqItem ${openFaq === index ? "active" : ""}`}
+        >
+          <button
+            className="faqQuestion"
+            onClick={() =>
+              setOpenFaq(openFaq === index ? -1 : index)
+            }
+          >
+            <span>{faq.question}</span>
+
+            <span className="faqIcon">
+              {openFaq === index ? "−" : "+"}
+            </span>
+          </button>
+
+          <div
+            className={`faqAnswer ${
+              openFaq === index ? "show" : ""
+            }`}
+          >
+            <p>{faq.answer}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
 
         <section id="pricing">
           <div className="container">
@@ -347,25 +453,18 @@ export default function Home() {
       </p>
 
       <div className="socials">
-  <Link href="https://facebook.com" target="_blank">
+  <Link href="https://facebook.com/spendshiftofficial" target="_blank">
     <FaFacebookF size={20} />
   </Link>
 
-  <Link href="https://x.com" target="_blank">
-    <FaXTwitter size={20} />
-  </Link>
-
-  <Link href="https://youtube.com" target="_blank">
-    <FaYoutube size={20} />
-  </Link>
-
-  <Link href="https://instagram.com" target="_blank">
+  <Link href="https://instagram.com/spendshiftofficial" target="_blank">
     <FaInstagram size={20} />
   </Link>
 
-  <Link href="https://linkedin.com" target="_blank">
-    <FaLinkedinIn size={20} />
+ <Link href="https://www.tiktok.com/@spendshiftofficial" target="_blank">
+    <FaTiktok size={20} />
   </Link>
+
 </div>
     </div>
 
@@ -398,8 +497,8 @@ export default function Home() {
     <div>
       <h4>Contact</h4>
 
-      <Link href="mailto:spendshiftinfo@gmail.com">
-        spendshiftinfo@gmail.com
+      <Link href="mailto:info@spendshift.com.au">
+        info@spendshift.com.au
       </Link>
 
       <Link href="tel:+6109823453455">
