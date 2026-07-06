@@ -26,7 +26,7 @@ import {
   MessageSquareLock,
 } from "lucide-react";
 import {
-  FaFacebookF,
+  FaFacebook,
   FaInstagram,
 } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa";
@@ -454,7 +454,7 @@ export default function Home() {
 
       <div className="socials">
   <Link href="https://facebook.com/spendshiftofficial" target="_blank">
-    <FaFacebookF size={20} />
+    <FaFacebook size={20} />
   </Link>
 
   <Link href="https://instagram.com/spendshiftofficial" target="_blank">
