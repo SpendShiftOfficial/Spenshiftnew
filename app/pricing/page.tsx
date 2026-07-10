@@ -91,29 +91,17 @@ export default function PricingPage() {
 
             <div className="pricingHeroTrust">
               <span>
-                <CheckCircle2
-                  size={19}
-                  fill="#059625"
-                  stroke="white"
-                />
+                <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 No subscription
               </span>
 
               <span>
-                <CheckCircle2
-                  size={19}
-                  fill="#059625"
-                  stroke="white"
-                />
+                <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 One-time payment
               </span>
 
               <span>
-                <CheckCircle2
-                  size={19}
-                  fill="#059625"
-                  stroke="white"
-                />
+                <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 Secure Stripe checkout
               </span>
             </div>
@@ -146,11 +134,7 @@ export default function PricingPage() {
                 <div className="pricingPageList">
                   {freeFeatures.map((feature) => (
                     <span key={feature}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {feature}
                     </span>
                   ))}
@@ -161,9 +145,7 @@ export default function PricingPage() {
                   <ArrowRight size={18} />
                 </Link>
 
-                <p className="pricingPageFinePrint">
-                  No credit card required.
-                </p>
+                <p className="pricingPageFinePrint">No credit card required.</p>
               </article>
 
               {/* PAID PLAN */}
@@ -195,11 +177,7 @@ export default function PricingPage() {
                 <div className="pricingPageList">
                   {paidFeatures.map((feature) => (
                     <span key={feature}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {feature}
                     </span>
                   ))}
@@ -228,50 +206,32 @@ export default function PricingPage() {
                 What the full report unlocks
               </span>
 
-              <h2>
-                More than a savings number.
-              </h2>
+              <h2>More than a savings number.</h2>
 
               <p>
-                The full report explains where money could be disappearing,
-                what to fix first, how much you could save and exactly what
-                action to take next.
+                The full report explains where money could be disappearing, what
+                to fix first, how much you could save and exactly what action to
+                take next.
               </p>
 
               <div className="pricingValuePoints">
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Ranked savings opportunities
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Practical scripts you can use immediately
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   30-day implementation roadmap
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Interactive checklist to track progress
                 </span>
               </div>
@@ -312,9 +272,7 @@ export default function PricingPage() {
         <section className="pricingTrustSection">
           <div className="container">
             <div className="sectionIntro">
-              <span className="sectionEyebrow">
-                Simple and secure
-              </span>
+              <span className="sectionEyebrow">Simple and secure</span>
 
               <h2 className="sectionTitle">
                 No hidden fees.
@@ -345,27 +303,25 @@ export default function PricingPage() {
         {/* REFUND */}
         <section className="pricingRefundSection">
           <div className="container">
-           <div className="pricingRefundCard">
-             <div className="pricingRefundIcon">
-              <ShieldCheck size={42} />
+            <div className="pricingRefundCard">
+              <div className="pricingRefundIcon">
+                <ShieldCheck size={42} />
+              </div>
+
+              <div>
+                <span className="sectionEyebrow">
+                  30-day satisfaction promise
+                </span>
+
+                <h2>Buy with confidence.</h2>
+
+                <p>
+                  If you do not believe your report helped you identify
+                  meaningful savings opportunities, contact SpendShift within 30
+                  days and we will review your refund request.
+                </p>
+              </div>
             </div>
-
-            <div>
-              <span className="sectionEyebrow">
-                30-day satisfaction promise
-              </span>
-
-              <h2>
-                Buy with confidence.
-              </h2>
-
-              <p>
-                If you do not believe your report helped you identify meaningful
-                savings opportunities, contact SpendShift within 30 days and we
-                will review your refund request.
-              </p>
-            </div>
-           </div>
           </div>
         </section>
 
@@ -373,13 +329,9 @@ export default function PricingPage() {
         <section className="pricingFaqPreview">
           <div className="container pricingFaqGrid">
             <div>
-              <span className="sectionEyebrow">
-                Pricing questions
-              </span>
+              <span className="sectionEyebrow">Pricing questions</span>
 
-              <h2>
-                Still deciding?
-              </h2>
+              <h2>Still deciding?</h2>
 
               <p>
                 Start with the free audit. You only pay when you choose to
@@ -390,9 +342,7 @@ export default function PricingPage() {
             <div className="pricingFaqItems">
               <div>
                 <h3>Is this a subscription?</h3>
-                <p>
-                  No. The A$39 price is a one-time payment.
-                </p>
+                <p>No. The A$39 price is a one-time payment.</p>
               </div>
 
               <div>
@@ -405,9 +355,7 @@ export default function PricingPage() {
 
               <div>
                 <h3>Is payment secure?</h3>
-                <p>
-                  Yes. Payments are processed securely by Stripe.
-                </p>
+                <p>Yes. Payments are processed securely by Stripe.</p>
               </div>
             </div>
           </div>
@@ -419,9 +367,7 @@ export default function PricingPage() {
             <div className="cta">
               <div>
                 <h2>Start free and see your biggest opportunities.</h2>
-                <p>
-                  Complete the savings audit in approximately two minutes.
-                </p>
+                <p>Complete the savings audit in approximately two minutes.</p>
               </div>
 
               <div>

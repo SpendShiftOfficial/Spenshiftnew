@@ -440,11 +440,7 @@ export default function Home() {
             <div>
               <div className="stepNum">01</div>
               <div className="stepIconWrapper">
-                <Smartphone
-                  className="stepIcon"
-                  strokeWidth={1}
-                  size={67}
-                />
+                <Smartphone className="stepIcon" strokeWidth={1} size={67} />
               </div>
               <h3>Answer 8 simple questions</h3>
               <p>Tell us about your everyday spending habits.</p>
@@ -456,7 +452,9 @@ export default function Home() {
                 <Search className="stepIcon" strokeWidth={1} size={67} />
               </div>
               <h3>We analyse your answers</h3>
-              <p>Your responses are compared with relevant spending patterns.</p>
+              <p>
+                Your responses are compared with relevant spending patterns.
+              </p>
             </div>
 
             <div>
@@ -561,11 +559,7 @@ export default function Home() {
                     "Top three opportunities",
                   ].map((item) => (
                     <span key={item}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {item}
                     </span>
                   ))}
@@ -612,11 +606,7 @@ export default function Home() {
                     "Saved report access",
                   ].map((item) => (
                     <span key={item}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {item}
                     </span>
                   ))}
@@ -687,16 +677,12 @@ export default function Home() {
               {faqs.map((faq, index) => (
                 <div
                   key={faq.question}
-                  className={`faqItem ${
-                    openFaq === index ? "active" : ""
-                  }`}
+                  className={`faqItem ${openFaq === index ? "active" : ""}`}
                 >
                   <button
                     type="button"
                     className="faqQuestion"
-                    onClick={() =>
-                      setOpenFaq(openFaq === index ? -1 : index)
-                    }
+                    onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
                   >
                     <span>{faq.question}</span>
 
@@ -706,9 +692,7 @@ export default function Home() {
                   </button>
 
                   <div
-                    className={`faqAnswer ${
-                      openFaq === index ? "show" : ""
-                    }`}
+                    className={`faqAnswer ${openFaq === index ? "show" : ""}`}
                   >
                     <p>{faq.answer}</p>
                   </div>
@@ -724,9 +708,7 @@ export default function Home() {
             <div className="cta">
               <div>
                 <h2>Stop overpaying. Start saving.</h2>
-                <p>
-                  Your free savings audit takes approximately two minutes.
-                </p>
+                <p>Your free savings audit takes approximately two minutes.</p>
               </div>
 
               <div>
@@ -742,7 +724,7 @@ export default function Home() {
         </section>
       </main>
 
-        <Footer />
+      <Footer />
     </>
   );
 }

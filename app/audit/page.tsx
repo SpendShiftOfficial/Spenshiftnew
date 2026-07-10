@@ -29,18 +29,18 @@ const qs = [
     options: ["0–2", "3–5", "6–10", "10+", "Not sure"],
     icon: CreditCard,
   },
- {
-  q: "When did you last compare your insurance?",
-  options: [
-    "I don’t currently have insurance",
-    "Within 6 months",
-    "6–12 months ago",
-    "1–2 years ago",
-    "Over 2 years ago",
-    "Never / not sure",
-  ],
-  icon: ShieldCheck,
-},
+  {
+    q: "When did you last compare your insurance?",
+    options: [
+      "I don’t currently have insurance",
+      "Within 6 months",
+      "6–12 months ago",
+      "1–2 years ago",
+      "Over 2 years ago",
+      "Never / not sure",
+    ],
+    icon: ShieldCheck,
+  },
   {
     q: "How often do you buy convenience items like coffee, drinks, snacks, or quick lunches?",
     options: ["Rarely", "1–2 times/week", "3–5 times/week", "Daily"],
@@ -158,15 +158,14 @@ export default function Audit() {
             {i === qs.length - 1 ? "See My Results" : "Next Question"}
             <ArrowRight size={18} />
           </button>
-<div className="auditNote">
-  <Lock size={16} strokeWidth={2.2} />
-  <span>
-    Takes less than 2 minutes. No credit card required.
-  </span>
-</div>
+          <div className="auditNote">
+            <Lock size={16} strokeWidth={2.2} />
+            <span>Takes less than 2 minutes. No credit card required.</span>
+          </div>
           <div className="safe">
             <div className="trend-ng-class">
-            <TrendingUp color="#059625" size={81} /></div>
+              <TrendingUp color="#059625" size={81} />
+            </div>
             <div>
               <b>100% data-driven. 100% about you.</b>
               <p className="mini">
@@ -177,27 +176,24 @@ export default function Audit() {
           </div>
         </div>
 
-       <div className="faqBlock">
-      <button
-        className="faqHeader"
-        onClick={() => setOpen(!open)}
-      >
-        <span>Why do we ask these questions?</span>
+        <div className="faqBlock">
+          <button className="faqHeader" onClick={() => setOpen(!open)}>
+            <span>Why do we ask these questions?</span>
 
-        <div className={`faqIcon ${open ? "active" : ""}`}>
-          <ChevronDown size={18} />
-        </div>
-      </button>
+            <div className={`faqIcon ${open ? "active" : ""}`}>
+              <ChevronDown size={18} />
+            </div>
+          </button>
 
-      {open && (
-        <div className="faqContent">
-          <p>
-            Your answers help us provide personalised insights that are
-            relevant to your situation.
-          </p>
+          {open && (
+            <div className="faqContent">
+              <p>
+                Your answers help us provide personalised insights that are
+                relevant to your situation.
+              </p>
+            </div>
+          )}
         </div>
-      )}
-    </div>
       </div>
     </div>
   );

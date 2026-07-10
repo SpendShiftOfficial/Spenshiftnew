@@ -109,29 +109,17 @@ export default function WhatsIncludedPage() {
 
               <div className="includedHeroPoints">
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   Personalised to your answers
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   Built for Australian spending habits
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   No subscription or recurring fee
                 </span>
               </div>
@@ -258,11 +246,7 @@ export default function WhatsIncludedPage() {
                 <div className="includedPlanList">
                   {freeFeatures.map((feature) => (
                     <span key={feature}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {feature}
                     </span>
                   ))}
@@ -273,9 +257,7 @@ export default function WhatsIncludedPage() {
                   <ArrowRight size={18} />
                 </Link>
 
-                <p className="includedPlanNote">
-                  No credit card required.
-                </p>
+                <p className="includedPlanNote">No credit card required.</p>
               </article>
 
               <article className="includedPlanCard fullIncludedPlan">
@@ -296,11 +278,7 @@ export default function WhatsIncludedPage() {
                 <div className="includedPlanList">
                   {fullFeatures.map((feature) => (
                     <span key={feature}>
-                      <CheckCircle2
-                        size={19}
-                        fill="#059625"
-                        stroke="white"
-                      />
+                      <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {feature}
                     </span>
                   ))}
@@ -325,13 +303,9 @@ export default function WhatsIncludedPage() {
         <section className="includedFlowSection">
           <div className="container includedFlowGrid">
             <div className="includedFlowContent">
-              <span className="sectionEyebrow">
-                Designed for action
-              </span>
+              <span className="sectionEyebrow">Designed for action</span>
 
-              <h2>
-                Your report does more than identify a problem.
-              </h2>
+              <h2>Your report does more than identify a problem.</h2>
 
               <p>
                 Each recommendation explains why the opportunity matters, how

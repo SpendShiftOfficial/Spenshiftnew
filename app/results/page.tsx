@@ -114,7 +114,7 @@ function buildLeaks(answers: string[]): Leak[] {
         takeaway === "Never"
           ? "You said you do not rely on takeaway often, so this is unlikely to be your biggest leak."
           : `You said you order takeaway ${takeaway}. Reducing just part of that habit could save approximately ${money(
-              amount
+              amount,
             )} per year.`,
     }),
 
@@ -132,7 +132,7 @@ function buildLeaks(answers: string[]): Leak[] {
         subscriptions === "0–2"
           ? "You have a low subscription count, so there may only be a small saving here."
           : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could save approximately ${money(
-              amount
+              amount,
             )} per year.`,
     }),
 
@@ -151,10 +151,10 @@ function buildLeaks(answers: string[]): Leak[] {
         insurance === "I don’t currently have insurance"
           ? "You said you do not currently have insurance, so this area has been excluded from your savings estimate."
           : insurance === "Within 6 months"
-          ? "You reviewed insurance recently, so this may not be your highest opportunity."
-          : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
-              amount
-            )} per year in potential overpayment.`,
+            ? "You reviewed insurance recently, so this may not be your highest opportunity."
+            : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
+                amount,
+              )} per year in potential overpayment.`,
     }),
 
     createLeak({
@@ -170,7 +170,7 @@ function buildLeaks(answers: string[]): Leak[] {
         convenience === "Rarely"
           ? "Convenience spending looks fairly controlled from your answer."
           : `You said you buy convenience items ${convenience}. Small repeat purchases could add up to approximately ${money(
-              amount
+              amount,
             )} per year.`,
     }),
 
@@ -187,7 +187,7 @@ function buildLeaks(answers: string[]): Leak[] {
         mobile === "Within 6 months"
           ? "Your plan was reviewed recently, so the saving may be smaller here."
           : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
-              amount
+              amount,
             )} per year more than newer offers.`,
     }),
 
@@ -204,7 +204,7 @@ function buildLeaks(answers: string[]): Leak[] {
         recurring === "Monthly"
           ? "You review recurring payments regularly, so this area looks more controlled."
           : `You said you review recurring payments ${recurring}. That could allow around ${money(
-              amount
+              amount,
             )} per year in small charges to continue unnoticed.`,
     }),
 
@@ -221,7 +221,7 @@ function buildLeaks(answers: string[]): Leak[] {
         unplanned === "Rarely"
           ? "Unplanned purchases do not look like a major leak from your answer."
           : `You said you make unplanned purchases ${unplanned}. Adding a little friction could save approximately ${money(
-              amount
+              amount,
             )} per year.`,
     }),
   ];
@@ -435,9 +435,7 @@ export default function Results() {
             <div className="content-wrap-first">
               <h1 style={{ fontSize: 55 }}>
                 We found your <br />
-                <span style={{ color: "#059625" }}>
-                  biggest money leaks
-                </span>
+                <span style={{ color: "#059625" }}>biggest money leaks</span>
               </h1>
 
               <p>
@@ -525,8 +523,7 @@ export default function Results() {
                   <p>{l.insight}</p>
 
                   <div className="savings">
-                    <span>Save</span> {money(l.amount)}{" "}
-                    <span>per year</span>
+                    <span>Save</span> {money(l.amount)} <span>per year</span>
                   </div>
                 </div>
 
@@ -545,8 +542,8 @@ export default function Results() {
               <div>
                 <b>These are just the big ones.</b>
                 <p className="mini">
-                  Your full report includes deeper personalised insights,
-                  hidden leaks, scripts, and action steps.
+                  Your full report includes deeper personalised insights, hidden
+                  leaks, scripts, and action steps.
                 </p>
               </div>
             </div>
@@ -561,13 +558,13 @@ export default function Results() {
             <h2>Get your personalised action plan</h2>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> See all your
-              money leaks
+              <BsCheckCircleFill size={15} color="#059625" /> See all your money
+              leaks
             </p>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Get your
-              estimated savings
+              <BsCheckCircleFill size={15} color="#059625" /> Get your estimated
+              savings
             </p>
 
             <p className="list-item">

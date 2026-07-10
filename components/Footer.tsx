@@ -2,28 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 import {
-  ShieldCheck,
-  WalletCards,
-  ChartNoAxesCombined,
-  Search,
-  Clock,
-  FileText,
-  Sparkles,
-  Smartphone,
-  PieChart,
-  CheckCircle2,
-  MoveRight,
-  MessageSquareLock,
-  ClipboardCheck,
-  MapPin,
-  EyeOff,
-  CircleDollarSign,
-  ListChecks,
-  CalendarDays,
-  Save,
-  Bot,
-  Target,
-  Route,
+Circle,
+ Mail, Phone
 } from "lucide-react";
 
 import { FaFacebook, FaInstagram } from "react-icons/fa6";
@@ -98,33 +78,33 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
 
         <div>
           <h4>Learn</h4>
-          <Link href="/how-it-works">How It Works</Link>
-          <Link href="/whats-included">What’s Included</Link>
-          <Link href="/why-spendshift">Why SpendShift</Link>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/#faq">Frequently Asked Questions</Link>
+          <Link href="/how-it-works"><Circle size={10} color="#fff" /> How It Works</Link>
+          <Link href="/whats-included"><Circle size={10} color="#fff" /> What’s Included</Link>
+          <Link href="/why-spendshift"><Circle size={10} color="#fff" /> Why SpendShift</Link>
+          <Link href="/pricing"><Circle size={10} color="#fff" /> Pricing</Link>
+          <Link href="/#faq"><Circle size={10} color="#fff" /> Frequently Asked Questions</Link>
         </div>
 
         <div>
           <h4>Services</h4>
-          <Link href="/#services">Free Savings Audit</Link>
-          <Link href="/#services">Personalised Savings Report</Link>
-          <Link href="/#services">30-Day Savings Action Plan</Link>
+          <Link href="/#services"><Circle size={10} color="#fff" /> Free Savings Audit</Link>
+          <Link href="/#services"><Circle size={10} color="#fff" /> Personalised Savings Report</Link>
+          <Link href="/#services"><Circle size={10} color="#fff" /> 30-Day Savings Action Plan</Link>
         </div>
 
         <div>
           <h4>Legal</h4>
-          <Link href="/privacy-policy">Privacy Policy</Link>
-          <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
-          <Link href="/cookies">Cookie Policy</Link>
+          <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
+          <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
+          <Link href="/cookies"><Circle size={10} color="#fff" /> Cookie Policy</Link>
         </div>
 
         <div>
           <h4>Contact</h4>
-          <Link href="mailto:info@spendshift.com.au">
-            info@spendshift.com.au
+          <Link className="cntct" href="mailto:info@spendshift.com.au">
+           <Mail size={20} color="#059625" /> info@spendshift.com.au
           </Link>
-          <Link href="tel:+6109823453455">098 2345 3455</Link>
+          <Link className="cntct" href="tel:+6109823453455"><Phone size={20} color="#059625" /> 098 2345 3455</Link>
         </div>
       </div>
 
@@ -134,9 +114,9 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
         </span>
 
         <div className="footerLegalLinks">
-          <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
+          <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
           <span>|</span>
-          <Link href="/privacy-policy">Privacy Policy</Link>
+          <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
         </div>
       </div>
     </footer>

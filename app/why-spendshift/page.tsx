@@ -130,29 +130,17 @@ export default function WhySpendShiftPage() {
 
               <div className="whyHeroChecks">
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   No spreadsheets
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   No bank connection
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={19}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   Practical next steps
                 </span>
               </div>
@@ -290,11 +278,7 @@ export default function WhySpendShiftPage() {
                   </div>
 
                   <div className="whyComparisonSpendShift">
-                    <CheckCircle2
-                      size={19}
-                      fill="#059625"
-                      stroke="white"
-                    />
+                    <CheckCircle2 size={19} fill="#059625" stroke="white" />
                     {item.spendshift}
                   </div>
                 </div>
@@ -307,9 +291,7 @@ export default function WhySpendShiftPage() {
         <section className="whyAustralianSection">
           <div className="container whyAustralianGrid">
             <div className="whyAustralianContent">
-              <span className="sectionEyebrow">
-                Built for Australians
-              </span>
+              <span className="sectionEyebrow">Built for Australians</span>
 
               <h2>
                 Recommendations that feel relevant to everyday Australian life.
@@ -323,38 +305,22 @@ export default function WhySpendShiftPage() {
 
               <div className="whyAustralianPoints">
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Australian dollars and pricing
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Relevant local providers
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Australian English throughout
                 </span>
 
                 <span>
-                  <CheckCircle2
-                    size={18}
-                    fill="#059625"
-                    stroke="white"
-                  />
+                  <CheckCircle2 size={18} fill="#059625" stroke="white" />
                   Practical everyday comparisons
                 </span>
               </div>

@@ -95,7 +95,7 @@ function renderReport(report: string) {
     .split("\n")
     .filter((line: string) => line.trim() !== "");
 
- const elements: React.ReactNode[] = [];
+  const elements: React.ReactNode[] = [];
 
   for (let index = 0; index < lines.length; index++) {
     const trimmed = lines[index].trim();
@@ -121,7 +121,7 @@ function renderReport(report: string) {
       elements.push(
         <h1 className="docTitle" key={index}>
           {trimmed.replace("# ", "")}
-        </h1>
+        </h1>,
       );
       continue;
     }
@@ -130,7 +130,7 @@ function renderReport(report: string) {
       elements.push(
         <h2 className="docHeading" key={index}>
           {trimmed.replace("## ", "")}
-        </h2>
+        </h2>,
       );
       continue;
     }
@@ -139,7 +139,7 @@ function renderReport(report: string) {
       elements.push(
         <h3 className="docSubheading" key={index}>
           {trimmed.replace("### ", "")}
-        </h3>
+        </h3>,
       );
       continue;
     }
@@ -149,7 +149,7 @@ function renderReport(report: string) {
         <label className="savingChecklistItem" key={index}>
           <input type="checkbox" />
           <span>{trimmed.replace("☐", "").trim()}</span>
-        </label>
+        </label>,
       );
       continue;
     }
@@ -159,7 +159,7 @@ function renderReport(report: string) {
         <div className="docBullet" key={index}>
           <CheckCircle2 size={18} fill="#059625" stroke="white" />
           <span>{trimmed.replace("- ", "")}</span>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -175,7 +175,7 @@ function renderReport(report: string) {
             <b>Estimated saving</b>
           </div>
           <strong>{content}</strong>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -191,26 +191,26 @@ function renderReport(report: string) {
             <b>Estimated time</b>
           </div>
           <p>{content}</p>
-        </div>
+        </div>,
       );
       continue;
     }
 
     if (trimmed.startsWith("Confidence:")) {
-  const currentContent = trimmed.replace("Confidence:", "").trim();
-  const content = currentContent || takeNextContent();
+      const currentContent = trimmed.replace("Confidence:", "").trim();
+      const content = currentContent || takeNextContent();
 
-  elements.push(
-    <div className="reportCallout confidenceCallout" key={index}>
-      <div className="calloutHeader">
-        <ShieldCheck size={22} color="#059625" />
-        <b>Confidence</b>
-      </div>
-      <p>{content}</p>
-    </div>
-  );
-  continue;
-}
+      elements.push(
+        <div className="reportCallout confidenceCallout" key={index}>
+          <div className="calloutHeader">
+            <ShieldCheck size={22} color="#059625" />
+            <b>Confidence</b>
+          </div>
+          <p>{content}</p>
+        </div>,
+      );
+      continue;
+    }
 
     if (trimmed.startsWith("Why this matters:")) {
       const currentContent = trimmed.replace("Why this matters:", "").trim();
@@ -223,7 +223,7 @@ function renderReport(report: string) {
             <b>Why this matters</b>
           </div>
           <p>{content}</p>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -239,7 +239,7 @@ function renderReport(report: string) {
             <b>Quick win</b>
           </div>
           <p>{content}</p>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -255,7 +255,7 @@ function renderReport(report: string) {
             <b>Next step</b>
           </div>
           <p>{content}</p>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -276,7 +276,7 @@ function renderReport(report: string) {
         <div className="docInfoRow" key={index}>
           <b>{label}:</b>
           <span>{rest.join(":").trim()}</span>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -284,7 +284,7 @@ function renderReport(report: string) {
     elements.push(
       <p className="docParagraph" key={index}>
         {trimmed}
-      </p>
+      </p>,
     );
   }
 
@@ -371,13 +371,13 @@ export default async function ReportPage({
                 <span>{equivalent.label}</span>
                 <h3>{equivalent.title}</h3>
                 <div className="wowItems">
-  {equivalent.items.map((item) => (
-    <div className="wowItem" key={item}>
-      <CheckCircle2 size={16} fill="#fff" stroke="#059625" />
-      <p>{item}</p>
-    </div>
-  ))}
-</div>
+                  {equivalent.items.map((item) => (
+                    <div className="wowItem" key={item}>
+                      <CheckCircle2 size={16} fill="#fff" stroke="#059625" />
+                      <p>{item}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
@@ -400,13 +400,13 @@ export default async function ReportPage({
                 <span>{equivalent.label}</span>
                 <strong>{equivalent.title}</strong>
                 <div className="wowItems summary">
-  {equivalent.items.map((item) => (
-    <div className="wowItem" key={item}>
-      <CheckCircle2 size={16} fill="#059625" stroke="white" />
-      <p>{item}</p>
-    </div>
-  ))}
-</div>
+                  {equivalent.items.map((item) => (
+                    <div className="wowItem" key={item}>
+                      <CheckCircle2 size={16} fill="#059625" stroke="white" />
+                      <p>{item}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="potential-report">

@@ -1,10 +1,12 @@
-"use client"; // Required in Next.js App Router to use client-side state
+"use client"; 
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShieldCheck, Menu, X, Mail, Phone } from "lucide-react"; // Imported Mail and Phone icons
-
+import { ShieldCheck, Menu, X, Mail, Phone } from "lucide-react";
+import {
+ Circle
+} from "lucide-react";
 export default function Header({ simple = false }: { simple?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -19,7 +21,6 @@ export default function Header({ simple = false }: { simple?: boolean }) {
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
-          padding: "10px 20px",
         }}
       >
         {/* Brand Logo */}
@@ -89,18 +90,18 @@ export default function Header({ simple = false }: { simple?: boolean }) {
                 zIndex: 100,
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "space-between", // Pushes contact info block to the bottom
+                justifyContent: "space-between", 
                 padding: "80px 30px 40px 30px", 
               }}
             >
               {/* Top Links Block */}
               <div style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
                 <nav style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <a href="how-it-works" onClick={toggleMenu}>How it Works</a>
-                  <a href="whats-included" onClick={toggleMenu}>What’s Included</a>
-                  <a href="why-spendshift" onClick={toggleMenu}>Why SpendShift</a>
-                  <a href="pricing" onClick={toggleMenu}>Pricing</a>
-                  <a href="/#faq" onClick={toggleMenu}>FAQ</a>
+                  <a href="how-it-works" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
+                  <a href="whats-included" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
+                  <a href="why-spendshift" onClick={toggleMenu}><Circle size={12} color="#059625" /> Why SpendShift</a>
+                  <a href="pricing" onClick={toggleMenu}><Circle size={12} color="#059625" /> Pricing</a>
+                  <a href="/#faq" onClick={toggleMenu}><Circle size={12} color="#059625" /> FAQ</a>
                 </nav>
                 
                 <Link className="btn" href="/audit" onClick={toggleMenu} style={{ textAlign: "center" }}>

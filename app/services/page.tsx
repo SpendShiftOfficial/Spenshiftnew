@@ -92,8 +92,7 @@ export default function ServicesPage() {
             </span>
 
             <h1>
-              Practical savings support from{" "}
-              <span>insight to action.</span>
+              Practical savings support from <span>insight to action.</span>
             </h1>
 
             <p>
@@ -187,9 +186,7 @@ export default function ServicesPage() {
             <div className="servicesOutcomeContent">
               <span className="sectionEyebrow">What You Receive</span>
 
-              <h2>
-                A clearer picture of where your money could be going.
-              </h2>
+              <h2>A clearer picture of where your money could be going.</h2>
 
               <p>
                 SpendShift does not create a traditional budget. It focuses on
@@ -227,9 +224,7 @@ export default function ServicesPage() {
 
               <strong>A$39</strong>
 
-              <p>
-                One-time payment with no subscription or recurring fees.
-              </p>
+              <p>One-time payment with no subscription or recurring fees.</p>
 
               <div className="servicesOutcomeMiniList">
                 <span>
@@ -287,9 +282,7 @@ export default function ServicesPage() {
             <div className="cta">
               <div>
                 <h2>Find your biggest savings opportunities today.</h2>
-                <p>
-                  Complete the free audit in approximately two minutes.
-                </p>
+                <p>Complete the free audit in approximately two minutes.</p>
               </div>
 
               <div>

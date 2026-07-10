@@ -75,8 +75,7 @@ export default function HowItWorksPage() {
               </span>
 
               <h1>
-                From a two-minute audit to{" "}
-                <span>clear savings actions.</span>
+                From a two-minute audit to <span>clear savings actions.</span>
               </h1>
 
               <p>
@@ -183,9 +182,7 @@ export default function HowItWorksPage() {
             <div className="howTrustContent">
               <span className="sectionEyebrow">Designed for clarity</span>
 
-              <h2>
-                Useful insight without the complexity of a budgeting app.
-              </h2>
+              <h2>Useful insight without the complexity of a budgeting app.</h2>
 
               <p>
                 SpendShift focuses on recurring habits and everyday spending
