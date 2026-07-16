@@ -2,6 +2,7 @@
 
 import Header from "@/components/Header";
 import { useEffect, useMemo, useState } from "react";
+import ScrollReveal from "@/components/ScrollReveal";
 import {
   CheckCircle,
   Lock,
@@ -432,7 +433,7 @@ export default function Results() {
       <main className="container">
         <div className="main-section-results">
           <section className="resultsHero">
-            <div className="content-wrap-first">
+            <div className="content-wrap-first reveal-left delay-1">
               <h1 style={{ fontSize: 55 }}>
                 We found your <br />
                 <span style={{ color: "#059625" }}>biggest money leaks</span>
@@ -463,7 +464,7 @@ export default function Results() {
             </div>
 
             <div
-              className="greenPanel"
+              className="greenPanel reveal-right delay-2"
               style={{
                 backgroundImage: "url('/result/panelbg.png')",
               }}
@@ -490,7 +491,7 @@ export default function Results() {
             </div>
           </section>
 
-          <div className="leakTabs">
+          <div className="leakTabs reveal-up">
             {leaks.slice(0, 5).map((l) => (
               <div className="leakTab" key={l.title}>
                 <small>{l.impact}</small>
@@ -507,9 +508,9 @@ export default function Results() {
           </div>
         </div>
 
-        <h2>Your Top 3 money leaks</h2>
+        <h2 className="reveal-up">Your Top 3 money leaks</h2>
 
-        <section className="mainResults">
+        <section className="mainResults reveal-up">
           <div>
             {topLeaks.map((l, idx) => (
               <article className="panel leak" key={l.title}>
@@ -622,6 +623,7 @@ export default function Results() {
             </p>
           </aside>
         </section>
+         <ScrollReveal />
       </main>
     </div>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-
+import ScrollReveal from "@/components/ScrollReveal";
 import {
 Circle,
  Mail, Phone
@@ -119,6 +119,8 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
         </div>
       </div>
+       <ScrollReveal />
     </footer>
+   
   );
 }

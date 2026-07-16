@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import ScrollReveal from "@/components/ScrollReveal";
 import {
   Utensils,
   CreditCard,
@@ -110,7 +111,7 @@ export default function Audit() {
       <Header simple />
 
       <div className="container progressWrap">
-        <div className="progressMeta">
+        <div className="progressMeta reveal-up">
           <b>Audit Progress</b>
           <span>
             Question {i + 1} of {qs.length}
@@ -123,7 +124,7 @@ export default function Audit() {
       </div>
 
       <div className="container">
-        <div className="quizInner">
+        <div className="quizInner reveal-up">
           <div className="icon" style={{ margin: "0 auto 20px" }}>
             <CurrentIcon />
           </div>
@@ -163,10 +164,10 @@ export default function Audit() {
             <span>Takes less than 2 minutes. No credit card required.</span>
           </div>
           <div className="safe">
-            <div className="trend-ng-class">
+            <div className="trend-ng-class reveal-left">
               <TrendingUp color="#059625" size={81} />
             </div>
-            <div>
+            <div className="reveal-right">
               <b>100% data-driven. 100% about you.</b>
               <p className="mini">
                 We analyse your answers to estimate your biggest saving
@@ -195,6 +196,8 @@ export default function Audit() {
           )}
         </div>
       </div>
+      <ScrollReveal />
     </div>
+    
   );
 }

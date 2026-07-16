@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useEffect } from "react";
+import ScrollReveal from "@/components/ScrollReveal";
 import {
   ArrowRight,
   Bot,
@@ -104,30 +104,7 @@ const differences = [
 ];
 
 export default function WhySpendShiftPage() {
-  useEffect(() => {
-  const elements = document.querySelectorAll(
-    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
-  );
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.14,
-      rootMargin: "0px 0px -40px 0px",
-    }
-  );
-
-  elements.forEach((element) => observer.observe(element));
-
-  return () => observer.disconnect();
-}, []);
   return (
     <div className="innerPage">
       <Header />
@@ -432,6 +409,7 @@ export default function WhySpendShiftPage() {
           </div>
         </section>
         <Footer />
+        <ScrollReveal />
       </main>
     </div>
   );

@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
+import ScrollReveal from "@/components/ScrollReveal";
 import {
   ArrowRightCircle,
   Bot,
@@ -164,30 +165,7 @@ const paidOutcomes = [
 ];
 
 export default function Home() {
-  useEffect(() => {
-  const elements = document.querySelectorAll(
-    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
-  );
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.14,
-      rootMargin: "0px 0px -40px 0px",
-    }
-  );
-
-  elements.forEach((element) => observer.observe(element));
-
-  return () => observer.disconnect();
-}, []);
+  
   const [openFaq, setOpenFaq] = useState(0);
 
   return (
@@ -816,6 +794,7 @@ export default function Home() {
       </main>
 
       <Footer />
+      <ScrollReveal />
     </>
   );
 }
