@@ -7,32 +7,28 @@ import Footer from "@/components/Footer";
 import { useState } from "react";
 
 import {
-  ShieldCheck,
-  WalletCards,
-  ChartNoAxesCombined,
-  Search,
-  Clock,
-  FileText,
-  Sparkles,
-  Smartphone,
-  PieChart,
-  CheckCircle2,
-  MoveRight,
-  MessageSquareLock,
-  ClipboardCheck,
-  MapPin,
-  EyeOff,
-  CircleDollarSign,
-  ListChecks,
-  CalendarDays,
-  Save,
+  ArrowRightCircle,
   Bot,
+  CalendarDays,
+  ChartNoAxesCombined,
+  CheckCircle2,
+  CircleDollarSign,
+  ClipboardCheck,
+  Clock,
+  EyeOff,
+  Lightbulb,
+  ListChecks,
+  MapPin,
+  MessageSquareLock,
+  MoveRight,
+  PieChart,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
   Target,
-  Route,
+  WalletCards,
 } from "lucide-react";
-
-import { FaFacebook, FaInstagram } from "react-icons/fa6";
-import { FaTiktok } from "react-icons/fa";
 
 const faqs = [
   {
@@ -104,9 +100,9 @@ const whyCards = [
     text: "SpendShift focuses on money quietly disappearing through everyday habits.",
     points: [
       "No spreadsheets",
-      "No budgeting",
-      "No bank connection required",
-      "Practical ways to save more",
+      "No detailed budgeting",
+      "No bank connection",
+      "Practical savings actions",
     ],
   },
   {
@@ -117,7 +113,7 @@ const whyCards = [
   {
     icon: EyeOff,
     title: "Private",
-    text: "We never require access to your bank account or payment details.",
+    text: "We never require access to your bank account or financial transactions.",
   },
   {
     icon: Clock,
@@ -139,68 +135,33 @@ const whyCards = [
 const includedCards = [
   {
     icon: CircleDollarSign,
-    title: "Estimated Annual Savings",
-    text: "See approximately how much you could recover each year.",
+    title: "Understand Your Savings Potential",
+    text: "See approximately how much money you could recover each year.",
   },
   {
     icon: Target,
-    title: "Priority Money Leaks",
-    text: "Understand which spending areas deserve your attention first.",
-  },
-  {
-    icon: Search,
-    title: "Hidden Opportunities",
-    text: "Discover savings that are easy to overlook in everyday life.",
+    title: "Know What to Fix First",
+    text: "Your highest-impact money leaks are ranked by potential value.",
   },
   {
     icon: MessageSquareLock,
-    title: "Negotiation Scripts",
-    text: "Use ready-to-send wording when asking providers for a better deal.",
-  },
-  {
-    icon: FileText,
-    title: "Cancellation Scripts",
-    text: "Cancel unwanted services without getting stuck in retention conversations.",
+    title: "Take Action With Confidence",
+    text: "Use practical negotiation and cancellation scripts immediately.",
   },
   {
     icon: CalendarDays,
-    title: "30-Day Action Plan",
-    text: "Follow a practical weekly roadmap without feeling overwhelmed.",
-  },
-  {
-    icon: ListChecks,
-    title: "Savings Checklist",
-    text: "Tick off recommended actions as you complete them.",
-  },
-  {
-    icon: Save,
-    title: "Saved Report",
-    text: "Return to your personalised report whenever you need it.",
+    title: "Follow a Clear 30-Day Plan",
+    text: "Turn your recommendations into manageable weekly actions.",
   },
 ];
 
-const services = [
-  {
-    icon: Search,
-    title: "Free Savings Audit",
-    text: "A short assessment that identifies your biggest opportunities to save money.",
-    href: "/audit",
-    linkText: "Start free audit",
-  },
-  {
-    icon: Sparkles,
-    title: "Personalised Savings Report",
-    text: "A detailed AI-generated report tailored to your answers and spending habits.",
-    href: "/audit",
-    linkText: "Create my report",
-  },
-  {
-    icon: Route,
-    title: "30-Day Savings Action Plan",
-    text: "A practical step-by-step roadmap to help you implement your recommendations.",
-    href: "/audit",
-    linkText: "See how it works",
-  },
+const paidOutcomes = [
+  "Find where your money may be quietly disappearing",
+  "Know exactly what to fix first",
+  "See approximately how much you could save each year",
+  "Get practical words to use when cancelling or negotiating",
+  "Follow a clear 30-day savings roadmap",
+  "Track completed actions with your savings checklist",
 ];
 
 export default function Home() {
@@ -266,7 +227,7 @@ export default function Home() {
                 </span>
               </div>
 
-              <Link className="btn" href="/audit">
+              <Link className="btn premiumButton" href="/audit">
                 Start Your Free Audit
                 <MoveRight size={18} strokeWidth={2.5} />
               </Link>
@@ -288,13 +249,13 @@ export default function Home() {
               className="heroVisual"
               aria-label="SpendShift mobile results preview"
             >
-              <div className="floatCard leftCard">
+              <div className="floatCard leftCard microFloat">
                 <ShieldCheck size={34} />
                 <b>Your data is private and secure</b>
                 <p>No bank connection or payment details required.</p>
               </div>
 
-              <div className="phoneFrame1">
+              <div className="phoneFrame1 reportDevicePreview">
                 <Image
                   src="/home/Device.svg"
                   alt="SpendShift mobile results preview"
@@ -304,7 +265,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="floatCard rightCard">
+              <div className="floatCard rightCard microFloat delayedFloat">
                 <ChartNoAxesCombined size={38} />
                 <b>Real insights. Real savings.</b>
                 <p>Practical recommendations based on your answers.</p>
@@ -317,7 +278,7 @@ export default function Home() {
         <section className="stats-section">
           <div className="container">
             <div className="stats">
-              <div className="stat">
+              <div className="stat interactiveCard">
                 <div>
                   <Clock size={50} />
                 </div>
@@ -331,7 +292,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat">
+              <div className="stat interactiveCard">
                 <div>
                   <ShieldCheck size={50} />
                 </div>
@@ -345,7 +306,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat">
+              <div className="stat interactiveCard">
                 <div>
                   <WalletCards size={50} />
                 </div>
@@ -359,7 +320,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat">
+              <div className="stat interactiveCard">
                 <div>
                   <MapPin size={50} />
                 </div>
@@ -379,7 +340,7 @@ export default function Home() {
         {/* WHY SPENDSHIFT */}
         <section className="whySpendshiftSection" id="why">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro revealSection">
               <span className="sectionEyebrow">Why SpendShift</span>
 
               <h2 className="sectionTitle">
@@ -399,8 +360,11 @@ export default function Home() {
                 const Icon = item.icon;
 
                 return (
-                  <article className="whySpendshiftCard" key={item.title}>
-                    <div className="icon">
+                  <article
+                    className="whySpendshiftCard interactiveCard"
+                    key={item.title}
+                  >
+                    <div className="icon animatedIcon">
                       <Icon size={34} strokeWidth={1.5} />
                     </div>
 
@@ -430,45 +394,47 @@ export default function Home() {
 
         {/* HOW IT WORKS */}
         <section className="container stepsSection" id="works">
-          <h2 className="sectionTitle">
-            From quick audit to
-            <br />
-            <span>clear next steps.</span>
-          </h2>
+          <div className="sectionIntro revealSection">
+            <span className="sectionEyebrow">How It Works</span>
+
+            <h2 className="sectionTitle">
+              From quick audit to
+              <br />
+              <span>clear next steps.</span>
+            </h2>
+          </div>
 
           <div className="steps">
-            <div>
+            <div className="interactiveCard">
               <div className="stepNum">01</div>
-              <div className="stepIconWrapper">
+              <div className="stepIconWrapper animatedIcon">
                 <Smartphone className="stepIcon" strokeWidth={1} size={67} />
               </div>
               <h3>Answer 8 simple questions</h3>
               <p>Tell us about your everyday spending habits.</p>
             </div>
 
-            <div>
+            <div className="interactiveCard">
               <div className="stepNum">02</div>
-              <div className="stepIconWrapper">
+              <div className="stepIconWrapper animatedIcon">
                 <Search className="stepIcon" strokeWidth={1} size={67} />
               </div>
               <h3>We analyse your answers</h3>
-              <p>
-                Your responses are compared with relevant spending patterns.
-              </p>
+              <p>Your responses are compared with relevant spending patterns.</p>
             </div>
 
-            <div>
+            <div className="interactiveCard">
               <div className="stepNum">03</div>
-              <div className="stepIconWrapper">
+              <div className="stepIconWrapper animatedIcon">
                 <PieChart className="stepIcon" strokeWidth={1} size={67} />
               </div>
               <h3>See your top money leaks</h3>
               <p>Get immediate insight into your strongest opportunities.</p>
             </div>
 
-            <div>
+            <div className="interactiveCard">
               <div className="stepNum">04</div>
-              <div className="stepIconWrapper">
+              <div className="stepIconWrapper animatedIcon">
                 <MessageSquareLock
                   className="stepIcon"
                   strokeWidth={1}
@@ -481,10 +447,139 @@ export default function Home() {
           </div>
         </section>
 
-        {/* WHAT'S INCLUDED */}
+        {/* REPORT PREVIEW */}
+        <section className="reportPreviewSection" id="report-preview">
+          <div className="container reportPreviewGrid">
+            <div className="reportPreviewContent revealSection">
+              <span className="sectionEyebrow">
+                Your Personalised Report
+              </span>
+
+              <h2>
+                See exactly what you could save and what to do next.
+              </h2>
+
+              <p>
+                Your report turns your audit answers into clear savings
+                priorities, practical actions and a simple plan you can follow.
+              </p>
+
+              <div className="reportPreviewBenefits">
+                <span>
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
+                  Estimated annual savings
+                </span>
+
+                <span>
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
+                  Your biggest money leaks ranked
+                </span>
+
+                <span>
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
+                  Quick wins and estimated completion times
+                </span>
+
+                <span>
+                  <CheckCircle2 size={19} fill="#059625" stroke="white" />
+                  30-day action plan and checklist
+                </span>
+              </div>
+
+              <Link href="/whats-included" className="reportPreviewLink">
+                Explore what’s included
+                <MoveRight size={18} />
+              </Link>
+            </div>
+
+            <div className="reportPreviewMockup">
+              <div className="previewTopBar">
+                <div>
+                  <span className="previewStatus">
+                    <ShieldCheck size={16} />
+                    Personalised Report
+                  </span>
+                  <p>Generated from your audit answers</p>
+                </div>
+
+                <Sparkles size={24} />
+              </div>
+
+              <div className="previewSavingsCard">
+                <span>Estimated Annual Savings</span>
+                <strong>A$4,850/year</strong>
+                <p>
+                  Based on Australian category averages and conservative
+                  reduction targets.
+                </p>
+              </div>
+
+              <div className="previewLeakCard">
+                <div className="previewLeakHeader">
+                  <span>01. Convenience Spending</span>
+                  <span className="highImpactBadge">High impact</span>
+                </div>
+
+                <div className="previewEstimatedRow">
+                  <CircleDollarSign size={21} />
+                  <div>
+                    <small>Estimated saving</small>
+                    <strong>A$1,400/year</strong>
+                  </div>
+                </div>
+
+                <div className="previewActionGrid">
+                  <div>
+                    <Lightbulb size={20} />
+                    <span>
+                      <small>Quick win</small>
+                      Set a weekly convenience spending limit.
+                    </span>
+                  </div>
+
+                  <div>
+                    <Clock size={20} />
+                    <span>
+                      <small>Estimated time</small>
+                      5 minutes
+                    </span>
+                  </div>
+
+                  <div>
+                    <ArrowRightCircle size={20} />
+                    <span>
+                      <small>Next step</small>
+                      Move the weekly amount into savings.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="previewBottomGrid">
+                <div className="previewMiniCard">
+                  <ListChecks size={22} />
+                  <div>
+                    <strong>30-Day Plan</strong>
+                    <span>4 clear weekly priorities</span>
+                  </div>
+                </div>
+
+                <div className="previewMiniCard">
+                  <CheckCircle2 size={22} />
+                  <div>
+                    <strong>Savings Checklist</strong>
+                    <span>Track every completed action</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* WHAT'S INCLUDED - REDUCED */}
         <section className="includedSection" id="included">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro revealSection">
               <span className="sectionEyebrow">What’s Included</span>
 
               <h2 className="sectionTitle">
@@ -494,18 +589,21 @@ export default function Home() {
               </h2>
 
               <p>
-                Your personalised report gives you practical recommendations,
-                clear priorities and simple actions you can start immediately.
+                Understand your savings potential, know what to fix first and
+                follow a practical plan.
               </p>
             </div>
 
-            <div className="includedGrid">
+            <div className="includedGrid compactIncludedGrid">
               {includedCards.map((item) => {
                 const Icon = item.icon;
 
                 return (
-                  <article className="includedCard" key={item.title}>
-                    <div className="includedIcon">
+                  <article
+                    className="includedCard interactiveCard"
+                    key={item.title}
+                  >
+                    <div className="includedIcon animatedIcon">
                       <Icon size={30} strokeWidth={1.5} />
                     </div>
 
@@ -523,22 +621,23 @@ export default function Home() {
         {/* PRICING */}
         <section className="pricingSection" id="pricing">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro revealSection">
               <span className="sectionEyebrow">Simple Pricing</span>
 
               <h2 className="sectionTitle">
                 Start free.
                 <br />
-                <span>Unlock more when you’re ready.</span>
+                <span>Unlock your complete savings plan for A$39.</span>
               </h2>
 
               <p>
-                No subscription, no recurring fees and no unexpected charges.
+                Understand where your money could be going and get a clear plan
+                to keep more of it.
               </p>
             </div>
 
             <div className="pricingGrid">
-              <article className="pricingCard">
+              <article className="pricingCard interactiveCard">
                 <div className="pricingCardTop">
                   <span className="pricingLabel">Free Audit</span>
 
@@ -546,17 +645,20 @@ export default function Home() {
                     <strong>A$0</strong>
                   </div>
 
+                  <h3>See your biggest opportunities before paying anything.</h3>
+
                   <p>
-                    Discover your biggest money leaks before paying anything.
+                    Get a fast overview of the spending areas that could be
+                    costing you the most.
                   </p>
                 </div>
 
                 <div className="pricingList">
                   {[
-                    "Complete savings audit",
-                    "Biggest money leaks",
-                    "Estimated savings range",
-                    "Top three opportunities",
+                    "Discover your biggest money leaks",
+                    "See your estimated savings range",
+                    "Understand your top three opportunities",
+                    "Decide whether the full report is right for you",
                   ].map((item) => (
                     <span key={item}>
                       <CheckCircle2 size={19} fill="#059625" stroke="white" />
@@ -573,7 +675,7 @@ export default function Home() {
                 <p className="pricingFinePrint">No credit card required.</p>
               </article>
 
-              <article className="pricingCard featuredPricingCard">
+              <article className="pricingCard featuredPricingCard interactiveCard">
                 <span className="popularBadge">Full Experience</span>
 
                 <div className="pricingCardTop">
@@ -586,25 +688,18 @@ export default function Home() {
                     <small>one-time payment</small>
                   </div>
 
+                  <h3>
+                    Know what to fix first and how much you could save.
+                  </h3>
+
                   <p>
-                    Get your complete savings breakdown and practical action
-                    plan.
+                    Turn your personalised insights into practical actions that
+                    could improve your finances throughout the year.
                   </p>
                 </div>
 
                 <div className="pricingList">
-                  {[
-                    "Everything in the free audit",
-                    "Full personalised report",
-                    "Estimated annual savings",
-                    "Priority money leaks",
-                    "Hidden savings opportunities",
-                    "Negotiation scripts",
-                    "Cancellation scripts",
-                    "30-day action plan",
-                    "Savings checklist",
-                    "Saved report access",
-                  ].map((item) => (
+                  {paidOutcomes.map((item) => (
                     <span key={item}>
                       <CheckCircle2 size={19} fill="#059625" stroke="white" />
                       {item}
@@ -627,62 +722,33 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SERVICES */}
-        <section className="servicesSection" id="services">
-          <div className="container">
-            <div className="sectionIntro">
-              <span className="sectionEyebrow">Services</span>
-
-              <h2 className="sectionTitle">
-                Practical savings support,
-                <br />
-                <span>from insight to implementation.</span>
-              </h2>
-            </div>
-
-            <div className="servicesGrid">
-              {services.map((service) => {
-                const Icon = service.icon;
-
-                return (
-                  <article className="serviceCard" key={service.title}>
-                    <div className="serviceIcon">
-                      <Icon size={34} strokeWidth={1.5} />
-                    </div>
-
-                    <h3>{service.title}</h3>
-                    <p>{service.text}</p>
-
-                    <Link href={service.href}>
-                      {service.linkText}
-                      <MoveRight size={17} />
-                    </Link>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
         {/* FAQ */}
         <section id="faq" className="faqSection">
           <div className="container">
-            <h2 className="sectionTitle">
-              Frequently Asked
-              <br />
-              <span>Questions</span>
-            </h2>
+            <div className="sectionIntro revealSection">
+              <span className="sectionEyebrow">Questions</span>
+
+              <h2 className="sectionTitle">
+                Frequently Asked
+                <br />
+                <span>Questions</span>
+              </h2>
+            </div>
 
             <div className="faqWrapper">
               {faqs.map((faq, index) => (
                 <div
                   key={faq.question}
-                  className={`faqItem ${openFaq === index ? "active" : ""}`}
+                  className={`faqItem ${
+                    openFaq === index ? "active" : ""
+                  }`}
                 >
                   <button
                     type="button"
                     className="faqQuestion"
-                    onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
+                    onClick={() =>
+                      setOpenFaq(openFaq === index ? -1 : index)
+                    }
                   >
                     <span>{faq.question}</span>
 
@@ -692,7 +758,9 @@ export default function Home() {
                   </button>
 
                   <div
-                    className={`faqAnswer ${openFaq === index ? "show" : ""}`}
+                    className={`faqAnswer ${
+                      openFaq === index ? "show" : ""
+                    }`}
                   >
                     <p>{faq.answer}</p>
                   </div>

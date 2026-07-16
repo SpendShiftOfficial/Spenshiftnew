@@ -12,7 +12,9 @@ import {
   LockKeyhole,
   ShieldCheck,
   Sparkles,
+  Circle,
 } from "lucide-react";
+import { SSG_FALLBACK_EXPORT_ERROR } from "next/dist/lib/constants";
 
 const freeFeatures = [
   "Complete 8-question savings audit",
@@ -39,7 +41,7 @@ const paidFeatures = [
   "Saved report access",
   "Email report delivery",
 ];
-
+SSG_FALLBACK_EXPORT_ERROR
 const trustPoints = [
   {
     icon: CreditCard,

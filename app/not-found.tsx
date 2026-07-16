@@ -16,7 +16,7 @@ export default function NotFound() {
           priority
         />
         <h1>Not found</h1>
-        {/* <p>This report may have expired or does not exist.</p> */}
+        
       </div>
       <Footer />
     </div>
