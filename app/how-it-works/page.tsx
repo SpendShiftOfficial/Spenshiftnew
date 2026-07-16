@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import {
   Smartphone,
   Search,
@@ -61,6 +63,30 @@ const steps = [
 ];
 
 export default function HowItWorksPage() {
+ useEffect(() => {
+  const elements = document.querySelectorAll(
+    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.14,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  elements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
   return (
     <div className="innerPage">
       <Header />
@@ -68,7 +94,7 @@ export default function HowItWorksPage() {
       <main>
         <section className="innerHero">
           <div className="container innerHeroGrid">
-            <div className="innerHeroContent">
+            <div className="innerHeroContent reveal-left delay-1">
               <span className="innerEyebrow">
                 <Sparkles size={17} />
                 How SpendShift Works
@@ -102,7 +128,7 @@ export default function HowItWorksPage() {
               </Link>
             </div>
 
-            <div className="howHeroCard">
+            <div className="howHeroCard reveal-right delay-1">
               <span className="howHeroLabel">Simple process</span>
 
               <strong>4 steps</strong>
@@ -126,7 +152,7 @@ export default function HowItWorksPage() {
 
         <section className="howProcessSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">The Process</span>
 
               <h2 className="sectionTitle">
@@ -146,7 +172,7 @@ export default function HowItWorksPage() {
                 const Icon = step.icon;
 
                 return (
-                  <article className="howProcessCard" key={step.number}>
+                  <article className="howProcessCard reveal-up" key={step.number}>
                     <div className="howProcessNumber">{step.number}</div>
 
                     <div className="howProcessIcon">
@@ -179,7 +205,7 @@ export default function HowItWorksPage() {
 
         <section className="howTrustSection">
           <div className="container howTrustGrid">
-            <div className="howTrustContent">
+            <div className="howTrustContent reveal-left">
               <span className="sectionEyebrow">Designed for clarity</span>
 
               <h2>Useful insight without the complexity of a budgeting app.</h2>
@@ -192,19 +218,19 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="howTrustCards">
-              <div>
+              <div className="reveal-up delay-1">
                 <ShieldCheck size={28} />
                 <h3>Private</h3>
                 <p>No bank account connection is required.</p>
               </div>
 
-              <div>
+              <div className="reveal-up delay-2">
                 <Clock3 size={28} />
                 <h3>Fast</h3>
                 <p>Complete the full audit in approximately two minutes.</p>
               </div>
 
-              <div>
+              <div className="reveal-up delay-3">
                 <Sparkles size={28} />
                 <h3>Personalised</h3>
                 <p>Every report is generated from the answers you provide.</p>
@@ -216,7 +242,7 @@ export default function HowItWorksPage() {
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div>
+              <div className="reveal-left">
                 <h2>Find your biggest money leaks today.</h2>
                 <p>
                   Start with the free audit and see your top opportunities in
@@ -224,7 +250,7 @@ export default function HowItWorksPage() {
                 </p>
               </div>
 
-              <div>
+              <div className="reveal-right">
                 <Link href="/audit" className="btn white">
                   Start Your Free Audit
                   <MoveRight size={18} />

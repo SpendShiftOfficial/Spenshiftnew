@@ -4,8 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import {
   ArrowRightCircle,
   Bot,
@@ -165,6 +164,30 @@ const paidOutcomes = [
 ];
 
 export default function Home() {
+  useEffect(() => {
+  const elements = document.querySelectorAll(
+    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.14,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  elements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
   const [openFaq, setOpenFaq] = useState(0);
 
   return (
@@ -175,7 +198,7 @@ export default function Home() {
         {/* HERO */}
         <section className="heroShell" id="home">
           <div className="container hero">
-            <div className="heroCopy">
+            <div className="heroCopy reveal-left delay-1">
               <span className="badge">
                 <CheckCircle2
                   className="text-[#059625]"
@@ -255,7 +278,7 @@ export default function Home() {
                 <p>No bank connection or payment details required.</p>
               </div>
 
-              <div className="phoneFrame1 reportDevicePreview">
+              <div className="phoneFrame1 reportDevicePreview soft-float">
                 <Image
                   src="/home/Device.svg"
                   alt="SpendShift mobile results preview"
@@ -278,7 +301,7 @@ export default function Home() {
         <section className="stats-section">
           <div className="container">
             <div className="stats">
-              <div className="stat interactiveCard">
+              <div className="stat interactiveCard reveal-up">
                 <div>
                   <Clock size={50} />
                 </div>
@@ -292,7 +315,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat interactiveCard">
+              <div className="stat interactiveCard reveal-up">
                 <div>
                   <ShieldCheck size={50} />
                 </div>
@@ -306,7 +329,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat interactiveCard">
+              <div className="stat interactiveCard reveal-up">
                 <div>
                   <WalletCards size={50} />
                 </div>
@@ -320,7 +343,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="stat interactiveCard">
+              <div className="stat interactiveCard reveal-up">
                 <div>
                   <MapPin size={50} />
                 </div>
@@ -341,15 +364,15 @@ export default function Home() {
         <section className="whySpendshiftSection" id="why">
           <div className="container">
             <div className="sectionIntro revealSection">
-              <span className="sectionEyebrow">Why SpendShift</span>
+              <span className="sectionEyebrow reveal-up">Why SpendShift</span>
 
-              <h2 className="sectionTitle">
+              <h2 className="sectionTitle reveal-up">
                 Save more without building
                 <br />
                 <span>another complicated budget.</span>
               </h2>
 
-              <p>
+              <p className="reveal-up">
                 Unlike budgeting apps, SpendShift focuses on identifying money
                 that quietly disappears through everyday habits.
               </p>
@@ -361,7 +384,7 @@ export default function Home() {
 
                 return (
                   <article
-                    className="whySpendshiftCard interactiveCard"
+                    className="whySpendshiftCard interactiveCard reveal-up"
                     key={item.title}
                   >
                     <div className="icon animatedIcon">
@@ -395,9 +418,9 @@ export default function Home() {
         {/* HOW IT WORKS */}
         <section className="container stepsSection" id="works">
           <div className="sectionIntro revealSection">
-            <span className="sectionEyebrow">How It Works</span>
+            <span className="sectionEyebrow reveal-up">How It Works</span>
 
-            <h2 className="sectionTitle">
+            <h2 className="sectionTitle reveal-up">
               From quick audit to
               <br />
               <span>clear next steps.</span>
@@ -405,7 +428,7 @@ export default function Home() {
           </div>
 
           <div className="steps">
-            <div className="interactiveCard">
+            <div className="interactiveCard reveal-up">
               <div className="stepNum">01</div>
               <div className="stepIconWrapper animatedIcon">
                 <Smartphone className="stepIcon" strokeWidth={1} size={67} />
@@ -414,7 +437,7 @@ export default function Home() {
               <p>Tell us about your everyday spending habits.</p>
             </div>
 
-            <div className="interactiveCard">
+            <div className="interactiveCard reveal-up">
               <div className="stepNum">02</div>
               <div className="stepIconWrapper animatedIcon">
                 <Search className="stepIcon" strokeWidth={1} size={67} />
@@ -423,7 +446,7 @@ export default function Home() {
               <p>Your responses are compared with relevant spending patterns.</p>
             </div>
 
-            <div className="interactiveCard">
+            <div className="interactiveCard reveal-up">
               <div className="stepNum">03</div>
               <div className="stepIconWrapper animatedIcon">
                 <PieChart className="stepIcon" strokeWidth={1} size={67} />
@@ -432,7 +455,7 @@ export default function Home() {
               <p>Get immediate insight into your strongest opportunities.</p>
             </div>
 
-            <div className="interactiveCard">
+            <div className="interactiveCard reveal-up">
               <div className="stepNum">04</div>
               <div className="stepIconWrapper animatedIcon">
                 <MessageSquareLock
@@ -451,20 +474,20 @@ export default function Home() {
         <section className="reportPreviewSection" id="report-preview">
           <div className="container reportPreviewGrid">
             <div className="reportPreviewContent revealSection">
-              <span className="sectionEyebrow">
+              <span className="sectionEyebrow reveal-left">
                 Your Personalised Report
               </span>
 
-              <h2>
+              <h2 className="reveal-left">
                 See exactly what you could save and what to do next.
               </h2>
 
-              <p>
+              <p className="reveal-left">
                 Your report turns your audit answers into clear savings
                 priorities, practical actions and a simple plan you can follow.
               </p>
 
-              <div className="reportPreviewBenefits">
+              <div className="reportPreviewBenefits reveal-left">
                 <span>
                   <CheckCircle2 size={19} fill="#059625" stroke="white" />
                   Estimated annual savings
@@ -486,13 +509,13 @@ export default function Home() {
                 </span>
               </div>
 
-              <Link href="/whats-included" className="reportPreviewLink">
+              <Link href="/whats-included" className="reportPreviewLink reveal-left">
                 Explore what’s included
                 <MoveRight size={18} />
               </Link>
             </div>
 
-            <div className="reportPreviewMockup">
+            <div className="reportPreviewMockup reveal-up">
               <div className="previewTopBar">
                 <div>
                   <span className="previewStatus">
@@ -580,15 +603,15 @@ export default function Home() {
         <section className="includedSection" id="included">
           <div className="container">
             <div className="sectionIntro revealSection">
-              <span className="sectionEyebrow">What’s Included</span>
+              <span className="sectionEyebrow reveal-up">What’s Included</span>
 
-              <h2 className="sectionTitle">
+              <h2 className="sectionTitle reveal-up">
                 Everything you need to
                 <br />
                 <span>turn insight into action.</span>
               </h2>
 
-              <p>
+              <p className="reveal-up">
                 Understand your savings potential, know what to fix first and
                 follow a practical plan.
               </p>
@@ -600,7 +623,7 @@ export default function Home() {
 
                 return (
                   <article
-                    className="includedCard interactiveCard"
+                    className="includedCard interactiveCard reveal-up"
                     key={item.title}
                   >
                     <div className="includedIcon animatedIcon">
@@ -622,22 +645,22 @@ export default function Home() {
         <section className="pricingSection" id="pricing">
           <div className="container">
             <div className="sectionIntro revealSection">
-              <span className="sectionEyebrow">Simple Pricing</span>
+              <span className="sectionEyebrow reveal-up">Simple Pricing</span>
 
-              <h2 className="sectionTitle">
+              <h2 className="sectionTitle reveal-up">
                 Start free.
                 <br />
-                <span>Unlock your complete savings plan for A$39.</span>
+                <span className="reveal-up">Unlock your complete savings plan for A$39.</span>
               </h2>
 
-              <p>
+              <p className="reveal-up">
                 Understand where your money could be going and get a clear plan
                 to keep more of it.
               </p>
             </div>
 
             <div className="pricingGrid">
-              <article className="pricingCard interactiveCard">
+              <article className="pricingCard interactiveCard reveal-left">
                 <div className="pricingCardTop">
                   <span className="pricingLabel">Free Audit</span>
 
@@ -675,7 +698,7 @@ export default function Home() {
                 <p className="pricingFinePrint">No credit card required.</p>
               </article>
 
-              <article className="pricingCard featuredPricingCard interactiveCard">
+              <article className="pricingCard featuredPricingCard interactiveCard reveal-right">
                 <span className="popularBadge">Full Experience</span>
 
                 <div className="pricingCardTop">
@@ -726,9 +749,9 @@ export default function Home() {
         <section id="faq" className="faqSection">
           <div className="container">
             <div className="sectionIntro revealSection">
-              <span className="sectionEyebrow">Questions</span>
+              <span className="sectionEyebrow reveal-up">Questions</span>
 
-              <h2 className="sectionTitle">
+              <h2 className="sectionTitle reveal-up">
                 Frequently Asked
                 <br />
                 <span>Questions</span>
@@ -739,7 +762,7 @@ export default function Home() {
               {faqs.map((faq, index) => (
                 <div
                   key={faq.question}
-                  className={`faqItem ${
+                  className={`faqItem reveal-up ${
                     openFaq === index ? "active" : ""
                   }`}
                 >
@@ -774,12 +797,12 @@ export default function Home() {
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div>
+              <div className="reveal-left">
                 <h2>Stop overpaying. Start saving.</h2>
                 <p>Your free savings audit takes approximately two minutes.</p>
               </div>
 
-              <div>
+              <div className="reveal-right">
                 <Link className="btn white" href="/audit">
                   Start Your Free Audit
                   <MoveRight size={18} />

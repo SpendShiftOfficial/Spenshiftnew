@@ -10,7 +10,7 @@ import { FaFacebook, FaInstagram } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa";
 
 export default function Footer({ simple = false }: { simple?: boolean }) {
-  // Agar simple true ho, toh sirf footer bottom dikhane ke liye aap ye condition use kar sakte hain
+
   if (simple) {
     return (
       <footer className="footer">
@@ -31,8 +31,8 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
   return (
     <footer className="footer">
       <div className="container footerGrid">
-        <div className="footerBrand">
-          <div className="footerLogo">
+        <div className="footerBrand reveal-up">
+          <div className="footerLogo reveal-up">
             <Link href="/" className="logo">
               <Image
                 src="/logo.png"
@@ -76,7 +76,7 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           </div>
         </div>
 
-        <div>
+        <div className="reveal-up">
           <h4>Learn</h4>
           <Link href="/how-it-works"><Circle size={10} color="#fff" /> How It Works</Link>
           <Link href="/whats-included"><Circle size={10} color="#fff" /> What’s Included</Link>
@@ -85,21 +85,21 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           <Link href="/#faq"><Circle size={10} color="#fff" /> Frequently Asked Questions</Link>
         </div>
 
-        <div>
+        <div className="reveal-up">
           <h4>Services</h4>
           <Link href="/#services"><Circle size={10} color="#fff" /> Free Savings Audit</Link>
           <Link href="/#services"><Circle size={10} color="#fff" /> Personalised Savings Report</Link>
           <Link href="/#services"><Circle size={10} color="#fff" /> 30-Day Savings Action Plan</Link>
         </div>
 
-        <div>
+        <div className="reveal-up">
           <h4>Legal</h4>
           <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
           <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
           <Link href="/cookies"><Circle size={10} color="#fff" /> Cookie Policy</Link>
         </div>
 
-        <div>
+        <div className="reveal-up ">
           <h4>Contact</h4>
           <Link className="cntct" href="mailto:info@spendshift.com.au">
            <Mail size={20} color="#059625" /> info@spendshift.com.au
@@ -108,7 +108,7 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
         </div>
       </div>
 
-      <div className="container footerBottom">
+      <div className="container footerBottom reveal-up">
         <span className="footerCopyright">
           © SpendShift 2026. All rights reserved.
         </span>

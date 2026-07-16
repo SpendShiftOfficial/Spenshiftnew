@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -82,6 +84,30 @@ const fullFeatures = [
 ];
 
 export default function WhatsIncludedPage() {
+  useEffect(() => {
+  const elements = document.querySelectorAll(
+    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.14,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  elements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
   return (
     <div className="innerPage">
       <Header />
@@ -90,7 +116,7 @@ export default function WhatsIncludedPage() {
         {/* HERO */}
         <section className="includedPageHero">
           <div className="container includedPageHeroGrid">
-            <div className="includedPageHeroContent">
+            <div className="includedPageHeroContent reveal-left delay-1">
               <span className="innerEyebrow">
                 <Sparkles size={17} />
                 What’s Included
@@ -130,7 +156,7 @@ export default function WhatsIncludedPage() {
               </Link>
             </div>
 
-            <aside className="includedHeroSummary">
+            <aside className="includedHeroSummary reveal-right delay-2">
               <span className="includedSummaryLabel">
                 Full personalised report
               </span>
@@ -184,7 +210,7 @@ export default function WhatsIncludedPage() {
         {/* FULL REPORT FEATURES */}
         <section className="reportFeaturesSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">Inside Your Report</span>
 
               <h2 className="sectionTitle">
@@ -204,7 +230,7 @@ export default function WhatsIncludedPage() {
                 const Icon = feature.icon;
 
                 return (
-                  <article className="reportFeatureCard" key={feature.title}>
+                  <article className="reportFeatureCard reveal-up delay-1" key={feature.title}>
                     <div className="reportFeatureIcon">
                       <Icon size={31} strokeWidth={1.5} />
                     </div>
@@ -221,7 +247,7 @@ export default function WhatsIncludedPage() {
         {/* FREE VS FULL */}
         <section className="includedComparisonSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">Choose Your Level</span>
 
               <h2 className="sectionTitle">
@@ -232,7 +258,7 @@ export default function WhatsIncludedPage() {
             </div>
 
             <div className="includedComparisonGrid">
-              <article className="includedPlanCard">
+              <article className="includedPlanCard reveal-left">
                 <div className="includedPlanHeader">
                   <span>Free Savings Audit</span>
                   <strong>A$0</strong>
@@ -260,7 +286,7 @@ export default function WhatsIncludedPage() {
                 <p className="includedPlanNote">No credit card required.</p>
               </article>
 
-              <article className="includedPlanCard fullIncludedPlan">
+              <article className="includedPlanCard fullIncludedPlan reveal-right">
                 <span className="includedPopularLabel">
                   Complete Savings Plan
                 </span>
@@ -302,7 +328,7 @@ export default function WhatsIncludedPage() {
         {/* REPORT FLOW */}
         <section className="includedFlowSection">
           <div className="container includedFlowGrid">
-            <div className="includedFlowContent">
+            <div className="includedFlowContent reveal-left">
               <span className="sectionEyebrow">Designed for action</span>
 
               <h2>Your report does more than identify a problem.</h2>
@@ -319,7 +345,7 @@ export default function WhatsIncludedPage() {
             </div>
 
             <div className="includedFlowSteps">
-              <div>
+              <div className="reveal-up delay-1">
                 <span>01</span>
                 <div>
                   <h3>Understand the opportunity</h3>
@@ -330,7 +356,7 @@ export default function WhatsIncludedPage() {
                 </div>
               </div>
 
-              <div>
+              <div className="reveal-up delay-2">
                 <span>02</span>
                 <div>
                   <h3>Know what to do next</h3>
@@ -341,7 +367,7 @@ export default function WhatsIncludedPage() {
                 </div>
               </div>
 
-              <div>
+              <div className="reveal-up delay-3">
                 <span>03</span>
                 <div>
                   <h3>Track your actions</h3>
@@ -359,7 +385,7 @@ export default function WhatsIncludedPage() {
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div>
+              <div className="reveal-left delay-1">
                 <h2>See what your spending habits could be costing you.</h2>
                 <p>
                   Complete the free audit and receive your first insights in
@@ -367,7 +393,7 @@ export default function WhatsIncludedPage() {
                 </p>
               </div>
 
-              <div>
+              <div className="reveal-right delay-1">
                 <Link className="btn white" href="/audit">
                   Start Your Free Audit
                   <ArrowRight size={18} />

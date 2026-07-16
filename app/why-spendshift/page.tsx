@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import {
   ArrowRight,
   Bot,
@@ -102,6 +104,30 @@ const differences = [
 ];
 
 export default function WhySpendShiftPage() {
+  useEffect(() => {
+  const elements = document.querySelectorAll(
+    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.14,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  elements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
   return (
     <div className="innerPage">
       <Header />
@@ -110,7 +136,7 @@ export default function WhySpendShiftPage() {
         {/* HERO */}
         <section className="whyPageHero">
           <div className="container whyPageHeroGrid">
-            <div className="whyPageHeroContent">
+            <div className="whyPageHeroContent reveal-left delay-1">
               <span className="innerEyebrow">
                 <Sparkles size={17} />
                 Why SpendShift
@@ -151,7 +177,7 @@ export default function WhySpendShiftPage() {
               </Link>
             </div>
 
-            <aside className="whyHeroPanel">
+            <aside className="whyHeroPanel reveal-right delay-2">
               <span className="whyHeroPanelLabel">
                 SpendShift is designed to be
               </span>
@@ -196,7 +222,7 @@ export default function WhySpendShiftPage() {
         {/* BENEFITS */}
         <section className="whyBenefitsSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">Designed Differently</span>
 
               <h2 className="sectionTitle">
@@ -212,7 +238,7 @@ export default function WhySpendShiftPage() {
               </p>
             </div>
 
-            <div className="whyBenefitsGrid">
+            <div className="whyBenefitsGrid reveal-up">
               {benefits.map((benefit) => {
                 const Icon = benefit.icon;
 
@@ -247,7 +273,7 @@ export default function WhySpendShiftPage() {
         {/* COMPARISON */}
         <section className="whyComparisonSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">
                 SpendShift vs Traditional Budgeting
               </span>
@@ -266,18 +292,18 @@ export default function WhySpendShiftPage() {
 
             <div className="whyComparisonTable">
               <div className="whyComparisonHeader">
-                <span>Traditional budgeting tools</span>
-                <span>SpendShift</span>
+                <span className="reveal-left">Traditional budgeting tools</span>
+                <span className="reveal-right">SpendShift</span>
               </div>
 
               {differences.map((item) => (
                 <div className="whyComparisonRow" key={item.traditional}>
-                  <div className="whyComparisonTraditional">
+                  <div className="whyComparisonTraditional reveal-up">
                     <span className="comparisonMinus">−</span>
                     {item.traditional}
                   </div>
 
-                  <div className="whyComparisonSpendShift">
+                  <div className="whyComparisonSpendShift reveal-up">
                     <CheckCircle2 size={19} fill="#059625" stroke="white" />
                     {item.spendshift}
                   </div>
@@ -290,7 +316,7 @@ export default function WhySpendShiftPage() {
         {/* AUSTRALIAN SECTION */}
         <section className="whyAustralianSection">
           <div className="container whyAustralianGrid">
-            <div className="whyAustralianContent">
+            <div className="whyAustralianContent reveal-left">
               <span className="sectionEyebrow">Built for Australians</span>
 
               <h2>
@@ -326,7 +352,7 @@ export default function WhySpendShiftPage() {
               </div>
             </div>
 
-            <div className="whyAustralianCard">
+            <div className="whyAustralianCard reveal-right">
               <MapPin size={40} />
 
               <span>Australian focused</span>
@@ -347,7 +373,7 @@ export default function WhySpendShiftPage() {
         {/* PRIVACY */}
         <section className="whyPrivacySection">
           <div className="container whyPrivacyGrid">
-            <div className="whyPrivacyCard">
+            <div className="whyPrivacyCard reveal-left">
               <ShieldCheck size={44} />
 
               <h3>No bank connection required</h3>
@@ -359,7 +385,7 @@ export default function WhySpendShiftPage() {
               </p>
             </div>
 
-            <div className="whyPrivacyContent">
+            <div className="whyPrivacyContent reveal-right">
               <span className="sectionEyebrow">Privacy First</span>
 
               <h2>
@@ -385,7 +411,7 @@ export default function WhySpendShiftPage() {
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div>
+              <div className="reveal-left">
                 <h2>Find your biggest savings opportunities today.</h2>
 
                 <p>
@@ -394,7 +420,7 @@ export default function WhySpendShiftPage() {
                 </p>
               </div>
 
-              <div>
+              <div className="reveal-right">
                 <Link href="/audit" className="btn white">
                   Start Your Free Audit
                   <ArrowRight size={18} />

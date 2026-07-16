@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -12,9 +14,7 @@ import {
   LockKeyhole,
   ShieldCheck,
   Sparkles,
-  Circle,
 } from "lucide-react";
-import { SSG_FALLBACK_EXPORT_ERROR } from "next/dist/lib/constants";
 
 const freeFeatures = [
   "Complete 8-question savings audit",
@@ -41,7 +41,7 @@ const paidFeatures = [
   "Saved report access",
   "Email report delivery",
 ];
-SSG_FALLBACK_EXPORT_ERROR
+
 const trustPoints = [
   {
     icon: CreditCard,
@@ -66,6 +66,30 @@ const trustPoints = [
 ];
 
 export default function PricingPage() {
+  useEffect(() => {
+  const elements = document.querySelectorAll(
+    ".reveal-up, .reveal-left, .reveal-right, .reveal-scale, .animated-heading"
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.14,
+      rootMargin: "0px 0px -40px 0px",
+    }
+  );
+
+  elements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
   return (
     <div className="innerPage">
       <Header />
@@ -74,35 +98,35 @@ export default function PricingPage() {
         {/* HERO */}
         <section className="pricingPageHero">
           <div className="container pricingPageHeroContent">
-            <span className="innerEyebrow">
+            <span className="innerEyebrow reveal-up delay-1">
               <Sparkles size={17} />
               Simple Pricing
             </span>
 
-            <h1>
+            <h1 className="reveal-up delay-2">
               Start free.
               <br />
               <span>Unlock the full plan when you are ready.</span>
             </h1>
 
-            <p>
+            <p className="reveal-up delay-3">
               Complete your free savings audit first. Upgrade only when you want
               the complete personalised report, scripts, checklist and 30-day
               action plan.
             </p>
 
             <div className="pricingHeroTrust">
-              <span>
+              <span className="reveal-up delay-1">
                 <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 No subscription
               </span>
 
-              <span>
+              <span className="reveal-up delay-2">
                 <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 One-time payment
               </span>
 
-              <span>
+              <span className="reveal-up delay-3">
                 <CheckCircle2 size={19} fill="#059625" stroke="white" />
                 Secure Stripe checkout
               </span>
@@ -115,7 +139,7 @@ export default function PricingPage() {
           <div className="container">
             <div className="pricingPageGrid">
               {/* FREE PLAN */}
-              <article className="pricingPageCard">
+              <article className="pricingPageCard reveal-up">
                 <div className="pricingPageCardHeader">
                   <div className="pricingPageIcon">
                     <FileText size={30} strokeWidth={1.5} />
@@ -151,7 +175,7 @@ export default function PricingPage() {
               </article>
 
               {/* PAID PLAN */}
-              <article className="pricingPageCard pricingPageFeatured">
+              <article className="pricingPageCard pricingPageFeatured reveal-up">
                 <span className="pricingPagePopular">
                   Full Personalised Report
                 </span>
@@ -203,7 +227,7 @@ export default function PricingPage() {
         {/* WHY PAY */}
         <section className="pricingValueSection">
           <div className="container pricingValueGrid">
-            <div className="pricingValueContent">
+            <div className="pricingValueContent reveal-left delay-1">
               <span className="sectionEyebrow">
                 What the full report unlocks
               </span>
@@ -239,7 +263,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <div className="pricingValuePanel">
+            <div className="pricingValuePanel reveal-right delay-2">
               <span>Example report value</span>
 
               <strong>A$3,050/year</strong>
@@ -273,7 +297,7 @@ export default function PricingPage() {
         {/* TRUST */}
         <section className="pricingTrustSection">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro reveal-up delay-2">
               <span className="sectionEyebrow">Simple and secure</span>
 
               <h2 className="sectionTitle">
@@ -288,7 +312,7 @@ export default function PricingPage() {
                 const Icon = item.icon;
 
                 return (
-                  <article className="pricingTrustCard" key={item.title}>
+                  <article className="pricingTrustCard reveal-up" key={item.title}>
                     <div className="pricingTrustIcon">
                       <Icon size={29} strokeWidth={1.5} />
                     </div>
@@ -306,18 +330,18 @@ export default function PricingPage() {
         <section className="pricingRefundSection">
           <div className="container">
             <div className="pricingRefundCard">
-              <div className="pricingRefundIcon">
+              <div className="pricingRefundIcon reveal-up">
                 <ShieldCheck size={42} />
               </div>
 
               <div>
-                <span className="sectionEyebrow">
+                <span className="sectionEyebrow reveal-up">
                   30-day satisfaction promise
                 </span>
 
-                <h2>Buy with confidence.</h2>
+                <h2 className="reveal-up">Buy with confidence.</h2>
 
-                <p>
+                <p className="reveal-up">
                   If you do not believe your report helped you identify
                   meaningful savings opportunities, contact SpendShift within 30
                   days and we will review your refund request.
@@ -329,7 +353,7 @@ export default function PricingPage() {
 
         {/* FAQ PREVIEW */}
         <section className="pricingFaqPreview">
-          <div className="container pricingFaqGrid">
+          <div className="container pricingFaqGrid reveal-left delay-1">
             <div>
               <span className="sectionEyebrow">Pricing questions</span>
 
@@ -341,7 +365,7 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <div className="pricingFaqItems">
+            <div className="pricingFaqItems reveal-right delay-2">
               <div>
                 <h3>Is this a subscription?</h3>
                 <p>No. The A$39 price is a one-time payment.</p>
@@ -367,12 +391,12 @@ export default function PricingPage() {
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div>
+              <div className="reveal-left delay-1">
                 <h2>Start free and see your biggest opportunities.</h2>
                 <p>Complete the savings audit in approximately two minutes.</p>
               </div>
 
-              <div>
+              <div className="reveal-up delay-2">
                 <Link href="/audit" className="btn white">
                   Start Your Free Audit
                   <ArrowRight size={18} />

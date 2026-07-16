@@ -3143,7 +3143,7 @@ span.reportStatus {
 }
 .pricingPageHeroContent,
 .servicesPageHeroContent {
-  max-width: 900px;
+  max-width: 1100px;
 }
 .pricingPageHeroContent h1,
 .servicesPageHeroContent h1 {
@@ -4201,5 +4201,208 @@ section.finalCtaSection .cta {
 
   .previewBottomGrid {
     grid-template-columns: 1fr;
+  }
+}
+/* =========================
+   REUSABLE REVEAL ANIMATIONS
+========================= */
+
+.reveal-up,
+.reveal-left,
+.reveal-right,
+.reveal-scale {
+  opacity: 0;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+  will-change: opacity, transform;
+}
+
+.reveal-up {
+  transform: translateY(34px);
+}
+
+.reveal-left {
+  transform: translateX(-34px);
+}
+
+.reveal-right {
+  transform: translateX(34px);
+}
+
+.reveal-scale {
+  transform: scale(0.94);
+}
+
+.reveal-up.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible,
+.reveal-scale.is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+/* Stagger delays */
+
+.delay-1 {
+  transition-delay: 0.08s;
+}
+
+.delay-2 {
+  transition-delay: 0.16s;
+}
+
+.delay-3 {
+  transition-delay: 0.24s;
+}
+
+.delay-4 {
+  transition-delay: 0.32s;
+}
+
+.delay-5 {
+  transition-delay: 0.4s;
+}
+
+.delay-6 {
+  transition-delay: 0.48s;
+}
+
+/* =========================
+   CARD HOVER
+========================= */
+
+.animated-card {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.animated-card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(5, 150, 37, 0.4);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
+}
+
+.animated-card .animated-icon {
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.animated-card:hover .animated-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* =========================
+   BUTTON ANIMATION
+========================= */
+
+.animated-button {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.animated-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(5, 150, 37, 0.25);
+}
+
+.animated-button svg {
+  transition: transform 0.25s ease;
+}
+
+.animated-button:hover svg {
+  transform: translateX(5px);
+}
+
+.animated-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+}
+
+.animated-button:hover::before {
+  left: 130%;
+}
+
+/* =========================
+   HEADING UNDERLINE EFFECT
+========================= */
+
+.animated-heading {
+  position: relative;
+  display: inline-block;
+}
+
+.animated-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: #059625;
+  transition: width 0.5s ease;
+}
+.heroShell {
+    padding: 60px 0px;
+}
+.animated-heading.is-visible::after {
+  width: 100%;
+}
+
+/* =========================
+   SOFT FLOAT
+========================= */
+
+.soft-float {
+  animation: softFloat 5s ease-in-out infinite;
+}
+
+@keyframes softFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* =========================
+   ACCESSIBILITY
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale,
+  .animated-card,
+  .animated-button,
+  .animated-icon,
+  .soft-float {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

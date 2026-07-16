@@ -24,7 +24,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
         }}
       >
         {/* Brand Logo */}
-        <Link href="/" className="logo">
+        <Link href="/" className="logo reveal-left">
           <Image
             src="/logo.png"
             alt="SpendShift"
@@ -57,7 +57,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
               <a href="/#faq">FAQ</a>
             </nav>
 
-            <Link className="btn desktop-only" href="/audit">
+            <Link className="btn desktop-only reveal-right" href="/audit">
               Start Your Free Audit
             </Link>
 
@@ -95,7 +95,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
               }}
             >
               {/* Top Links Block */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
+              <div className="reveal-up" style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
                 <nav style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                   <a href="how-it-works" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
                   <a href="whats-included" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
@@ -111,7 +111,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
 
               {/* Bottom Contact Details Block */}
               <div 
-                className="side-panel-footer"
+                className="side-panel-footer reveal-up"
                 style={{
                   display: "flex",
                   flexDirection: "column",
