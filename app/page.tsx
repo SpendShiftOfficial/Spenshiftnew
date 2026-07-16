@@ -762,7 +762,7 @@ export default function Home() {
               {faqs.map((faq, index) => (
                 <div
                   key={faq.question}
-                  className={`faqItem reveal-up ${
+                  className={`faqItem ${
                     openFaq === index ? "active" : ""
                   }`}
                 >
