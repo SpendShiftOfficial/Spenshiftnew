@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Lock,
   ChevronDown,
+  ArrowLeft
 } from "lucide-react";
 
 const qs = [
@@ -105,6 +106,14 @@ export default function Audit() {
       setI(i + 1);
     }
   }
+  function previousQuestion() {
+  if (i === 0) {
+    r.back(); // ya r.push("/")
+    return;
+  }
+
+  setI((prev) => prev - 1);
+}
 
   return (
     <div className="auditPage">
@@ -150,15 +159,26 @@ export default function Audit() {
             ))}
           </div>
 
-          <button
-            type="button"
-            className="btn"
-            disabled={!answers[i]}
-            onClick={nextQuestion}
-          >
-            {i === qs.length - 1 ? "See My Results" : "Next Question"}
-            <ArrowRight size={18} />
-          </button>
+          <div className="auditButtons">
+  <button
+    type="button"
+    className="btn btnSecondary"
+    onClick={previousQuestion}
+  >
+    <ArrowLeft size={18} />
+    {i === 0 ? "Back Home" : "Previous"}
+  </button>
+
+  <button
+    type="button"
+    className="btn"
+    disabled={!answers[i]}
+    onClick={nextQuestion}
+  >
+    {i === qs.length - 1 ? "See My Results" : "Next Question"}
+    <ArrowRight size={18} />
+  </button>
+</div>
           <div className="auditNote">
             <Lock size={16} strokeWidth={2.2} />
             <span>Takes less than 2 minutes. No credit card required.</span>

@@ -2458,6 +2458,12 @@ span.reportStatus {
   }
 }
 @media (max-width: 600px) {
+  .audit-page-label {
+    width: 100%;
+}
+.content-wrap-first.reveal-left.delay-1.is-visible {
+    overflow: hidden;
+}
   .calloutHeader b {
     font-size: 14px;
   }
@@ -2973,6 +2979,11 @@ span.reportStatus {
   display: grid;
   gap: 10px;
   margin-top: 21px;
+}
+.auditButtons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
 }
 .whyAustralianPoints span,
 .whyBenefitPoints span {
