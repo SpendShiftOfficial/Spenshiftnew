@@ -2458,6 +2458,9 @@ span.reportStatus {
   }
 }
 @media (max-width: 600px) {
+  .footerGrid {
+    display: block;
+}
   button.unlock.flex.items-center.justify-center.gap-2 {
     font-size: 15px;
 }
