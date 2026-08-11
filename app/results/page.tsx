@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import { useEffect, useMemo, useState } from "react";
 import ScrollReveal from "@/components/ScrollReveal";
+
 import {
   CheckCircle,
   Lock,
@@ -18,6 +20,7 @@ import {
   Zap,
   ChartNoAxesCombined,
 } from "lucide-react";
+
 import { BsCheckCircleFill } from "react-icons/bs";
 
 type Leak = {
@@ -44,7 +47,10 @@ function impact(amount: number) {
   return "LOW IMPACT";
 }
 
-function rangeFor(answer: string, map: Record<string, [number, number]>) {
+function rangeFor(
+  answer: string,
+  map: Record<string, [number, number]>
+) {
   return map[answer] || [0, 0];
 }
 
@@ -105,23 +111,26 @@ function buildLeaks(answers: string[]): Leak[] {
     createLeak({
       title: "Takeaway & Food Delivery",
       answer: takeaway,
+
       range: rangeFor(takeaway, {
         Never: [0, 0],
         "1–2 times/week": [600, 1000],
         "3–5 times/week": [1200, 2000],
         "Almost daily": [2500, 4000],
       }),
+
       copy: (amount) =>
         takeaway === "Never"
           ? "You said you do not rely on takeaway often, so this is unlikely to be your biggest leak."
           : `You said you order takeaway ${takeaway}. Reducing just part of that habit could save approximately ${money(
-              amount,
+              amount
             )} per year.`,
     }),
 
     createLeak({
       title: "Subscriptions",
       answer: subscriptions,
+
       range: rangeFor(subscriptions, {
         "0–2": [0, 100],
         "3–5": [400, 700],
@@ -129,17 +138,19 @@ function buildLeaks(answers: string[]): Leak[] {
         "10+": [1500, 2500],
         "Not sure": [800, 1400],
       }),
+
       copy: (amount) =>
         subscriptions === "0–2"
           ? "You have a low subscription count, so there may only be a small saving here."
           : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could save approximately ${money(
-              amount,
+              amount
             )} per year.`,
     }),
 
     createLeak({
       title: "Insurance Overpayment",
       answer: insurance,
+
       range: rangeFor(insurance, {
         "Within 6 months": [0, 200],
         "6–12 months ago": [150, 400],
@@ -148,81 +159,90 @@ function buildLeaks(answers: string[]): Leak[] {
         "Never / not sure": [600, 1500],
         "I don’t currently have insurance": [0, 0],
       }),
+
       copy: (amount) =>
         insurance === "I don’t currently have insurance"
           ? "You said you do not currently have insurance, so this area has been excluded from your savings estimate."
           : insurance === "Within 6 months"
-            ? "You reviewed insurance recently, so this may not be your highest opportunity."
-            : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
-                amount,
-              )} per year in potential overpayment.`,
+          ? "You reviewed insurance recently, so this may not be your highest opportunity."
+          : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
+              amount
+            )} per year in potential overpayment.`,
     }),
 
     createLeak({
       title: "Convenience Spending",
       answer: convenience,
+
       range: rangeFor(convenience, {
         Rarely: [0, 200],
         "1–2 times/week": [400, 700],
         "3–5 times/week": [800, 1400],
         Daily: [1500, 2500],
       }),
+
       copy: (amount) =>
         convenience === "Rarely"
           ? "Convenience spending looks fairly controlled from your answer."
           : `You said you buy convenience items ${convenience}. Small repeat purchases could add up to approximately ${money(
-              amount,
+              amount
             )} per year.`,
     }),
 
     createLeak({
       title: "Internet & Mobile Plan",
       answer: mobile,
+
       range: rangeFor(mobile, {
         "Within 6 months": [0, 100],
         "6–12 months ago": [100, 200],
         "Over a year ago": [150, 400],
         "I honestly don’t know": [150, 400],
       }),
+
       copy: (amount) =>
         mobile === "Within 6 months"
           ? "Your plan was reviewed recently, so the saving may be smaller here."
           : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
-              amount,
+              amount
             )} per year more than newer offers.`,
     }),
 
     createLeak({
       title: "Recurring Payment Leakage",
       answer: recurring,
+
       range: rangeFor(recurring, {
         Monthly: [0, 100],
         "Every few months": [100, 300],
         Rarely: [200, 600],
         "Almost never": [400, 1000],
       }),
+
       copy: (amount) =>
         recurring === "Monthly"
           ? "You review recurring payments regularly, so this area looks more controlled."
           : `You said you review recurring payments ${recurring}. That could allow around ${money(
-              amount,
+              amount
             )} per year in small charges to continue unnoticed.`,
     }),
 
     createLeak({
       title: "Unplanned Purchases",
       answer: unplanned,
+
       range: rangeFor(unplanned, {
         Rarely: [0, 200],
         "1–2 times/week": [300, 600],
         "3–5 times/week": [600, 1200],
         "Almost daily": [1000, 2000],
       }),
+
       copy: (amount) =>
         unplanned === "Rarely"
           ? "Unplanned purchases do not look like a major leak from your answer."
           : `You said you make unplanned purchases ${unplanned}. Adding a little friction could save approximately ${money(
-              amount,
+              amount
             )} per year.`,
     }),
   ];
@@ -237,6 +257,9 @@ export default function Results() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+
+  // NEW
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("spendshift_answers");
@@ -281,25 +304,51 @@ export default function Results() {
   const totalMid = leaks.reduce((sum, item) => sum + item.amount, 0);
 
   const topLeaks = leaks.slice(0, 3);
+
   const savingsComparison = getSavingsComparison(totalMid);
 
   async function pay() {
-    setBusy(true);
+    if (!acceptedTerms) {
+      alert(
+        "Please accept the Terms & Conditions, Privacy Policy and Financial Information & AI Disclaimer before continuing."
+      );
 
-    const storedAnswers = localStorage.getItem("spendshift_answers") || "[]";
+      return;
+    }
 
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers: storedAnswers }),
-    });
+    try {
+      setBusy(true);
 
-    const data = await res.json();
+      const storedAnswers =
+        localStorage.getItem("spendshift_answers") || "[]";
 
-    if (data.url) location.href = data.url;
-    else alert(data.error || "Stripe checkout failed");
+      const res = await fetch("/api/checkout", {
+        method: "POST",
 
-    setBusy(false);
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          answers: storedAnswers,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        location.href = data.url;
+        return;
+      }
+
+      alert(data.error || "Stripe checkout failed");
+    } catch (error) {
+      console.error("Checkout failed:", error);
+
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (loading) {
@@ -311,6 +360,7 @@ export default function Results() {
           <div className="progressWrap">
             <div className="progressMeta">
               <b>Audit Progress</b>
+
               <span>Question 8 of 8</span>
             </div>
 
@@ -320,7 +370,12 @@ export default function Results() {
           </div>
 
           <div className="analysisCard">
-            <div className="icon" style={{ margin: "0 auto 20px" }}>
+            <div
+              className="icon"
+              style={{
+                margin: "0 auto 20px",
+              }}
+            >
               <ShieldCheck />
             </div>
 
@@ -340,7 +395,9 @@ export default function Results() {
             >
               <div>
                 <strong>{progress}%</strong>
+
                 <br />
+
                 <span>Analysing</span>
               </div>
             </div>
@@ -351,10 +408,15 @@ export default function Results() {
                   <div className="iconWrap">
                     <Wallet size={18} />
                   </div>
+
                   <span>Reviewing your spending patterns</span>
                 </div>
 
-                <CheckCircle size={20} fill="#059625" color="#fff" />
+                <CheckCircle
+                  size={20}
+                  fill="#059625"
+                  color="#fff"
+                />
               </div>
 
               <div className="checkRow">
@@ -362,13 +424,22 @@ export default function Results() {
                   <div className="iconWrap">
                     <BarChart3 size={18} />
                   </div>
+
                   <span>Comparing against category averages</span>
                 </div>
 
                 {progress >= 30 ? (
-                  <CheckCircle size={20} fill="#059625" color="#fff" />
+                  <CheckCircle
+                    size={20}
+                    fill="#059625"
+                    color="#fff"
+                  />
                 ) : (
-                  <LoaderCircle size={20} color="#059625" className="spin" />
+                  <LoaderCircle
+                    size={20}
+                    color="#059625"
+                    className="spin"
+                  />
                 )}
               </div>
 
@@ -377,15 +448,28 @@ export default function Results() {
                   <div className="iconWrap">
                     <Search size={18} />
                   </div>
+
                   <span>Identifying overpayment opportunities</span>
                 </div>
 
                 {progress >= 55 ? (
-                  <CheckCircle size={20} fill="#059625" color="#fff" />
+                  <CheckCircle
+                    size={20}
+                    fill="#059625"
+                    color="#fff"
+                  />
                 ) : progress >= 35 ? (
-                  <LoaderCircle size={20} color="#059625" className="spin" />
+                  <LoaderCircle
+                    size={20}
+                    color="#059625"
+                    className="spin"
+                  />
                 ) : (
-                  <Circle size={16} fill="#9CA3AF" color="#9CA3AF" />
+                  <Circle
+                    size={16}
+                    fill="#9CA3AF"
+                    color="#9CA3AF"
+                  />
                 )}
               </div>
 
@@ -394,26 +478,43 @@ export default function Results() {
                   <div className="iconWrap">
                     <Lightbulb size={18} />
                   </div>
+
                   <span>Calculating your potential savings</span>
                 </div>
 
                 {progress >= 72 ? (
-                  <CheckCircle size={20} fill="#059625" color="#fff" />
+                  <CheckCircle
+                    size={20}
+                    fill="#059625"
+                    color="#fff"
+                  />
                 ) : progress >= 60 ? (
-                  <LoaderCircle size={20} color="#059625" className="spin" />
+                  <LoaderCircle
+                    size={20}
+                    color="#059625"
+                    className="spin"
+                  />
                 ) : (
-                  <Circle size={16} fill="#9CA3AF" color="#9CA3AF" />
+                  <Circle
+                    size={16}
+                    fill="#9CA3AF"
+                    color="#9CA3AF"
+                  />
                 )}
               </div>
             </div>
 
             <div className="safe">
               <div className="trend-ng-class">
-                <Lock color="#059625" size={81} />
+                <Lock
+                  color="#059625"
+                  size={81}
+                />
               </div>
 
               <div>
                 <b>Your data is safe with us</b>
+
                 <p className="mini">
                   We do not need bank access to estimate your savings
                   opportunities.
@@ -436,7 +537,10 @@ export default function Results() {
             <div className="content-wrap-first reveal-left delay-1">
               <h1 style={{ fontSize: 55 }}>
                 We found your <br />
-                <span style={{ color: "#059625" }}>biggest money leaks</span>
+
+                <span style={{ color: "#059625" }}>
+                  biggest money leaks
+                </span>
               </h1>
 
               <p>
@@ -448,6 +552,7 @@ export default function Results() {
                 <div>
                   <ShieldCheck size={34} />
                 </div>
+
                 <div>
                   <p>Your data is private & secure</p>
                 </div>
@@ -457,6 +562,7 @@ export default function Results() {
                 <div>
                   <ChartNoAxesCombined size={34} />
                 </div>
+
                 <div>
                   <p>Real insights. Real savings.</p>
                 </div>
@@ -469,7 +575,9 @@ export default function Results() {
                 backgroundImage: "url('/result/panelbg.png')",
               }}
             >
-              <span className="badge">Total Recoverable Cash Found</span>
+              <span className="badge">
+                Total Recoverable Cash Found
+              </span>
 
               <h2 style={{ fontSize: 65 }}>
                 {money(totalMin)} - {money(totalMax)}/year
@@ -477,43 +585,66 @@ export default function Results() {
 
               <p className="conclu-para">
                 <Info size={34} />
+
                 Based on your answers, we estimated your annual savings using
                 category averages and conservative reduction targets.
               </p>
 
-              <p className="mini" style={{ color: "#fff", marginTop: 12 }}>
+              <p
+                className="mini"
+                style={{
+                  color: "#fff",
+                  marginTop: 12,
+                }}
+              >
                 {savingsComparison}
               </p>
 
-              <button onClick={pay} className="btn white">
-                {busy ? "Opening checkout..." : "Get My Full Savings Plan"}
-              </button>
+              {/* Top button now scrolls to checkout section */}
+              <a
+                href="#unlock-full-report"
+                className="btn white"
+              >
+                Get My Full Savings Plan
+              </a>
             </div>
           </section>
 
           <div className="leakTabs reveal-up">
             {leaks.slice(0, 5).map((l) => (
-              <div className="leakTab" key={l.title}>
+              <div
+                className="leakTab"
+                key={l.title}
+              >
                 <small>{l.impact}</small>
+
                 <strong>{money(l.amount)}</strong>
+
                 <span>{l.title}</span>
               </div>
             ))}
 
             <div className="leakTab">
               <small>LOCKED</small>
+
               <strong>Unlock</strong>
+
               <span>Full personalised action plan</span>
             </div>
           </div>
         </div>
 
-        <h2 className="reveal-up">Your Top 3 money leaks</h2>
+        <h2 className="reveal-up">
+          Your Top 3 money leaks
+        </h2>
 
         <section className="mainResults reveal-up">
           <div>
             {topLeaks.map((l, idx) => (
-              <article className="panel leak" key={l.title}>
+              <article
+                className="panel leak"
+                key={l.title}
+              >
                 <span className="pill">
                   0{idx + 1} {l.impact}
                 </span>
@@ -524,7 +655,9 @@ export default function Results() {
                   <p>{l.insight}</p>
 
                   <div className="savings">
-                    <span>Save</span> {money(l.amount)} <span>per year</span>
+                    <span>Save</span>{" "}
+                    {money(l.amount)}{" "}
+                    <span>per year</span>
                   </div>
                 </div>
 
@@ -537,93 +670,198 @@ export default function Results() {
 
             <div className="safe">
               <div className="trend-ng-class">
-                <Zap color="#059625" size={81} />
+                <Zap
+                  color="#059625"
+                  size={81}
+                />
               </div>
 
               <div>
                 <b>These are just the big ones.</b>
+
                 <p className="mini">
-                  Your full report includes deeper personalised insights, hidden
-                  leaks, scripts, and action steps.
+                  Your full report includes deeper personalised insights,
+                  hidden leaks, scripts, and action steps.
                 </p>
               </div>
             </div>
           </div>
 
-          <aside className="panel reportBox">
+          <aside
+            className="panel reportBox"
+            id="unlock-full-report"
+          >
             <span className="pill">
-              <BsCheckCircleFill size={20} color="#059625" /> Unlock Your{" "}
+              <BsCheckCircleFill
+                size={20}
+                color="#059625"
+              />
+
+              {" "}
+              Unlock Your{" "}
+
               <span>Full Potential</span>
             </span>
 
             <h2>Get your personalised action plan</h2>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> See all your money
-              leaks
+              <BsCheckCircleFill
+                size={15}
+                color="#059625"
+              />
+
+              {" "}
+              See all your money leaks
             </p>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Get your estimated
-              savings
+              <BsCheckCircleFill
+                size={15}
+                color="#059625"
+              />
+
+              {" "}
+              Get your estimated savings
             </p>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Step-by-step
-              action plan
+              <BsCheckCircleFill
+                size={15}
+                color="#059625"
+              />
+
+              {" "}
+              Step-by-step action plan
             </p>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Scripts you can
-              use
+              <BsCheckCircleFill
+                size={15}
+                color="#059625"
+              />
+
+              {" "}
+              Scripts you can use
             </p>
 
             <p className="list-item">
-              <BsCheckCircleFill size={15} color="#059625" /> Save more, stress
-              less
+              <BsCheckCircleFill
+                size={15}
+                color="#059625"
+              />
+
+              {" "}
+              Save more, stress less
             </p>
 
             <div className="card unlock-card">
               <h5>
-                <FileClock size={25} color="#059625" />
+                <FileClock
+                  size={25}
+                  color="#059625"
+                />
+
                 Your Full Report
               </h5>
 
               <p>
-                <FileClock size={25} color="#fff" /> Potential annual savings
+                <FileClock
+                  size={25}
+                  color="#fff"
+                />
+
+                Potential annual savings
               </p>
 
-              <div className="savings">{money(totalMid)}</div>
+              <div className="savings">
+                {money(totalMid)}
+              </div>
 
               <div className="top-bar-leaks">
                 <div className="item">
                   <span>Top leaks found:</span>
+
                   <span>{leaks.length}</span>
                 </div>
 
                 <div className="item">
                   <span>Action plan steps:</span>
+
                   <span>18</span>
                 </div>
               </div>
             </div>
 
+            {/* LEGAL ACCEPTANCE */}
+            <div className="checkoutConsent">
+              <label className="checkoutConsentLabel">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) =>
+                    setAcceptedTerms(e.target.checked)
+                  }
+                />
+
+                <span>
+                  I agree to the{" "}
+
+                  <Link
+                    href="/terms-and-conditions"
+                    target="_blank"
+                  >
+                    Terms &amp; Conditions
+                  </Link>
+                  ,{" "}
+
+                  <Link
+                    href="/privacy-policy"
+                    target="_blank"
+                  >
+                    Privacy Policy
+                  </Link>{" "}
+
+                  and{" "}
+
+                  <Link
+                    href="/financial-information-ai-disclaimer"
+                    target="_blank"
+                  >
+                    Financial Information &amp; AI Disclaimer
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
+
             <button
+              type="button"
               onClick={pay}
+              disabled={!acceptedTerms || busy}
               className="unlock flex items-center justify-center gap-2"
             >
-              <Lock size={20} color="#fff" />
-              <span>{busy ? "Redirecting..." : "Unlock My Full Report"}</span>
+              <Lock
+                size={20}
+                color="#fff"
+              />
+
+              <span>
+                {busy
+                  ? "Redirecting..."
+                  : "Unlock My Full Report — A$39"}
+              </span>
             </button>
 
             <p className="mini">
-              Estimates are based on your answers and typical spending patterns.
-              Actual savings may vary. This is general information, not
-              financial advice.
+              Estimates are based on your answers and typical spending
+              patterns. Actual savings may vary. This is general information,
+              not financial advice.
             </p>
           </aside>
         </section>
-         <ScrollReveal />
+
+        <ScrollReveal />
       </main>
     </div>
   );

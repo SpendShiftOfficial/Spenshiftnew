@@ -2458,6 +2458,9 @@ span.reportStatus {
   }
 }
 @media (max-width: 600px) {
+  button.unlock.flex.items-center.justify-center.gap-2 {
+    font-size: 15px;
+}
   .audit-page-label {
     width: 100%;
 }
@@ -3126,7 +3129,65 @@ span.reportStatus {
   vertical-align: top;
   line-height: 1.6;
 }
+#unlock-full-report {
+  scroll-margin-top: 100px;
+}
 
+.checkoutConsent {
+  margin: 20px 0 16px;
+  padding: 14px;
+  border: 1px solid #dce8de;
+  border-radius: 12px;
+  background: #f7faf7;
+}
+
+.checkoutConsentLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  cursor: pointer;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.checkoutConsentLabel input {
+  width: 17px;
+  height: 17px;
+  min-width: 17px;
+  margin: 2px 0 0;
+  accent-color: #059625;
+  cursor: pointer;
+}
+
+.checkoutConsentLabel a {
+  color: #059625;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.checkoutConsentLabel a:hover {
+  text-decoration: none;
+}
+
+.unlock:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
+}
+
+.unlock:not(:disabled) {
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.unlock:not(:disabled):hover {
+  transform: translateY(-2px);
+}
 .cookie-table th {
   background: #f0f8f2;
   color: #111;
