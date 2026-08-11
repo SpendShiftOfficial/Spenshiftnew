@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Financial Information & AI Disclaimer | SpendShift",
+  title: "Financial Information and AI Disclaimer | SpendShift",
   description:
     "Read SpendShift's financial information and AI disclaimer, including important limitations about savings estimates, AI-generated content and general information.",
 };
@@ -53,7 +53,9 @@ export default function FinancialInformationAIDisclaimer() {
                 representative, insurance broker or fiduciary.
               </p>
 
-              <h3>2. No consideration of your complete circumstances</h3>
+              <h3>
+                2. No consideration of your complete circumstances
+              </h3>
 
               <p>
                 The Service uses a short questionnaire and does not consider
@@ -139,9 +141,9 @@ export default function FinancialInformationAIDisclaimer() {
 
               <ul>
                 <li>
-                  whether a suggested cancellation or switch would trigger
-                  fees, loss of benefits, reduced coverage, waiting periods or
-                  adverse tax consequences;
+                  whether a suggested cancellation or switch would trigger fees,
+                  loss of benefits, reduced coverage, waiting periods or adverse
+                  tax consequences;
                 </li>
 
                 <li>

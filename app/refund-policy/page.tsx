@@ -19,7 +19,6 @@ export default function RefundPolicy() {
 
           <div className="row">
             <div className="policy-content">
-
               <div className="policy-meta">
                 <p>
                   <strong>Legal entity:</strong> SpendShift Enterprises Pty Ltd
@@ -39,163 +38,131 @@ export default function RefundPolicy() {
               </div>
 
               <p>
-                This Refund Policy forms part of the SpendShift Website Terms
-                and Conditions.
+                This Refund Policy adopts the defined terms in the Privacy
+                Policy.
               </p>
 
-              <h3>1. Our 30-day money-back guarantee</h3>
+              <h3>1. Overview</h3>
 
               <p>
-                SpendShift offers a voluntary 30-day money-back guarantee for
-                paid personalised savings reports.
+                This Refund Policy applies to paid SpendShift personalised
+                reports purchased through www.spendshift.com.au.
               </p>
 
               <p>
-                If you do not believe your report helped you identify meaningful
-                savings opportunities, you may contact us within 30 days of
-                purchase and request a refund.
+                It includes a voluntary 30-day money-back guarantee. This
+                guarantee is additional to, and does not limit, any rights or
+                remedies available under the Australian Consumer Law.
               </p>
 
-              <h3>2. How to request a refund</h3>
+              <h3>2. 30-day money-back guarantee</h3>
+
+              <p>
+                You may request a refund within 30 calendar days after the
+                purchase date if you are not satisfied with the paid report or
+                you reasonably believe it did not identify a useful potential
+                saving or practical action for you.
+              </p>
 
               <p>
                 To request a refund, email{" "}
                 <a href="mailto:info@spendshift.com.au">
                   info@spendshift.com.au
                 </a>{" "}
-                within 30 days of the purchase date.
+                and include:
               </p>
 
-              <p>Please include:</p>
-
               <ul>
-                <li>the email address used for the purchase;</li>
-                <li>your report URL, if available;</li>
-                <li>the approximate date of purchase; and</li>
+                <li>the email address used at checkout;</li>
+                <li>the purchase date or Stripe receipt details;</li>
+                <li>the saved report URL, if available; and</li>
                 <li>
-                  enough information for us to identify the relevant
-                  transaction.
+                  a brief explanation of why you are requesting the refund, so
+                  we can verify and improve the Service.
                 </li>
               </ul>
 
               <p>
-                Do not send us your full payment-card number or card security
-                code.
+                You do not need to provide bank statements or sensitive
+                financial documents to use the voluntary guarantee.
               </p>
 
-              <h3>3. Processing refund requests</h3>
+              <h3>3. Refund assessment</h3>
 
               <p>
-                We may verify the purchase and request reasonable information
-                needed to identify the transaction before processing a refund.
+                We will assess requests reasonably and in good faith. We may ask
+                for information needed to locate the transaction, confirm
+                identity, prevent fraud or understand the issue.
               </p>
+
+              <p>
+                The voluntary guarantee is generally limited to one refund per
+                person, payment method or substantially identical audit within a
+                reasonable period, unless consumer law requires otherwise.
+              </p>
+
+              <p>
+                A request made more than 30 calendar days after purchase is not
+                covered by the voluntary guarantee, but we will still consider
+                any rights you may have under the Australian Consumer Law.
+              </p>
+
+              <h3>4. Australian Consumer Law</h3>
+
+              <p>
+                Our services come with consumer guarantees that cannot be
+                excluded under the Australian Consumer Law. If the Service has a
+                major failure, you may be entitled to cancel and obtain a
+                refund. For a minor failure, we may be entitled to remedy the
+                problem within a reasonable time.
+              </p>
+
+              <p>
+                Nothing in this Policy excludes, restricts or modifies a right,
+                guarantee or remedy that cannot lawfully be excluded.
+              </p>
+
+              <h3>5. Processing approved refunds</h3>
 
               <p>
                 Approved refunds will generally be returned to the original
-                payment method through Stripe. The time taken for funds to
-                appear in your account may depend on Stripe, your bank, card
-                issuer or other payment provider.
-              </p>
-
-              <h3>4. Misuse of the guarantee</h3>
-
-              <p>
-                Our voluntary money-back guarantee is intended to give genuine
-                customers confidence when purchasing SpendShift.
+                payment method through Stripe. Processing times depend on
+                Stripe, your bank, card issuer and payment method.
               </p>
 
               <p>
-                We may refuse a request under the voluntary guarantee where we
-                reasonably believe there has been fraud, abuse, repeated refund
-                activity, manipulation of the Service or another misuse of the
-                guarantee.
+                We refund the amount paid to SpendShift. We are not responsible
+                for separate bank, card, currency-conversion, internet or other
+                third-party charges unless required by law.
               </p>
 
               <p>
-                Any such refusal does not affect rights or remedies that cannot
-                lawfully be excluded.
+                After a refund, we may disable the saved report URL and delete
+                or restrict access to the report, subject to legal and
+                record-keeping requirements.
               </p>
 
-              <h3>5. Australian Consumer Law</h3>
+              <h3>6. Chargebacks</h3>
 
               <p>
-                Our goods and services come with guarantees that cannot be
-                excluded under the Australian Consumer Law where those
-                guarantees apply.
+                Please contact us before initiating a payment dispute so we have
+                a reasonable opportunity to resolve the issue. This does not
+                prevent you from exercising lawful rights through your bank,
+                card issuer or payment provider.
               </p>
 
-              <p>
-                Nothing in this Refund Policy excludes, restricts or modifies
-                any consumer guarantee, right or remedy that cannot lawfully be
-                excluded, restricted or modified.
-              </p>
+              <h3>7. Contact</h3>
 
               <p>
-                You may therefore have rights to a refund or another remedy
-                independently of our voluntary 30-day money-back guarantee.
-              </p>
-
-              <h3>6. Digital reports</h3>
-
-              <p>
-                SpendShift reports are digital products generated and delivered
-                electronically.
-              </p>
-
-              <p>
-                Accessing, viewing or receiving your report does not by itself
-                prevent you from making a valid request under our voluntary
-                30-day money-back guarantee or exercising any rights available
-                under applicable consumer law.
-              </p>
-
-              <h3>7. Chargebacks and payment disputes</h3>
-
-              <p>
-                If you believe a payment was unauthorised or there is another
-                issue with a transaction, please contact us first where
-                practical so we can investigate.
-              </p>
-
-              <p>
-                Nothing in this policy prevents you from exercising any lawful
-                rights you may have through your bank, card issuer, Stripe or
-                another payment provider.
-              </p>
-
-              <h3>8. Changes to this Policy</h3>
-
-              <p>
-                We may update this Refund Policy from time to time. Any updated
-                version will be published on the website.
-              </p>
-
-              <p>
-                Changes will not remove consumer rights that cannot lawfully be
-                excluded.
-              </p>
-
-              <h3>9. Contact</h3>
-
-              <p>
-                SpendShift Enterprises Pty Ltd
-                <br />
-                ACN 689 089 610
-                <br />
-                Address: 2 Blackwoods Road, Nobbys Creek NSW, Australia
-                <br />
                 Email:{" "}
                 <a href="mailto:info@spendshift.com.au">
                   info@spendshift.com.au
                 </a>
-                <br />
-                Website: www.spendshift.com.au
               </p>
 
               <p>
                 <strong>Last updated: 14 July 2026</strong>
               </p>
-
             </div>
           </div>
         </div>
