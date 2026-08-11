@@ -50,10 +50,10 @@ export default function Header({ simple = false }: { simple?: boolean }) {
           <>
             {/* Desktop Navigation */}
             <nav className="nav desktop-only">
-              <a href="how-it-works">How it Works</a>
-              <a href="whats-included">What’s Included</a>
-              <a href="why-spendshift">Why SpendShift</a>
-              <a href="pricing">Pricing</a>
+              <a href="/how-it-works">How it Works</a>
+              <a href="/whats-included">What’s Included</a>
+              <a href="/why-spendshift">Why SpendShift</a>
+              <a href="/pricing">Pricing</a>
               <a href="/#faq">FAQ</a>
             </nav>
 
@@ -97,10 +97,10 @@ export default function Header({ simple = false }: { simple?: boolean }) {
               {/* Top Links Block */}
               <div className="reveal-up" style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
                 <nav style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <a href="how-it-works" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
-                  <a href="whats-included" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
-                  <a href="why-spendshift" onClick={toggleMenu}><Circle size={12} color="#059625" /> Why SpendShift</a>
-                  <a href="pricing" onClick={toggleMenu}><Circle size={12} color="#059625" /> Pricing</a>
+                  <a href="/how-it-works" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
+                  <a href="/whats-included" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
+                  <a href="/why-spendshift" onClick={toggleMenu}><Circle size={12} color="#059625" /> Why SpendShift</a>
+                  <a href="/pricing" onClick={toggleMenu}><Circle size={12} color="#059625" /> Pricing</a>
                   <a href="/#faq" onClick={toggleMenu}><Circle size={12} color="#059625" /> FAQ</a>
                 </nav>
                 

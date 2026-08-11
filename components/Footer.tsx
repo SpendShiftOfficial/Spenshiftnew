@@ -97,6 +97,8 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
           <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
           <Link href="/cookies"><Circle size={10} color="#fff" /> Cookie Policy</Link>
+          <Link href="/refund-policy"><Circle size={10} color="#fff" /> Refund Policy</Link>
+          <Link href="/financial-information-ai-disclaimer"><Circle size={10} color="#fff" /> Financial Disclosure</Link>
         </div>
 
         <div className="reveal-up ">

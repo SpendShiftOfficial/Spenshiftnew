@@ -1,10 +1,69 @@
-import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SpendShift",
-  description: "Find your biggest money leaks in under 2 minute.",
+  metadataBase: new URL("https://www.spendshift.com.au"),
+
+  title: {
+    default: "SpendShift | Find Hidden Money Leaks",
+    template: "%s | SpendShift",
+  },
+
+  description:
+    "SpendShift helps Australians uncover hidden money leaks with a fast, AI-powered savings audit and personalised financial report.",
+
+  keywords: [
+    "money saving",
+    "personal finance",
+    "budget audit",
+    "financial health",
+    "Australia",
+    "AI savings",
+    "expense tracker",
+    "SpendShift",
+  ],
+
+  authors: [{ name: "SpendShift" }],
+
+  creator: "SpendShift",
+
+  publisher: "SpendShift",
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
+  openGraph: {
+    title: "SpendShift",
+    description:
+      "Find hidden money leaks and discover how much you could save every year.",
+    url: "https://www.spendshift.com.au",
+    siteName: "SpendShift",
+    locale: "en_AU",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "SpendShift",
+    description:
+      "Find hidden money leaks and save more with a personalised AI savings report.",
+    images: ["/og-image.jpg"],
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

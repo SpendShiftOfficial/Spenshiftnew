@@ -5,7 +5,6 @@ import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const resend = new Resend(process.env.RESEND_API_KEY!);
 
 function makeReportId() {
   return `rpt_${Math.random().toString(36).slice(2, 10)}`;
@@ -14,7 +13,13 @@ function makeReportId() {
 async function sendReportEmail(email: string, reportId: string) {
   const reportUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/report/${reportId}`;
 
-  const result = await resend.emails.send({
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("Resend email skipped: RESEND_API_KEY is not set.");
+    return;
+  }
+
+  const result = await new Resend(apiKey).emails.send({
     from: "onboarding@resend.dev",
     to: "graypatrick441@gmail.com", // testing email
     subject: "Your SpendShift Report Is Ready — See Your Biggest Savings Opportunities",
