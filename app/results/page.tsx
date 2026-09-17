@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import Header from "@/components/Header";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import ScrollReveal from "@/components/ScrollReveal";
+import { trackEvent } from "@/lib/gtag";
 
 import {
   CheckCircle,
@@ -37,13 +43,26 @@ function money(n: number) {
   return `$${Math.round(n).toLocaleString()}`;
 }
 
-function midpoint(min: number, max: number) {
-  return Math.round((min + max) / 2 / 50) * 50;
+function midpoint(
+  min: number,
+  max: number
+) {
+  return (
+    Math.round(
+      (min + max) / 2 / 50
+    ) * 50
+  );
 }
 
 function impact(amount: number) {
-  if (amount >= 1000) return "HIGH IMPACT";
-  if (amount >= 400) return "MEDIUM IMPACT";
+  if (amount >= 1000) {
+    return "HIGH IMPACT";
+  }
+
+  if (amount >= 400) {
+    return "MEDIUM IMPACT";
+  }
+
   return "LOW IMPACT";
 }
 
@@ -54,7 +73,9 @@ function rangeFor(
   return map[answer] || [0, 0];
 }
 
-function getSavingsComparison(amount: number) {
+function getSavingsComparison(
+  amount: number
+) {
   if (amount >= 4000) {
     return "That could be enough for a family holiday, several weeks of groceries, or a meaningful emergency buffer.";
   }
@@ -74,7 +95,9 @@ function getSavingsComparison(amount: number) {
   return "Small changes can still create useful savings over time.";
 }
 
-function buildLeaks(answers: string[]): Leak[] {
+function buildLeaks(
+  answers: string[]
+): Leak[] {
   const takeaway = answers[0] || "";
   const subscriptions = answers[1] || "";
   const insurance = answers[2] || "";
@@ -94,7 +117,10 @@ function buildLeaks(answers: string[]): Leak[] {
     range: [number, number];
     copy: (amount: number) => string;
   }): Leak {
-    const amount = midpoint(range[0], range[1]);
+    const amount = midpoint(
+      range[0],
+      range[1]
+    );
 
     return {
       title,
@@ -109,13 +135,18 @@ function buildLeaks(answers: string[]): Leak[] {
 
   const leaks: Leak[] = [
     createLeak({
-      title: "Takeaway & Food Delivery",
+      title:
+        "Takeaway & Food Delivery",
+
       answer: takeaway,
 
       range: rangeFor(takeaway, {
         Never: [0, 0],
         "1–2 times/week": [600, 1000],
-        "3–5 times/week": [1200, 2000],
+        "3–5 times/week": [
+          1200,
+          2000,
+        ],
         "Almost daily": [2500, 4000],
       }),
 
@@ -129,15 +160,19 @@ function buildLeaks(answers: string[]): Leak[] {
 
     createLeak({
       title: "Subscriptions",
+
       answer: subscriptions,
 
-      range: rangeFor(subscriptions, {
-        "0–2": [0, 100],
-        "3–5": [400, 700],
-        "6–10": [800, 1400],
-        "10+": [1500, 2500],
-        "Not sure": [800, 1400],
-      }),
+      range: rangeFor(
+        subscriptions,
+        {
+          "0–2": [0, 100],
+          "3–5": [400, 700],
+          "6–10": [800, 1400],
+          "10+": [1500, 2500],
+          "Not sure": [800, 1400],
+        }
+      ),
 
       copy: (amount) =>
         subscriptions === "0–2"
@@ -149,21 +184,37 @@ function buildLeaks(answers: string[]): Leak[] {
 
     createLeak({
       title: "Insurance Overpayment",
+
       answer: insurance,
 
       range: rangeFor(insurance, {
         "Within 6 months": [0, 200],
-        "6–12 months ago": [150, 400],
-        "1–2 years ago": [300, 700],
-        "Over 2 years ago": [500, 1200],
-        "Never / not sure": [600, 1500],
-        "I don’t currently have insurance": [0, 0],
+        "6–12 months ago": [
+          150,
+          400,
+        ],
+        "1–2 years ago": [
+          300,
+          700,
+        ],
+        "Over 2 years ago": [
+          500,
+          1200,
+        ],
+        "Never / not sure": [
+          600,
+          1500,
+        ],
+        "I don’t currently have insurance":
+          [0, 0],
       }),
 
       copy: (amount) =>
-        insurance === "I don’t currently have insurance"
+        insurance ===
+        "I don’t currently have insurance"
           ? "You said you do not currently have insurance, so this area has been excluded from your savings estimate."
-          : insurance === "Within 6 months"
+          : insurance ===
+              "Within 6 months"
           ? "You reviewed insurance recently, so this may not be your highest opportunity."
           : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
               amount
@@ -172,14 +223,24 @@ function buildLeaks(answers: string[]): Leak[] {
 
     createLeak({
       title: "Convenience Spending",
+
       answer: convenience,
 
-      range: rangeFor(convenience, {
-        Rarely: [0, 200],
-        "1–2 times/week": [400, 700],
-        "3–5 times/week": [800, 1400],
-        Daily: [1500, 2500],
-      }),
+      range: rangeFor(
+        convenience,
+        {
+          Rarely: [0, 200],
+          "1–2 times/week": [
+            400,
+            700,
+          ],
+          "3–5 times/week": [
+            800,
+            1400,
+          ],
+          Daily: [1500, 2500],
+        }
+      ),
 
       copy: (amount) =>
         convenience === "Rarely"
@@ -190,18 +251,30 @@ function buildLeaks(answers: string[]): Leak[] {
     }),
 
     createLeak({
-      title: "Internet & Mobile Plan",
+      title:
+        "Internet & Mobile Plan",
+
       answer: mobile,
 
       range: rangeFor(mobile, {
         "Within 6 months": [0, 100],
-        "6–12 months ago": [100, 200],
-        "Over a year ago": [150, 400],
-        "I honestly don’t know": [150, 400],
+        "6–12 months ago": [
+          100,
+          200,
+        ],
+        "Over a year ago": [
+          150,
+          400,
+        ],
+        "I honestly don’t know": [
+          150,
+          400,
+        ],
       }),
 
       copy: (amount) =>
-        mobile === "Within 6 months"
+        mobile ===
+        "Within 6 months"
           ? "Your plan was reviewed recently, so the saving may be smaller here."
           : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
               amount
@@ -209,12 +282,17 @@ function buildLeaks(answers: string[]): Leak[] {
     }),
 
     createLeak({
-      title: "Recurring Payment Leakage",
+      title:
+        "Recurring Payment Leakage",
+
       answer: recurring,
 
       range: rangeFor(recurring, {
         Monthly: [0, 100],
-        "Every few months": [100, 300],
+        "Every few months": [
+          100,
+          300,
+        ],
         Rarely: [200, 600],
         "Almost never": [400, 1000],
       }),
@@ -229,14 +307,27 @@ function buildLeaks(answers: string[]): Leak[] {
 
     createLeak({
       title: "Unplanned Purchases",
+
       answer: unplanned,
 
-      range: rangeFor(unplanned, {
-        Rarely: [0, 200],
-        "1–2 times/week": [300, 600],
-        "3–5 times/week": [600, 1200],
-        "Almost daily": [1000, 2000],
-      }),
+      range: rangeFor(
+        unplanned,
+        {
+          Rarely: [0, 200],
+          "1–2 times/week": [
+            300,
+            600,
+          ],
+          "3–5 times/week": [
+            600,
+            1200,
+          ],
+          "Almost daily": [
+            1000,
+            2000,
+          ],
+        }
+      ),
 
       copy: (amount) =>
         unplanned === "Rarely"
@@ -248,25 +339,44 @@ function buildLeaks(answers: string[]): Leak[] {
   ];
 
   return leaks
-    .filter((item) => item.amount > 0)
-    .sort((a, b) => b.amount - a.amount);
+    .filter(
+      (item) => item.amount > 0
+    )
+    .sort(
+      (a, b) =>
+        b.amount - a.amount
+    );
 }
 
 export default function Results() {
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [loading, setLoading] =
+    useState(true);
 
-  // NEW
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [busy, setBusy] =
+    useState(false);
+
+  const [progress, setProgress] =
+    useState(0);
+
+  const [answers, setAnswers] =
+    useState<string[]>([]);
+
+  const [
+    acceptedTerms,
+    setAcceptedTerms,
+  ] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("spendshift_answers");
+    const stored =
+      localStorage.getItem(
+        "spendshift_answers"
+      );
 
     if (stored) {
       try {
-        setAnswers(JSON.parse(stored));
+        setAnswers(
+          JSON.parse(stored)
+        );
       } catch {
         setAnswers([]);
       }
@@ -276,36 +386,93 @@ export default function Results() {
   useEffect(() => {
     let current = 0;
 
-    const progressTimer = setInterval(() => {
-      current += 3;
+    const progressTimer =
+      setInterval(() => {
+        current += 3;
 
-      if (current >= 72) {
-        current = 72;
-        clearInterval(progressTimer);
-      }
+        if (current >= 72) {
+          current = 72;
 
-      setProgress(current);
-    }, 70);
+          clearInterval(
+            progressTimer
+          );
+        }
 
-    const loadingTimer = setTimeout(() => {
-      setLoading(false);
-    }, 2300);
+        setProgress(current);
+      }, 70);
+
+    const loadingTimer =
+      setTimeout(() => {
+        setLoading(false);
+      }, 2300);
 
     return () => {
-      clearInterval(progressTimer);
-      clearTimeout(loadingTimer);
+      clearInterval(
+        progressTimer
+      );
+
+      clearTimeout(
+        loadingTimer
+      );
     };
   }, []);
 
-  const leaks = useMemo(() => buildLeaks(answers), [answers]);
+  // GA4: FREE RESULTS VIEW
+  useEffect(() => {
+    if (
+      !loading &&
+      !sessionStorage.getItem(
+        "free_results_view_tracked"
+      )
+    ) {
+      trackEvent(
+        "free_results_view",
+        {
+          page_location:
+            window.location.href,
+        }
+      );
 
-  const totalMin = leaks.reduce((sum, item) => sum + item.min, 0);
-  const totalMax = leaks.reduce((sum, item) => sum + item.max, 0);
-  const totalMid = leaks.reduce((sum, item) => sum + item.amount, 0);
+      sessionStorage.setItem(
+        "free_results_view_tracked",
+        "1"
+      );
+    }
+  }, [loading]);
 
-  const topLeaks = leaks.slice(0, 3);
+  const leaks = useMemo(
+    () => buildLeaks(answers),
+    [answers]
+  );
 
-  const savingsComparison = getSavingsComparison(totalMid);
+  const totalMin =
+    leaks.reduce(
+      (sum, item) =>
+        sum + item.min,
+      0
+    );
+
+  const totalMax =
+    leaks.reduce(
+      (sum, item) =>
+        sum + item.max,
+      0
+    );
+
+  const totalMid =
+    leaks.reduce(
+      (sum, item) =>
+        sum + item.amount,
+      0
+    );
+
+  const topLeaks =
+    leaks.slice(0, 3);
+
+  const savingsComparison =
+    getSavingsComparison(
+      totalMid
+    );
 
   async function pay() {
     if (!acceptedTerms) {
@@ -316,36 +483,79 @@ export default function Results() {
       return;
     }
 
+    if (busy) return;
+
     try {
       setBusy(true);
 
       const storedAnswers =
-        localStorage.getItem("spendshift_answers") || "[]";
+        localStorage.getItem(
+          "spendshift_answers"
+        ) || "[]";
 
-      const res = await fetch("/api/checkout", {
-        method: "POST",
+      const res = await fetch(
+        "/api/checkout",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-        body: JSON.stringify({
-          answers: storedAnswers,
-        }),
-      });
+          body: JSON.stringify({
+            answers:
+              storedAnswers,
+          }),
+        }
+      );
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
       if (data.url) {
-        location.href = data.url;
+        // GA4: BEGIN CHECKOUT
+        trackEvent(
+          "begin_checkout",
+          {
+            currency: "AUD",
+            value: 39,
+
+            items: [
+              {
+                item_id:
+                  "spendshift_full_report",
+
+                item_name:
+                  "SpendShift Full Savings Report",
+
+                price: 39,
+
+                quantity: 1,
+              },
+            ],
+          }
+        );
+
+        location.href =
+          data.url;
+
         return;
       }
 
-      alert(data.error || "Stripe checkout failed");
+      alert(
+        data.error ||
+          "Stripe checkout failed"
+      );
     } catch (error) {
-      console.error("Checkout failed:", error);
+      console.error(
+        "Checkout failed:",
+        error
+      );
 
-      alert("Something went wrong. Please try again.");
+      alert(
+        "Something went wrong. Please try again."
+      );
     } finally {
       setBusy(false);
     }
@@ -361,11 +571,17 @@ export default function Results() {
             <div className="progressMeta">
               <b>Audit Progress</b>
 
-              <span>Question 8 of 8</span>
+              <span>
+                Question 8 of 8
+              </span>
             </div>
 
             <div className="bar">
-              <span style={{ width: "100%" }} />
+              <span
+                style={{
+                  width: "100%",
+                }}
+              />
             </div>
           </div>
 
@@ -373,16 +589,23 @@ export default function Results() {
             <div
               className="icon"
               style={{
-                margin: "0 auto 20px",
+                margin:
+                  "0 auto 20px",
               }}
             >
               <ShieldCheck />
             </div>
 
-            <h2>Analysing your Answers...</h2>
+            <h2>
+              Analysing your
+              Answers...
+            </h2>
 
             <p>
-              We're scanning your answers to estimate your biggest money leaks.
+              We're scanning your
+              answers to estimate
+              your biggest money
+              leaks.
             </p>
 
             <div
@@ -394,11 +617,15 @@ export default function Results() {
               }}
             >
               <div>
-                <strong>{progress}%</strong>
+                <strong>
+                  {progress}%
+                </strong>
 
                 <br />
 
-                <span>Analysing</span>
+                <span>
+                  Analysing
+                </span>
               </div>
             </div>
 
@@ -406,10 +633,15 @@ export default function Results() {
               <div className="checkRow">
                 <div className="left">
                   <div className="iconWrap">
-                    <Wallet size={18} />
+                    <Wallet
+                      size={18}
+                    />
                   </div>
 
-                  <span>Reviewing your spending patterns</span>
+                  <span>
+                    Reviewing your
+                    spending patterns
+                  </span>
                 </div>
 
                 <CheckCircle
@@ -422,10 +654,15 @@ export default function Results() {
               <div className="checkRow">
                 <div className="left">
                   <div className="iconWrap">
-                    <BarChart3 size={18} />
+                    <BarChart3
+                      size={18}
+                    />
                   </div>
 
-                  <span>Comparing against category averages</span>
+                  <span>
+                    Comparing against
+                    category averages
+                  </span>
                 </div>
 
                 {progress >= 30 ? (
@@ -446,10 +683,16 @@ export default function Results() {
               <div className="checkRow">
                 <div className="left">
                   <div className="iconWrap">
-                    <Search size={18} />
+                    <Search
+                      size={18}
+                    />
                   </div>
 
-                  <span>Identifying overpayment opportunities</span>
+                  <span>
+                    Identifying
+                    overpayment
+                    opportunities
+                  </span>
                 </div>
 
                 {progress >= 55 ? (
@@ -458,7 +701,8 @@ export default function Results() {
                     fill="#059625"
                     color="#fff"
                   />
-                ) : progress >= 35 ? (
+                ) : progress >=
+                  35 ? (
                   <LoaderCircle
                     size={20}
                     color="#059625"
@@ -476,10 +720,15 @@ export default function Results() {
               <div className="checkRow">
                 <div className="left">
                   <div className="iconWrap">
-                    <Lightbulb size={18} />
+                    <Lightbulb
+                      size={18}
+                    />
                   </div>
 
-                  <span>Calculating your potential savings</span>
+                  <span>
+                    Calculating your
+                    potential savings
+                  </span>
                 </div>
 
                 {progress >= 72 ? (
@@ -488,7 +737,8 @@ export default function Results() {
                     fill="#059625"
                     color="#fff"
                   />
-                ) : progress >= 60 ? (
+                ) : progress >=
+                  60 ? (
                   <LoaderCircle
                     size={20}
                     color="#059625"
@@ -513,10 +763,15 @@ export default function Results() {
               </div>
 
               <div>
-                <b>Your data is safe with us</b>
+                <b>
+                  Your data is safe
+                  with us
+                </b>
 
                 <p className="mini">
-                  We do not need bank access to estimate your savings
+                  We do not need bank
+                  access to estimate
+                  your savings
                   opportunities.
                 </p>
               </div>
@@ -535,36 +790,57 @@ export default function Results() {
         <div className="main-section-results">
           <section className="resultsHero">
             <div className="content-wrap-first reveal-left delay-1">
-              <h1 style={{ fontSize: 55 }}>
+              <h1
+                style={{
+                  fontSize: 55,
+                }}
+              >
                 We found your <br />
 
-                <span style={{ color: "#059625" }}>
+                <span
+                  style={{
+                    color:
+                      "#059625",
+                  }}
+                >
                   biggest money leaks
                 </span>
               </h1>
 
               <p>
-                Based on your answers, we identified areas where you could be
+                Based on your answers,
+                we identified areas
+                where you could be
                 overpaying every year.
               </p>
 
               <div className="audit-page-label">
                 <div>
-                  <ShieldCheck size={34} />
+                  <ShieldCheck
+                    size={34}
+                  />
                 </div>
 
                 <div>
-                  <p>Your data is private & secure</p>
+                  <p>
+                    Your data is
+                    private & secure
+                  </p>
                 </div>
               </div>
 
               <div className="audit-page-label">
                 <div>
-                  <ChartNoAxesCombined size={34} />
+                  <ChartNoAxesCombined
+                    size={34}
+                  />
                 </div>
 
                 <div>
-                  <p>Real insights. Real savings.</p>
+                  <p>
+                    Real insights.
+                    Real savings.
+                  </p>
                 </div>
               </div>
             </div>
@@ -572,22 +848,34 @@ export default function Results() {
             <div
               className="greenPanel reveal-right delay-2"
               style={{
-                backgroundImage: "url('/result/panelbg.png')",
+                backgroundImage:
+                  "url('/result/panelbg.png')",
               }}
             >
               <span className="badge">
-                Total Recoverable Cash Found
+                Total Recoverable Cash
+                Found
               </span>
 
-              <h2 style={{ fontSize: 65 }}>
-                {money(totalMin)} - {money(totalMax)}/year
+              <h2
+                style={{
+                  fontSize: 65,
+                }}
+              >
+                {money(totalMin)} -{" "}
+                {money(totalMax)}
+                /year
               </h2>
 
               <p className="conclu-para">
                 <Info size={34} />
 
-                Based on your answers, we estimated your annual savings using
-                category averages and conservative reduction targets.
+                Based on your answers,
+                we estimated your
+                annual savings using
+                category averages and
+                conservative reduction
+                targets.
               </p>
 
               <p
@@ -600,36 +888,65 @@ export default function Results() {
                 {savingsComparison}
               </p>
 
-              {/* Top button now scrolls to checkout section */}
               <a
                 href="#unlock-full-report"
                 className="btn white"
+                onClick={() =>
+                  trackEvent(
+                    "upgrade_click",
+                    {
+                      location:
+                        "results_hero",
+
+                      value: 39,
+
+                      currency:
+                        "AUD",
+                    }
+                  )
+                }
               >
-                Get My Full Savings Plan
+                Get My Full Savings
+                Plan
               </a>
             </div>
           </section>
 
           <div className="leakTabs reveal-up">
-            {leaks.slice(0, 5).map((l) => (
-              <div
-                className="leakTab"
-                key={l.title}
-              >
-                <small>{l.impact}</small>
+            {leaks
+              .slice(0, 5)
+              .map((l) => (
+                <div
+                  className="leakTab"
+                  key={l.title}
+                >
+                  <small>
+                    {l.impact}
+                  </small>
 
-                <strong>{money(l.amount)}</strong>
+                  <strong>
+                    {money(
+                      l.amount
+                    )}
+                  </strong>
 
-                <span>{l.title}</span>
-              </div>
-            ))}
+                  <span>
+                    {l.title}
+                  </span>
+                </div>
+              ))}
 
             <div className="leakTab">
               <small>LOCKED</small>
 
-              <strong>Unlock</strong>
+              <strong>
+                Unlock
+              </strong>
 
-              <span>Full personalised action plan</span>
+              <span>
+                Full personalised
+                action plan
+              </span>
             </div>
           </div>
         </div>
@@ -640,33 +957,52 @@ export default function Results() {
 
         <section className="mainResults reveal-up">
           <div>
-            {topLeaks.map((l, idx) => (
-              <article
-                className="panel leak"
-                key={l.title}
-              >
-                <span className="pill">
-                  0{idx + 1} {l.impact}
-                </span>
+            {topLeaks.map(
+              (l, idx) => (
+                <article
+                  className="panel leak"
+                  key={l.title}
+                >
+                  <span className="pill">
+                    0{idx + 1}{" "}
+                    {l.impact}
+                  </span>
 
-                <h3>{l.title}</h3>
+                  <h3>
+                    {l.title}
+                  </h3>
 
-                <div className="add-bg">
-                  <p>{l.insight}</p>
+                  <div className="add-bg">
+                    <p>
+                      {l.insight}
+                    </p>
 
-                  <div className="savings">
-                    <span>Save</span>{" "}
-                    {money(l.amount)}{" "}
-                    <span>per year</span>
+                    <div className="savings">
+                      <span>
+                        Save
+                      </span>{" "}
+
+                      {money(
+                        l.amount
+                      )}{" "}
+
+                      <span>
+                        per year
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <p className="mini">
-                  The full report shows exactly what to do next, including
-                  scripts and a 30-day action plan.
-                </p>
-              </article>
-            ))}
+                  <p className="mini">
+                    The full report
+                    shows exactly what
+                    to do next,
+                    including scripts
+                    and a 30-day
+                    action plan.
+                  </p>
+                </article>
+              )
+            )}
 
             <div className="safe">
               <div className="trend-ng-class">
@@ -677,11 +1013,18 @@ export default function Results() {
               </div>
 
               <div>
-                <b>These are just the big ones.</b>
+                <b>
+                  These are just the
+                  big ones.
+                </b>
 
                 <p className="mini">
-                  Your full report includes deeper personalised insights,
-                  hidden leaks, scripts, and action steps.
+                  Your full report
+                  includes deeper
+                  personalised
+                  insights, hidden
+                  leaks, scripts, and
+                  action steps.
                 </p>
               </div>
             </div>
@@ -700,10 +1043,15 @@ export default function Results() {
               {" "}
               Unlock Your{" "}
 
-              <span>Full Potential</span>
+              <span>
+                Full Potential
+              </span>
             </span>
 
-            <h2>Get your personalised action plan</h2>
+            <h2>
+              Get your personalised
+              action plan
+            </h2>
 
             <p className="list-item">
               <BsCheckCircleFill
@@ -722,7 +1070,8 @@ export default function Results() {
               />
 
               {" "}
-              Get your estimated savings
+              Get your estimated
+              savings
             </p>
 
             <p className="list-item">
@@ -771,7 +1120,8 @@ export default function Results() {
                   color="#fff"
                 />
 
-                Potential annual savings
+                Potential annual
+                savings
               </p>
 
               <div className="savings">
@@ -780,27 +1130,38 @@ export default function Results() {
 
               <div className="top-bar-leaks">
                 <div className="item">
-                  <span>Top leaks found:</span>
+                  <span>
+                    Top leaks found:
+                  </span>
 
-                  <span>{leaks.length}</span>
+                  <span>
+                    {leaks.length}
+                  </span>
                 </div>
 
                 <div className="item">
-                  <span>Action plan steps:</span>
+                  <span>
+                    Action plan steps:
+                  </span>
 
-                  <span>18</span>
+                  <span>
+                    18
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* LEGAL ACCEPTANCE */}
             <div className="checkoutConsent">
               <label className="checkoutConsentLabel">
                 <input
                   type="checkbox"
-                  checked={acceptedTerms}
+                  checked={
+                    acceptedTerms
+                  }
                   onChange={(e) =>
-                    setAcceptedTerms(e.target.checked)
+                    setAcceptedTerms(
+                      e.target.checked
+                    )
                   }
                 />
 
@@ -811,7 +1172,8 @@ export default function Results() {
                     href="/terms-and-conditions"
                     target="_blank"
                   >
-                    Terms &amp; Conditions
+                    Terms &amp;
+                    Conditions
                   </Link>
                   ,{" "}
 
@@ -828,7 +1190,9 @@ export default function Results() {
                     href="/financial-information-ai-disclaimer"
                     target="_blank"
                   >
-                    Financial Information &amp; AI Disclaimer
+                    Financial
+                    Information &amp;
+                    AI Disclaimer
                   </Link>
                   .
                 </span>
@@ -838,7 +1202,10 @@ export default function Results() {
             <button
               type="button"
               onClick={pay}
-              disabled={!acceptedTerms || busy}
+              disabled={
+                !acceptedTerms ||
+                busy
+              }
               className="unlock flex items-center justify-center gap-2"
             >
               <Lock
@@ -854,9 +1221,13 @@ export default function Results() {
             </button>
 
             <p className="mini">
-              Estimates are based on your answers and typical spending
-              patterns. Actual savings may vary. This is general information,
-              not financial advice.
+              Estimates are based on
+              your answers and typical
+              spending patterns.
+              Actual savings may vary.
+              This is general
+              information, not
+              financial advice.
             </p>
           </aside>
         </section>
