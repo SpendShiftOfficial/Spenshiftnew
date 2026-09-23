@@ -91,166 +91,143 @@ function SuccessContent() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
+  let cancelled = false;
 
-    async function createReport() {
-      const sessionId =
-        searchParams.get(
-          "session_id"
-        );
+  async function createReport() {
+    const sessionId = searchParams.get("session_id");
 
-      if (!sessionId) {
+    if (!sessionId) {
+      setError("Missing payment session.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/create-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (cancelled) return;
+
+      if (!res.ok) {
         setError(
-          "Missing payment session."
+          data.error || "Could not generate report."
         );
-
         return;
       }
 
-      try {
-        const res = await fetch(
-          "/api/create-report",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              sessionId,
-            }),
-          }
-        );
-
-        const data =
-          await res.json();
-
-        if (cancelled) return;
-
-        if (!res.ok) {
-          setError(
-            data.error ||
-              "Could not generate report."
-          );
-
-          return;
-        }
-
-        if (data.reportId) {
-          /*
-            PURCHASE EVENT
-
-            create-report only succeeds
-            after your server verifies
-            the Stripe payment.
-          */
-
-          const purchaseKey =
-            `purchase_tracked_${sessionId}`;
-
-          if (
-            !localStorage.getItem(
-              purchaseKey
-            )
-          ) {
-            trackEvent(
-              "purchase",
-              {
-                transaction_id:
-                  sessionId,
-
-                value: 39,
-
-                currency: "AUD",
-
-                items: [
-                  {
-                    item_id:
-                      "spendshift_full_report",
-
-                    item_name:
-                      "SpendShift Full Savings Report",
-
-                    price: 39,
-
-                    quantity: 1,
-                  },
-                ],
-              }
-            );
-
-            localStorage.setItem(
-              purchaseKey,
-              "1"
-            );
-          }
-
-          /*
-            REPORT READY EVENT
-          */
-
-          const reportReadyKey =
-            `paid_report_ready_tracked_${sessionId}`;
-
-          if (
-            !localStorage.getItem(
-              reportReadyKey
-            )
-          ) {
-            trackEvent(
-              "paid_report_ready",
-              {
-                report_id:
-                  data.reportId,
-
-                transaction_id:
-                  sessionId,
-
-                value: 39,
-
-                currency: "AUD",
-              }
-            );
-
-            localStorage.setItem(
-              reportReadyKey,
-              "1"
-            );
-          }
-
-          router.push(
-            `/report/${data.reportId}`
-          );
-
-          return;
-        }
-
+      if (!data.reportId) {
         setError(
-          data.error ||
-            "Could not generate report."
+          data.error || "Could not generate report."
         );
-      } catch (error) {
-        console.error(
-          "Report generation failed:",
-          error
+        return;
+      }
+
+      /* =========================
+         GA4 PURCHASE
+      ========================= */
+
+      const purchaseKey =
+        `purchase_tracked_${sessionId}`;
+
+      if (!localStorage.getItem(purchaseKey)) {
+        trackEvent("purchase", {
+          transaction_id: sessionId,
+          value: 39,
+          currency: "AUD",
+
+          items: [
+            {
+              item_id: "spendshift_full_report",
+              item_name: "SpendShift Full Savings Report",
+              price: 39,
+              quantity: 1,
+            },
+          ],
+        });
+
+        localStorage.setItem(
+          purchaseKey,
+          "1"
         );
 
-        if (!cancelled) {
-          setError(
-            "Something went wrong while generating your report."
-          );
-        }
+        console.log("GA4 purchase fired", {
+          transaction_id: sessionId,
+          value: 39,
+          currency: "AUD",
+        });
+      }
+
+      /* =========================
+         GA4 PAID REPORT READY
+      ========================= */
+
+      const reportReadyKey =
+        `paid_report_ready_tracked_${sessionId}`;
+
+      if (!localStorage.getItem(reportReadyKey)) {
+        trackEvent("paid_report_ready", {
+          transaction_id: sessionId,
+          report_id: data.reportId,
+          value: 39,
+          currency: "AUD",
+        });
+
+        localStorage.setItem(
+          reportReadyKey,
+          "1"
+        );
+
+        console.log(
+          "GA4 paid_report_ready fired",
+          {
+            transaction_id: sessionId,
+            report_id: data.reportId,
+          }
+        );
+      }
+
+      /*
+        Give GA4 a moment to send both events
+        before navigating away.
+      */
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 800)
+      );
+
+      if (!cancelled) {
+        router.push(
+          `/report/${data.reportId}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Report generation failed:",
+        error
+      );
+
+      if (!cancelled) {
+        setError(
+          "Something went wrong while generating your report."
+        );
       }
     }
+  }
 
-    createReport();
+  createReport();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [router, searchParams]);
+  return () => {
+    cancelled = true;
+  };
+}, [router, searchParams]);
 
   return (
     <div className="analysisCard">
