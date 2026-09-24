@@ -116,6 +116,7 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "ykimmnar80");
           `}
         </Script>
+        {/* TIK TOK PIXEL INTEGRATION */}
         <Script id="tiktok-pixel" strategy="afterInteractive">
   {`
     !function (w, d, t) {
@@ -161,6 +162,38 @@ export default function RootLayout({
       ttq.load("DAQ7793C77UFPT8032V0");
       ttq.page();
     }(window, document, "ttq");
+  `}
+</Script>
+{/* META INTEGRATION */}
+<Script id="meta-pixel" strategy="afterInteractive">
+  {`
+    !function(f,b,e,v,n,t,s)
+    {
+      if(f.fbq)return;
+      n=f.fbq=function(){
+        n.callMethod
+          ? n.callMethod.apply(n,arguments)
+          : n.queue.push(arguments)
+      };
+      if(!f._fbq)f._fbq=n;
+      n.push=n;
+      n.loaded=!0;
+      n.version='2.0';
+      n.queue=[];
+      t=b.createElement(e);
+      t.async=!0;
+      t.src=v;
+      s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)
+    }(
+      window,
+      document,
+      'script',
+      'https://connect.facebook.net/en_US/fbevents.js'
+    );
+
+    fbq('init', '1092210323744514');
+    fbq('track', 'PageView');
   `}
 </Script>
       </body>

@@ -8,6 +8,10 @@ import {
   useState,
 } from "react";
 import { trackTikTok } from "@/lib/tiktok";
+import {
+  trackMeta,
+  trackMetaStandard,
+} from "@/lib/meta";
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/gtag";
 
@@ -436,6 +440,7 @@ useEffect(() => {
 
     // TikTok
     trackTikTok("free_results_view");
+    trackMeta("free_results_view");
 
     sessionStorage.setItem(
       "free_results_view_tracked",
@@ -549,6 +554,12 @@ useEffect(() => {
       currency: "AUD",
     }
   );
+
+  // Meta BEGIN CHECKOUT
+  trackMetaStandard("InitiateCheckout", {
+  value: 39,
+  currency: "AUD",
+});
 
   location.href =
     data.url;
@@ -914,6 +925,7 @@ alert(
 
  
     trackTikTok("upgrade_click");
+    trackMeta("upgrade_click");
   }}
 >
   Get My Full Report

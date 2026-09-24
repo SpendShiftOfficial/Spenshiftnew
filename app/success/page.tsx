@@ -15,6 +15,7 @@ import Header from "@/components/Header";
 
 import { trackEvent } from "@/lib/gtag";
 import { trackTikTok } from "@/lib/tiktok";
+import { trackMetaStandard } from "@/lib/meta";
 import {
   CheckCircle2,
   LoaderCircle,
@@ -159,6 +160,12 @@ if (!localStorage.getItem(purchaseKey)) {
     value: 39,
     currency: "AUD",
   });
+
+  // META AD TRACK EVENT
+  trackMetaStandard("Purchase", {
+  value: 39,
+  currency: "AUD",
+});
 
   localStorage.setItem(
     purchaseKey,

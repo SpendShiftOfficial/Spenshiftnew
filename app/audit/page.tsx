@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/gtag";
 import { trackTikTok } from "@/lib/tiktok";
+import { trackMeta } from "@/lib/meta";
 import {
   Utensils,
   CreditCard,
@@ -132,6 +133,8 @@ export default function Audit() {
 
       // TikTok
       trackTikTok("audit_start");
+      // Meta
+      trackMeta("audit_start");
 
       sessionStorage.setItem(
         "audit_start_tracked",
@@ -165,6 +168,8 @@ export default function Audit() {
 
       // TikTok
       trackTikTok("audit_complete");
+      // Meta
+      trackMeta("audit_complete");
 
       sessionStorage.setItem(
         "audit_complete_tracked",
