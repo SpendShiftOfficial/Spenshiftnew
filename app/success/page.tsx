@@ -14,7 +14,7 @@ import {
 import Header from "@/components/Header";
 
 import { trackEvent } from "@/lib/gtag";
-
+import { trackTikTok } from "@/lib/tiktok";
 import {
   CheckCircle2,
   LoaderCircle,
@@ -131,39 +131,46 @@ function SuccessContent() {
       }
 
       /* =========================
-         GA4 PURCHASE
-      ========================= */
+   GA4 + TIKTOK PURCHASE
+========================= */
 
-      const purchaseKey =
-        `purchase_tracked_${sessionId}`;
+const purchaseKey =
+  `purchase_tracked_${sessionId}`;
 
-      if (!localStorage.getItem(purchaseKey)) {
-        trackEvent("purchase", {
-          transaction_id: sessionId,
-          value: 39,
-          currency: "AUD",
+if (!localStorage.getItem(purchaseKey)) {
+  // GA4
+  trackEvent("purchase", {
+    transaction_id: sessionId,
+    value: 39,
+    currency: "AUD",
 
-          items: [
-            {
-              item_id: "spendshift_full_report",
-              item_name: "SpendShift Full Savings Report",
-              price: 39,
-              quantity: 1,
-            },
-          ],
-        });
+    items: [
+      {
+        item_id: "spendshift_full_report",
+        item_name: "SpendShift Full Savings Report",
+        price: 39,
+        quantity: 1,
+      },
+    ],
+  });
 
-        localStorage.setItem(
-          purchaseKey,
-          "1"
-        );
+  // TikTok
+  trackTikTok("Purchase", {
+    value: 39,
+    currency: "AUD",
+  });
 
-        console.log("GA4 purchase fired", {
-          transaction_id: sessionId,
-          value: 39,
-          currency: "AUD",
-        });
-      }
+  localStorage.setItem(
+    purchaseKey,
+    "1"
+  );
+
+  console.log("GA4 + TikTok purchase fired", {
+    transaction_id: sessionId,
+    value: 39,
+    currency: "AUD",
+  });
+}
 
       /* =========================
          GA4 PAID REPORT READY
@@ -200,7 +207,7 @@ function SuccessContent() {
       */
 
       await new Promise((resolve) =>
-        setTimeout(resolve, 800)
+        setTimeout(resolve, 1000)
       );
 
       if (!cancelled) {

@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-
+import { trackTikTok } from "@/lib/tiktok";
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/gtag";
 
@@ -417,28 +417,32 @@ export default function Results() {
     };
   }, []);
 
-  // GA4: FREE RESULTS VIEW
-  useEffect(() => {
-    if (
-      !loading &&
-      !sessionStorage.getItem(
-        "free_results_view_tracked"
-      )
-    ) {
-      trackEvent(
-        "free_results_view",
-        {
-          page_location:
-            window.location.href,
-        }
-      );
+  // GA4 + TikTok: FREE RESULTS VIEW
+useEffect(() => {
+  if (
+    !loading &&
+    !sessionStorage.getItem(
+      "free_results_view_tracked"
+    )
+  ) {
+    // GA4
+    trackEvent(
+      "free_results_view",
+      {
+        page_location:
+          window.location.href,
+      }
+    );
 
-      sessionStorage.setItem(
-        "free_results_view_tracked",
-        "1"
-      );
-    }
-  }, [loading]);
+    // TikTok
+    trackTikTok("free_results_view");
+
+    sessionStorage.setItem(
+      "free_results_view_tracked",
+      "1"
+    );
+  }
+}, [loading]);
 
   const leaks = useMemo(
     () => buildLeaks(answers),
@@ -514,39 +518,48 @@ export default function Results() {
         await res.json();
 
       if (data.url) {
-        // GA4: BEGIN CHECKOUT
-        trackEvent(
-          "begin_checkout",
-          {
-            currency: "AUD",
-            value: 39,
+  // GA4: BEGIN CHECKOUT
+  trackEvent(
+    "begin_checkout",
+    {
+      currency: "AUD",
+      value: 39,
 
-            items: [
-              {
-                item_id:
-                  "spendshift_full_report",
+      items: [
+        {
+          item_id:
+            "spendshift_full_report",
 
-                item_name:
-                  "SpendShift Full Savings Report",
+          item_name:
+            "SpendShift Full Savings Report",
 
-                price: 39,
+          price: 39,
 
-                quantity: 1,
-              },
-            ],
-          }
-        );
+          quantity: 1,
+        },
+      ],
+    }
+  );
 
-        location.href =
-          data.url;
+  // TikTok: BEGIN CHECKOUT
+  trackTikTok(
+    "InitiateCheckout",
+    {
+      value: 39,
+      currency: "AUD",
+    }
+  );
 
-        return;
-      }
+  location.href =
+    data.url;
 
-      alert(
-        data.error ||
-          "Stripe checkout failed"
-      );
+  return;
+}
+
+alert(
+  data.error ||
+    "Stripe checkout failed"
+);
     } catch (error) {
       console.error(
         "Checkout failed:",
@@ -889,26 +902,22 @@ export default function Results() {
               </p>
 
               <a
-                href="#unlock-full-report"
-                className="btn white"
-                onClick={() =>
-                  trackEvent(
-                    "upgrade_click",
-                    {
-                      location:
-                        "results_hero",
+  href="#unlock-full-report"
+  className="btn white"
+  onClick={() => {
+    // GA4
+    trackEvent("upgrade_click", {
+      location: "results_hero",
+      value: 39,
+      currency: "AUD",
+    });
 
-                      value: 39,
-
-                      currency:
-                        "AUD",
-                    }
-                  )
-                }
-              >
-                Get My Full Savings
-                Plan
-              </a>
+ 
+    trackTikTok("upgrade_click");
+  }}
+>
+  Get My Full Report
+</a>
             </div>
           </section>
 

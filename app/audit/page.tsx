@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/gtag";
-
+import { trackTikTok } from "@/lib/tiktok";
 import {
   Utensils,
   CreditCard,
@@ -120,21 +120,25 @@ export default function Audit() {
   const CurrentIcon = qs[i].icon;
 
   function pick(a: string) {
-    if (i === 0) {
-      const alreadyTracked =
-        sessionStorage.getItem("audit_start_tracked");
+  if (i === 0) {
+    const alreadyTracked =
+      sessionStorage.getItem("audit_start_tracked");
 
-      if (!alreadyTracked) {
-        trackEvent("audit_start", {
-          audit_name: "spendshift_savings_audit",
-        });
+    if (!alreadyTracked) {
+      // GA4
+      trackEvent("audit_start", {
+        audit_name: "spendshift_savings_audit",
+      });
 
-        sessionStorage.setItem(
-          "audit_start_tracked",
-          "1"
-        );
-      }
+      // TikTok
+      trackTikTok("audit_start");
+
+      sessionStorage.setItem(
+        "audit_start_tracked",
+        "1"
+      );
     }
+  }
 
     const next = [...answers];
 
@@ -144,45 +148,49 @@ export default function Audit() {
   }
 
   function nextQuestion() {
-    if (!answers[i]) return;
+  if (!answers[i]) return;
 
-    if (i === qs.length - 1) {
-      const alreadyTracked =
-        sessionStorage.getItem(
-          "audit_complete_tracked"
-        );
-
-      if (!alreadyTracked) {
-        trackEvent("audit_complete", {
-          questions_completed: qs.length,
-          audit_name: "spendshift_savings_audit",
-        });
-
-        sessionStorage.setItem(
-          "audit_complete_tracked",
-          "1"
-        );
-      }
-
-      localStorage.setItem(
-        "spendshift_answers",
-        JSON.stringify(answers)
+  if (i === qs.length - 1) {
+    const alreadyTracked =
+      sessionStorage.getItem(
+        "audit_complete_tracked"
       );
 
-      r.push("/results?loading=1");
-    } else {
-      setI((prev) => prev + 1);
+    if (!alreadyTracked) {
+      // GA4
+      trackEvent("audit_complete", {
+        questions_completed: qs.length,
+        audit_name: "spendshift_savings_audit",
+      });
+
+      // TikTok
+      trackTikTok("audit_complete");
+
+      sessionStorage.setItem(
+        "audit_complete_tracked",
+        "1"
+      );
     }
+
+    localStorage.setItem(
+      "spendshift_answers",
+      JSON.stringify(answers)
+    );
+
+    r.push("/results?loading=1");
+  } else {
+    setI((prev) => prev + 1);
+  }
+}
+
+function previousQuestion() {
+  if (i === 0) {
+    r.back();
+    return;
   }
 
-  function previousQuestion() {
-    if (i === 0) {
-      r.back();
-      return;
-    }
-
-    setI((prev) => prev - 1);
-  }
+  setI((prev) => prev - 1);
+}
 
   return (
     <div className="auditPage">
