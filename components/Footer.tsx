@@ -106,7 +106,7 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           <Link className="cntct" href="mailto:info@spendshift.com.au">
            <Mail size={20} color="#059625" /> info@spendshift.com.au
           </Link>
-          <Link className="cntct" href="tel:+6109823453455"><Phone size={20} color="#059625" /> 098 2345 3455</Link>
+          {/* <Link className="cntct" href="tel:+6109823453455"><Phone size={20} color="#059625" /> 098 2345 3455</Link> */}
         </div>
       </div>
 
