@@ -133,7 +133,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
                   <Mail size={16} className="contact-icon" />
                   info@spendshift.com.au
                 </a>
-                <a 
+                {/* <a 
                   href="tel:09823453455" 
                   style={{ 
                     display: "flex", 
@@ -145,7 +145,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
                 >
                   <Phone size={16} className="contact-icon" />
                   098 2345 3455
-                </a>
+                </a> */}
               </div>
             </div>
 
