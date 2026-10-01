@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   robots: {
   index: false,
   follow: true,
+  },
 };
 
 export default function ResultsLayout({ children }: { children: ReactNode }) {
