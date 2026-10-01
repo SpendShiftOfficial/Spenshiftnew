@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "Your Results | SpendShift",
   description:
     "Review your SpendShift savings results and see the biggest opportunities to cut everyday costs.",
+  robots: {
+  index: false,
+  follow: true,
+  },
 };
 
 export default function ResultsLayout({ children }: { children: ReactNode }) {

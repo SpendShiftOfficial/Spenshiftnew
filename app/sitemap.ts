@@ -15,8 +15,6 @@ const routes = [
   "/cookies",
   "/refund-policy",
   "/audit",
-  "/results",
-  "/success",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
