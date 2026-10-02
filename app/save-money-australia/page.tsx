@@ -185,8 +185,8 @@ return (
 <Header />
 
 <main>
-<section className="hero saveMoneyHero">
-<div className="pageContainer heroGrid saveMoneyHeroGrid">
+<section className="saveMoneyHero">
+<div className="saveMoneyHeroGrid">
 <div className="heroCopy saveMoneyHeroCopy">
 <div className="eyebrow">
 <PiggyBank size={16} />
@@ -1201,17 +1201,31 @@ font-size: 36px;
 `}</style>
   <style jsx global>{`
 /* Save Money Australia hero + CTA refinements */
+.saveMoneyHero {
+width: 100% !important;
+max-width: none !important;
 
+background:
+radial-gradient(
+circle at 85% 20%,
+rgba(88, 190, 74, 0.14),
+transparent 36%
+),
+linear-gradient(180deg, #ffffff 0%, #f6faf4 100%) !important;
+
+padding: 96px 0 88px !important;
+border-bottom: 1px solid #e8eee6 !important;
+}
 .saveMoneyHero .saveMoneyHeroGrid {
 display: grid !important;
-grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.8fr) !important;
-column-gap: 56px !important;
+grid-template-columns: minmax(0, 720px) 360px !important;
+gap: 56px !important;
 align-items: center !important;
+justify-content: center !important;
 
-width: min(1180px, calc(100% - 64px)) !important;
-max-width: 1180px !important;
-margin-left: auto !important;
-margin-right: auto !important;
+width: calc(100% - 64px) !important;
+max-width: 1160px !important;
+margin: 0 auto !important;
 }
 
 .saveMoneyHero .saveMoneyHeroCopy {
