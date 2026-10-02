@@ -1200,48 +1200,63 @@ font-size: 36px;
 }
 `}</style>
   <style jsx global>{`
-/* Phase 4 desktop hero refinement */
+/* Save Money Australia hero + CTA refinements */
 
-.hero .heroGrid {
-grid-template-columns: minmax(0, 680px) minmax(320px, 360px) !important;
-gap: 52px !important;
-justify-content: space-between;
-align-items: center;
-width: 100%;
+.hero > .pageContainer.heroGrid {
+display: grid !important;
+grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.8fr) !important;
+column-gap: 56px !important;
+align-items: center !important;
+
+width: min(1180px, calc(100% - 64px)) !important;
+max-width: 1180px !important;
+margin-left: auto !important;
+margin-right: auto !important;
 }
 
 .hero .heroCopy {
-width: 100%;
-min-width: 0;
+width: 100% !important;
+max-width: none !important;
+min-width: 0 !important;
 }
 
 .hero .heroCopy h1 {
-width: 100%;
-max-width: 680px !important;
-font-size: clamp(44px, 4vw, 58px) !important;
-line-height: 1.04 !important;
-letter-spacing: -0.04em !important;
+width: 100% !important;
+max-width: 760px !important;
+margin-top: 20px !important;
+
+font-size: clamp(52px, 4.4vw, 66px) !important;
+line-height: 1.03 !important;
+letter-spacing: -0.045em !important;
+}
+
+.hero .heroCopy .heroText {
+max-width: 660px !important;
 }
 
 .hero .heroPanel {
-width: 100%;
-max-width: 360px;
-justify-self: end;
+width: 100% !important;
+max-width: 370px !important;
+justify-self: end !important;
+margin: 0 !important;
 }
 
-/* Make Next.js Link CTAs render as proper SpendShift buttons */
+/* CTA styling */
 
 .heroActions .primaryButton,
 .finalCard .primaryButton,
 .midCtaCard .lightButton {
 display: inline-flex !important;
-align-items: center;
-justify-content: center;
-gap: 10px;
-border-radius: 999px;
-padding: 15px 24px;
+align-items: center !important;
+justify-content: center !important;
+gap: 10px !important;
+
+border-radius: 999px !important;
+padding: 15px 24px !important;
+
 text-decoration: none !important;
-font-weight: 800;
+font-weight: 800 !important;
+
 transition:
 transform 0.2s ease,
 opacity 0.2s ease;
@@ -1251,13 +1266,13 @@ opacity 0.2s ease;
 .finalCard .primaryButton {
 background: #4caf3f !important;
 color: #ffffff !important;
-box-shadow: 0 12px 30px rgba(76, 175, 63, 0.2);
+box-shadow: 0 12px 30px rgba(76, 175, 63, 0.2) !important;
 }
 
 .midCtaCard .lightButton {
 background: #ffffff !important;
 color: #173d32 !important;
-white-space: nowrap;
+white-space: nowrap !important;
 }
 
 .heroActions .primaryButton:hover,
@@ -1268,7 +1283,7 @@ transform: translateY(-2px);
 
 .heroActions .secondaryLink {
 color: #334155 !important;
-font-weight: 750;
+font-weight: 750 !important;
 text-decoration: none !important;
 }
 
@@ -1277,27 +1292,38 @@ color: #419b38 !important;
 }
 
 .finalCard .finalButton {
-margin-top: 28px;
+margin-top: 28px !important;
 }
 
+/* Tablet */
+
 @media (max-width: 900px) {
-.hero .heroGrid {
+.hero > .pageContainer.heroGrid {
 grid-template-columns: 1fr !important;
+width: min(100% - 40px, 760px) !important;
 gap: 42px !important;
 }
 
 .hero .heroCopy h1 {
 max-width: 760px !important;
+font-size: clamp(46px, 7vw, 62px) !important;
 }
 
 .hero .heroPanel {
-max-width: 650px;
-justify-self: start;
+max-width: 650px !important;
+justify-self: start !important;
 }
 }
 
+/* Mobile */
+
 @media (max-width: 640px) {
+.hero > .pageContainer.heroGrid {
+width: calc(100% - 28px) !important;
+}
+
 .hero .heroCopy h1 {
+max-width: 100% !important;
 font-size: 42px !important;
 line-height: 1.05 !important;
 }
@@ -1305,7 +1331,7 @@ line-height: 1.05 !important;
 .heroActions .primaryButton,
 .finalCard .primaryButton,
 .midCtaCard .lightButton {
-width: 100%;
+width: 100% !important;
 }
 }
 `}</style>
