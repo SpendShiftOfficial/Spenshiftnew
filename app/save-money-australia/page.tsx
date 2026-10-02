@@ -433,7 +433,66 @@ target and abandoning it after a week.
 </div>
 </div>
 </section>
+<section className="resourcesSection">
+<div className="articleContainer">
+<div className="sectionEyebrow">Useful Australian resources</div>
 
+<h2>Official resources to help you save and compare costs.</h2>
+
+<p className="resourcesIntro">
+For more information, tools and consumer guidance, these Australian
+government resources can help you compare expenses and make informed
+decisions.
+</p>
+
+<div className="resourcesGrid">
+<a
+href="https://moneysmart.gov.au/saving/simple-ways-to-save-money"
+target="_blank"
+rel="noopener noreferrer"
+className="resourceCard"
+>
+<span className="resourceSource">MONEYSMART</span>
+<h3>Simple ways to save money</h3>
+<p>
+Practical guidance on saving, household bills, energy, insurance,
+phone plans and building sustainable saving habits.
+</p>
+<span className="resourceLink">Visit Moneysmart ↗</span>
+</a>
+
+<a
+href="https://moneysmart.gov.au/budgeting/cost-of-living-help"
+target="_blank"
+rel="noopener noreferrer"
+className="resourceCard"
+>
+<span className="resourceSource">MONEYSMART</span>
+<h3>Cost of living help</h3>
+<p>
+Australian tools, calculators and guidance for managing bills,
+household expenses and rising living costs.
+</p>
+<span className="resourceLink">View cost-of-living help ↗</span>
+</a>
+
+<a
+href="https://www.accc.gov.au/business/pricing/unit-pricing"
+target="_blank"
+rel="noopener noreferrer"
+className="resourceCard"
+>
+<span className="resourceSource">ACCC</span>
+<h3>Grocery unit pricing</h3>
+<p>
+Learn how unit prices can help you compare similar grocery products
+and assess value for money.
+</p>
+<span className="resourceLink">Read the ACCC guide ↗</span>
+</a>
+</div>
+</div>
+</section>
 <section className="finalSection">
 <div className="pageContainer">
 <div className="finalCard">
@@ -1007,7 +1066,82 @@ color: #687386;
 line-height: 1.7;
 font-size: 15px;
 }
+.resourcesSection {
+padding: 90px 0;
+background: #f7f9f6;
+border-top: 1px solid #ebefea;
+}
 
+.resourcesSection h2 {
+margin: 15px 0 14px;
+color: #293548;
+font-size: clamp(32px, 4vw, 46px);
+line-height: 1.12;
+letter-spacing: -0.035em;
+}
+
+.resourcesIntro {
+margin: 0;
+max-width: 720px;
+color: #687386;
+font-size: 16px;
+line-height: 1.7;
+}
+
+.resourcesGrid {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 14px;
+margin-top: 30px;
+}
+
+.resourceCard {
+display: block;
+padding: 24px;
+background: #ffffff;
+border: 1px solid #e2e9e0;
+border-radius: 18px;
+text-decoration: none;
+transition:
+transform 0.2s ease,
+border-color 0.2s ease;
+}
+
+.resourceCard:hover {
+transform: translateY(-2px);
+border-color: #b9d8b5;
+}
+
+.resourceSource {
+display: block;
+margin-bottom: 10px;
+color: #4caf3f;
+font-size: 11px;
+font-weight: 850;
+letter-spacing: 0.09em;
+}
+
+.resourceCard h3 {
+margin: 0 0 10px;
+color: #293548;
+font-size: 20px;
+line-height: 1.3;
+}
+
+.resourceCard p {
+margin: 0;
+color: #687386;
+font-size: 14px;
+line-height: 1.65;
+}
+
+.resourceLink {
+display: block;
+margin-top: 18px;
+color: #3f9e38;
+font-size: 13px;
+font-weight: 800;
+}
 .finalSection {
 padding: 90px 0 70px;
 }
@@ -1084,7 +1218,9 @@ padding: 72px 0 64px;
 grid-template-columns: 1fr;
 gap: 42px;
 }
-
+.resourcesGrid {
+grid-template-columns: 1fr;
+}
 .heroPanel {
 max-width: 650px;
 }
