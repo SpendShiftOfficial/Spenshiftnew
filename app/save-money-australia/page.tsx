@@ -185,9 +185,9 @@ return (
 <Header />
 
 <main>
-<section className="hero">
-<div className="pageContainer heroGrid">
-<div className="heroCopy">
+<section className="hero saveMoneyHero">
+<div className="pageContainer heroGrid saveMoneyHeroGrid">
+<div className="heroCopy saveMoneyHeroCopy">
 <div className="eyebrow">
 <PiggyBank size={16} />
 Australian money-saving guide
@@ -231,7 +231,7 @@ No signup required
 </div>
 </div>
 
-<div className="heroPanel">
+<div className="heroPanel saveMoneyHeroPanel">
 <span className="panelLabel">WHERE TO START</span>
 <h2>Fix the biggest leaks first.</h2>
 <p>
@@ -1202,7 +1202,7 @@ font-size: 36px;
   <style jsx global>{`
 /* Save Money Australia hero + CTA refinements */
 
-.hero > .pageContainer.heroGrid {
+.saveMoneyHero .saveMoneyHeroGrid {
 display: grid !important;
 grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.8fr) !important;
 column-gap: 56px !important;
@@ -1214,13 +1214,13 @@ margin-left: auto !important;
 margin-right: auto !important;
 }
 
-.hero .heroCopy {
+.saveMoneyHero .saveMoneyHeroCopy {
 width: 100% !important;
 max-width: none !important;
 min-width: 0 !important;
 }
 
-.hero .heroCopy h1 {
+.saveMoneyHero .saveMoneyHeroCopy h1 {
 width: 100% !important;
 max-width: 760px !important;
 margin-top: 20px !important;
@@ -1230,11 +1230,11 @@ line-height: 1.03 !important;
 letter-spacing: -0.045em !important;
 }
 
-.hero .heroCopy .heroText {
+.saveMoneyHero .saveMoneyHeroCopy .heroText {
 max-width: 660px !important;
 }
 
-.hero .heroPanel {
+.saveMoneyHero .saveMoneyHeroPanel {
 width: 100% !important;
 max-width: 370px !important;
 justify-self: end !important;
@@ -1298,18 +1298,18 @@ margin-top: 28px !important;
 /* Tablet */
 
 @media (max-width: 900px) {
-.hero > .pageContainer.heroGrid {
+.saveMoneyHero .saveMoneyHeroGrid {
 grid-template-columns: 1fr !important;
 width: min(100% - 40px, 760px) !important;
 gap: 42px !important;
 }
 
-.hero .heroCopy h1 {
+.saveMoneyHero .saveMoneyHeroCopy h1 {
 max-width: 760px !important;
 font-size: clamp(46px, 7vw, 62px) !important;
 }
 
-.hero .heroPanel {
+.saveMoneyHero .saveMoneyHeroPanel {
 max-width: 650px !important;
 justify-self: start !important;
 }
@@ -1318,11 +1318,11 @@ justify-self: start !important;
 /* Mobile */
 
 @media (max-width: 640px) {
-.hero > .pageContainer.heroGrid {
+.saveMoneyHero .saveMoneyHeroGrid {
 width: calc(100% - 28px) !important;
 }
 
-.hero .heroCopy h1 {
+.saveMoneyHero .saveMoneyHeroCopy h1 {
 max-width: 100% !important;
 font-size: 42px !important;
 line-height: 1.05 !important;
