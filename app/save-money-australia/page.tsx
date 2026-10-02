@@ -1199,6 +1199,116 @@ font-size: 36px;
 }
 }
 `}</style>
+  <style jsx global>{`
+/* Phase 4 desktop hero refinement */
+
+.hero .heroGrid {
+grid-template-columns: minmax(0, 680px) minmax(320px, 360px) !important;
+gap: 52px !important;
+justify-content: space-between;
+align-items: center;
+width: 100%;
+}
+
+.hero .heroCopy {
+width: 100%;
+min-width: 0;
+}
+
+.hero .heroCopy h1 {
+width: 100%;
+max-width: 680px !important;
+font-size: clamp(44px, 4vw, 58px) !important;
+line-height: 1.04 !important;
+letter-spacing: -0.04em !important;
+}
+
+.hero .heroPanel {
+width: 100%;
+max-width: 360px;
+justify-self: end;
+}
+
+/* Make Next.js Link CTAs render as proper SpendShift buttons */
+
+.heroActions .primaryButton,
+.finalCard .primaryButton,
+.midCtaCard .lightButton {
+display: inline-flex !important;
+align-items: center;
+justify-content: center;
+gap: 10px;
+border-radius: 999px;
+padding: 15px 24px;
+text-decoration: none !important;
+font-weight: 800;
+transition:
+transform 0.2s ease,
+opacity 0.2s ease;
+}
+
+.heroActions .primaryButton,
+.finalCard .primaryButton {
+background: #4caf3f !important;
+color: #ffffff !important;
+box-shadow: 0 12px 30px rgba(76, 175, 63, 0.2);
+}
+
+.midCtaCard .lightButton {
+background: #ffffff !important;
+color: #173d32 !important;
+white-space: nowrap;
+}
+
+.heroActions .primaryButton:hover,
+.finalCard .primaryButton:hover,
+.midCtaCard .lightButton:hover {
+transform: translateY(-2px);
+}
+
+.heroActions .secondaryLink {
+color: #334155 !important;
+font-weight: 750;
+text-decoration: none !important;
+}
+
+.heroActions .secondaryLink:hover {
+color: #419b38 !important;
+}
+
+.finalCard .finalButton {
+margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+.hero .heroGrid {
+grid-template-columns: 1fr !important;
+gap: 42px !important;
+}
+
+.hero .heroCopy h1 {
+max-width: 760px !important;
+}
+
+.hero .heroPanel {
+max-width: 650px;
+justify-self: start;
+}
+}
+
+@media (max-width: 640px) {
+.hero .heroCopy h1 {
+font-size: 42px !important;
+line-height: 1.05 !important;
+}
+
+.heroActions .primaryButton,
+.finalCard .primaryButton,
+.midCtaCard .lightButton {
+width: 100%;
+}
+}
+`}</style>
 </div>
 );
 }
