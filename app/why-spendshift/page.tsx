@@ -127,9 +127,20 @@ export default function WhySpendShiftPage() {
 
               <p>
                 Unlike traditional budgeting apps, SpendShift focuses on
-                identifying practical savings opportunities without asking you
-                to build spreadsheets, track every transaction or connect your
-                bank account.
+identifying practical savings opportunities without asking you
+to build spreadsheets, track every transaction or connect your
+bank account. For more ideas, explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+Australian money-saving guide
+</Link>.
               </p>
 
               <div className="whyHeroChecks">
