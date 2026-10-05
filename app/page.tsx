@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomePageClient from "./HomePageClient";
+import HomePageClient from "./homePageClient";
 
 export const metadata: Metadata = {
 alternates: {
