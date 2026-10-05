@@ -1486,7 +1486,7 @@ width: 100% !important;
 @media (max-width: 480px) {
 .saveMoneyHero .saveMoneyHeroCopy h1 {
 max-width: 100% !important;
-font-size: 38px !important;
+font-size: 36px !important;
 line-height: 1.05 !important;
 text-align: left !important;
 }
