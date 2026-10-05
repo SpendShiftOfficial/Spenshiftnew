@@ -8,6 +8,7 @@ const routes = [
   "/why-spendshift",
   "/pricing",
   "/whats-included",
+  "/save-money-australia",
   "/services",
   "/financial-information-ai-disclaimer",
   "/privacy-policy",

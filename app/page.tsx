@@ -352,7 +352,19 @@ export default function Home() {
 
               <p className="reveal-up">
                 Unlike budgeting apps, SpendShift focuses on identifying money
-                that quietly disappears through everyday habits.
+that quietly disappears through everyday habits. For practical
+examples, explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+guide to saving money in Australia
+</Link>.
               </p>
             </div>
 

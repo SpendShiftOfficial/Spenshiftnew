@@ -83,8 +83,19 @@ export default function HowItWorksPage() {
 
               <p>
                 SpendShift turns a few simple answers into practical insights
-                that help you understand where money could be quietly
-                disappearing.
+that help you understand where money could be quietly
+disappearing. You can also explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+practical ways to save money in Australia
+</Link>.    
               </p>
 
               <div className="innerHeroChecks">
