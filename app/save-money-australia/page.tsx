@@ -1373,13 +1373,17 @@ min-width: 0 !important;
 .saveMoneyHero .saveMoneyHeroCopy h1 {
 width: 100% !important;
 max-width: 760px !important;
-margin-top: 20px !important;
+margin: 0 0 24px !important;
 
-font-size: clamp(52px, 4.4vw, 66px) !important;
-line-height: 1.03 !important;
-letter-spacing: -0.045em !important;
+font-size: clamp(46px, 6vw, 74px) !important;
+line-height: 1.05 !important;
+letter-spacing: -2.5px !important;
+color: #3b3b3b !important;
+text-align: left !important;
 }
-
+.saveMoneyHero .saveMoneyHeroCopy h1 span {
+color: #059625 !important;
+}
 .saveMoneyHero .saveMoneyHeroCopy .heroText {
 max-width: 660px !important;
 }
@@ -1472,16 +1476,19 @@ justify-self: start !important;
 width: calc(100% - 28px) !important;
 }
 
-.saveMoneyHero .saveMoneyHeroCopy h1 {
-max-width: 100% !important;
-font-size: 42px !important;
-line-height: 1.05 !important;
-}
 
 .heroActions .primaryButton,
 .finalCard .primaryButton,
 .midCtaCard .lightButton {
 width: 100% !important;
+}
+}
+@media (max-width: 480px) {
+.saveMoneyHero .saveMoneyHeroCopy h1 {
+max-width: 100% !important;
+font-size: 38px !important;
+line-height: 1.05 !important;
+text-align: left !important;
 }
 }
 `}</style>
