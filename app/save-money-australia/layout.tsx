@@ -1,12 +1,37 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+const articleImage =
+"https://www.spendshift.com.au/save-money-australia.png";
+
 export const metadata: Metadata = {
 title: "How to Save Money in Australia: 12 Practical Ways",
 description:
 "Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses, plus a free 2-minute savings audit.",
 alternates: {
 canonical: "https://www.spendshift.com.au/save-money-australia",
+},
+openGraph: {
+title: "How to Save Money in Australia: 12 Practical Ways",
+description:
+"Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses.",
+url: "https://www.spendshift.com.au/save-money-australia",
+siteName: "SpendShift",
+locale: "en_AU",
+type: "article",
+images: [
+{
+url: articleImage,
+alt: "How to Save Money in Australia: 12 Practical Ways",
+},
+],
+},
+twitter: {
+card: "summary_large_image",
+title: "How to Save Money in Australia: 12 Practical Ways",
+description:
+"Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses.",
+images: [articleImage],
 },
 };
 
@@ -18,6 +43,7 @@ headline: "How to Save Money in Australia: 12 Practical Ways",
 description:
 "Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses, plus a free 2-minute savings audit.",
 url: "https://www.spendshift.com.au/save-money-australia",
+image: articleImage,
 mainEntityOfPage: {
 "@type": "WebPage",
 "@id": "https://www.spendshift.com.au/save-money-australia",
@@ -39,7 +65,6 @@ about: {
 "@type": "Thing",
 name: "Saving money in Australia",
 },
-isAccessibleForFree: true,
 };
 
 export default function SaveMoneyAustraliaLayout({
@@ -52,7 +77,10 @@ return (
 <script
 type="application/ld+json"
 dangerouslySetInnerHTML={{
-__html: JSON.stringify(articleStructuredData).replace(/</g, "\\u003c"),
+__html: JSON.stringify(articleStructuredData).replace(
+/</g,
+"\\u003c"
+),
 }}
 />
 {children}
