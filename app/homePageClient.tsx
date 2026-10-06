@@ -262,7 +262,7 @@ export default function Home() {
                   alt="SpendShift mobile results preview"
                   width={408}
                   height={800}
-                  priority
+                  fetchPriority="high"
                 />
               </div>
 
