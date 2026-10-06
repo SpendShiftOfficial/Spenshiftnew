@@ -1,6 +1,19 @@
 import Script from "next/script";
 import "./globals.css";
 import type { Metadata } from "next";
+import { Inter, Mona_Sans } from "next/font/google";
+
+const inter = Inter({
+subsets: ["latin"],
+variable: "--font-inter",
+display: "swap",
+});
+
+const monaSans = Mona_Sans({
+subsets: ["latin"],
+variable: "--font-mona-sans",
+display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.spendshift.com.au"),
@@ -74,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${monaSans.variable}`}>
       <head>
         <Script id="google-tag-manager" strategy="afterInteractive">
     {`
@@ -90,18 +103,7 @@ export default function RootLayout({
       })(window,document,'script','dataLayer','GTM-MJJX4953');
     `}
   </Script>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap"
-          rel="stylesheet"
-        />
+       
       </head>
 
       <body>
