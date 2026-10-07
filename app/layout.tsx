@@ -123,7 +123,7 @@ export default function RootLayout({
           `}
         </Script>
         {/* Microsoft Clarity */}
-        <Script id="microsoft-clarity" strategy="afterInteractive">
+        <Script id="microsoft-clarity" strategy="lazyOnload">
           {`
             (function(c,l,a,r,i,t,y){
               c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -133,7 +133,7 @@ export default function RootLayout({
           `}
         </Script>
         {/* TIK TOK PIXEL INTEGRATION */}
-        <Script id="tiktok-pixel" strategy="afterInteractive">
+        <Script id="tiktok-pixel" strategy="lazyOnload">
   {`
     !function (w, d, t) {
       w.TiktokAnalyticsObject=t;
@@ -181,7 +181,7 @@ export default function RootLayout({
   `}
 </Script>
 {/* META INTEGRATION */}
-<Script id="meta-pixel" strategy="afterInteractive">
+<Script id="meta-pixel" strategy="lazyOnload">
   {`
     !function(f,b,e,v,n,t,s)
     {
