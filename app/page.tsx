@@ -14,6 +14,13 @@ const structuredData = {
 "@type": "Organization",
 "@id": "https://www.spendshift.com.au/#organization",
 name: "SpendShift",
+legalName: "SpendShift Enterprises Pty Ltd",
+email: "info@spendshift.com.au",
+sameAs: [
+"https://facebook.com/spendshiftofficial",
+"https://instagram.com/spendshiftofficial",
+"https://www.tiktok.com/@spendshiftofficial",
+],
 url: "https://www.spendshift.com.au/",
 description:
 "SpendShift helps Australians uncover hidden money leaks with a fast, AI-powered savings audit and personalised financial report.",
