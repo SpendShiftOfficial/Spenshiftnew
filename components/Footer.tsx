@@ -83,6 +83,7 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
           <Link href="/why-spendshift"><Circle size={10} color="#fff" /> Why SpendShift</Link>
           <Link href="/pricing"><Circle size={10} color="#fff" /> Pricing</Link>
           <Link href="/#faq"><Circle size={10} color="#fff" /> Frequently Asked Questions</Link>
+         <Link href="/save-money-australia"><Circle size={10} color="#fff" /> Save Money Australia</Link>
         </div>
 
         <div className="reveal-up">
