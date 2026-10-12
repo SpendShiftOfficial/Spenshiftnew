@@ -40,6 +40,7 @@ const articleStructuredData = {
 "@type": "Article",
 "@id": "https://www.spendshift.com.au/save-money-australia#article",
 headline: "How to Save Money in Australia: 12 Practical Ways",
+dateModified: "2026-10-12T22:13:00+11:00",
 description:
 "Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses, plus a free 2-minute savings audit.",
 url: "https://www.spendshift.com.au/save-money-australia",

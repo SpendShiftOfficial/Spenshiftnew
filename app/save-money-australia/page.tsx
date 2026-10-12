@@ -193,6 +193,17 @@ return (
 Australian money-saving guide
 </div>
 
+ <p
+style={{
+margin: "10px 0 0",
+fontSize: "14px",
+color: "#667085",
+fontWeight: 500,
+}}
+>
+Last reviewed: 12 October 2026
+</p>
+
 <h1>
 How to save money in Australia:
 <span> 12 practical ways to cut everyday costs.</span>
@@ -524,7 +535,18 @@ Approximately 2 minutes · No signup required · No bank connection
 SpendShift provides general information and estimated savings
 opportunities only. Results vary by household, provider, location
 and spending behaviour and should not be treated as financial
-advice.
+advice.{" "}
+<Link
+href="/financial-information-ai-disclaimer"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+Read our Financial Information &amp; AI Disclaimer
+</Link>.
 </p>
 </div>
 </section>
