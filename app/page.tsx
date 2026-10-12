@@ -22,6 +22,7 @@ sameAs: [
 "https://www.tiktok.com/@spendshiftofficial",
 ],
 url: "https://www.spendshift.com.au/",
+logo: "https://www.spendshift.com.au/logo.png",
 description:
 "SpendShift helps Australians uncover hidden money leaks with a fast, AI-powered savings audit and personalised financial report.",
 areaServed: {
