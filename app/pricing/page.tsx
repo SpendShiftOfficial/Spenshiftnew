@@ -212,8 +212,19 @@ export default function PricingPage() {
 
               <p>
                 The full report explains where money could be disappearing, what
-                to fix first, how much you could save and exactly what action to
-                take next.
+to fix first, how much you could save and exactly what action to
+take next. If you want practical ideas before upgrading, explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+practical ways to save money in Australia
+</Link>.
               </p>
 
               <div className="pricingValuePoints">
