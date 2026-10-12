@@ -535,7 +535,18 @@ Approximately 2 minutes · No signup required · No bank connection
 SpendShift provides general information and estimated savings
 opportunities only. Results vary by household, provider, location
 and spending behaviour and should not be treated as financial
-advice.
+advice.{" "}
+<Link
+href="/financial-information-ai-disclaimer"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+Read our Financial Information &amp; AI Disclaimer
+</Link>.
 </p>
 </div>
 </section>
