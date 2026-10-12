@@ -106,8 +106,19 @@ export default function WhatsIncludedPage() {
 
               <p>
                 SpendShift gives you clear savings estimates, personalised
-                recommendations and simple actions based on the answers you
-                provide.
+recommendations and simple actions based on the answers you
+provide. For practical examples, explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+guide to saving money in Australia
+</Link>.
               </p>
 
               <div className="includedHeroPoints">
