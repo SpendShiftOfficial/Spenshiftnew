@@ -193,6 +193,17 @@ return (
 Australian money-saving guide
 </div>
 
+ <p
+style={{
+margin: "10px 0 0",
+fontSize: "14px",
+color: "#667085",
+fontWeight: 500,
+}}
+>
+Last reviewed: 12 October 2026
+</p>
+
 <h1>
 How to save money in Australia:
 <span> 12 practical ways to cut everyday costs.</span>
