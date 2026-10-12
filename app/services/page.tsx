@@ -190,8 +190,19 @@ export default function ServicesPage() {
 
               <p>
                 SpendShift does not create a traditional budget. It focuses on
-                likely savings opportunities and practical actions based on the
-                answers you submit.
+likely savings opportunities and practical actions based on the
+answers you submit. For practical ideas, explore our{" "}
+<Link
+href="/save-money-australia"
+style={{
+color: "inherit",
+fontWeight: 700,
+textDecoration: "underline",
+textUnderlineOffset: "3px",
+}}
+>
+guide to saving money in Australia
+</Link>.
               </p>
 
               <div className="servicesOutcomePoints">
