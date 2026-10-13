@@ -37,6 +37,12 @@ setVisible(true);
 function saveConsent(choice: ConsentChoice) {
 localStorage.setItem(CONSENT_KEY, choice);
 updateGoogleConsent(choice);
+
+if (choice === "granted") {
+window.location.reload();
+return;
+}
+
 setVisible(false);
 }
 
