@@ -153,6 +153,7 @@ ad_personalization: savedConsent
         {/* TIK TOK PIXEL INTEGRATION */}
         <Script id="tiktok-pixel" strategy="lazyOnload">
   {`
+  if (localStorage.getItem("spendshift_cookie_consent") === "granted") {
     !function (w, d, t) {
       w.TiktokAnalyticsObject=t;
       var ttq=w[t]=w[t]||[];
@@ -196,11 +197,13 @@ ad_personalization: savedConsent
       ttq.load("DAQ7793C77UFPT8032V0");
       ttq.page();
     }(window, document, "ttq");
+    }
   `}
 </Script>
 {/* META INTEGRATION */}
 <Script id="meta-pixel" strategy="lazyOnload">
   {`
+  if (localStorage.getItem("spendshift_cookie_consent") === "granted") {
     !function(f,b,e,v,n,t,s)
     {
       if(f.fbq)return;
@@ -228,6 +231,7 @@ ad_personalization: savedConsent
 
     fbq('init', '1092210323744514');
     fbq('track', 'PageView');
+    }
   `}
 </Script>
 
