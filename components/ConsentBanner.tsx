@@ -35,10 +35,17 @@ setVisible(true);
 }, []);
 
 function saveConsent(choice: ConsentChoice) {
+const previousChoice = localStorage.getItem(
+CONSENT_KEY
+) as ConsentChoice | null;
+
 localStorage.setItem(CONSENT_KEY, choice);
 updateGoogleConsent(choice);
 
-if (choice === "granted") {
+const consentChanged =
+previousChoice !== null && previousChoice !== choice;
+
+if (choice === "granted" || consentChanged) {
 window.location.reload();
 return;
 }
@@ -46,7 +53,31 @@ return;
 setVisible(false);
 }
 
-if (!visible) return null;
+if (!visible) {
+return (
+<button
+type="button"
+onClick={() => setVisible(true)}
+style={{
+position: "fixed",
+left: "16px",
+bottom: "16px",
+zIndex: 99998,
+border: "1px solid #d1d5db",
+borderRadius: "10px",
+padding: "8px 12px",
+background: "#ffffff",
+color: "#1f2937",
+fontSize: "13px",
+fontWeight: 600,
+cursor: "pointer",
+boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+}}
+>
+Cookie settings
+</button>
+);
+}
 
 return (
 <div
