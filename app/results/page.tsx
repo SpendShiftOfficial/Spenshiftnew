@@ -560,6 +560,8 @@ useEffect(() => {
   value: 39,
   currency: "AUD",
 });
+        // Give analytics events time to flush before leaving for Stripe
+await new Promise((resolve) => setTimeout(resolve, 500));
 
   location.href =
     data.url;
