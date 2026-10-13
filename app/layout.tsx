@@ -2,6 +2,7 @@ import Script from "next/script";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Mona_Sans } from "next/font/google";
+import ConsentBanner from "@/components/ConsentBanner";
 
 const inter = Inter({
 subsets: ["latin"],
@@ -95,6 +96,7 @@ export default function RootLayout({
 
       <body>
         {children}
+        <ConsentBanner />
 <Script id="consent-default" strategy="beforeInteractive">
 {`
 window.dataLayer = window.dataLayer || [];
@@ -107,6 +109,22 @@ ad_user_data: 'denied',
 ad_personalization: 'denied',
 wait_for_update: 500
 });
+`}
+</Script>
+        <Script id="consent-restore" strategy="beforeInteractive">
+{`
+try {
+var savedConsent = localStorage.getItem("spendshift_cookie_consent");
+
+if (savedConsent === "granted" || savedConsent === "denied") {
+gtag("consent", "update", {
+analytics_storage: savedConsent,
+ad_storage: savedConsent,
+ad_user_data: savedConsent,
+ad_personalization: savedConsent
+});
+}
+} catch (e) {}
 `}
 </Script>
         <Script
