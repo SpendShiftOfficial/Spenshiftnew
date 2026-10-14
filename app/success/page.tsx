@@ -156,10 +156,19 @@ if (!localStorage.getItem(purchaseKey)) {
   });
 
   // TikTok
-  trackTikTok("Purchase", {
-    value: 39,
-    currency: "AUD",
-  });
+trackTikTok("Purchase", {
+contents: [
+{
+content_id: "spendshift_full_report",
+content_name: "SpendShift Full Savings Report",
+quantity: 1,
+price: 39,
+},
+],
+content_type: "product",
+value: 39,
+currency: "AUD",
+});
 
   // META AD TRACK EVENT
   trackMetaStandard("Purchase", {
