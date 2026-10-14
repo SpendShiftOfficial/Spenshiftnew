@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
@@ -32,6 +32,7 @@ async function sendReportEmail(email: string, reportId: string) {
 }
 
 export async function POST(req: Request) {
+  const totalStart = Date.now();
   try {
     const { sessionId } = await req.json();
 
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     const client = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY!,
     });
-
+const aiStart = Date.now();
     const msg = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 5000,
@@ -383,7 +384,7 @@ ${JSON.stringify(answers, null, 2)}
         },
       ],
     });
-
+console.log("REPORT_TIMING ai_ms:", Date.now() - aiStart);
     const report = msg.content
       .map((b: any) => (b.type === "text" ? b.text : ""))
       .join("\n")
@@ -404,13 +405,15 @@ ${JSON.stringify(answers, null, 2)}
     const customerEmail = session.customer_details?.email;
 
     if (customerEmail) {
-      try {
-        await sendReportEmail(customerEmail, reportId);
-      } catch (emailError) {
-        console.error("Resend email failed:", emailError);
-      }
-    }
-
+after(async () => {
+try {
+await sendReportEmail(customerEmail, reportId);
+} catch (emailError) {
+console.error("Resend email failed:", emailError);
+}
+});
+}
+console.log("REPORT_TIMING total_ms:", Date.now() - totalStart);
     return NextResponse.json({ reportId });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
