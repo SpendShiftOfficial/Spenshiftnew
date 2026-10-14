@@ -547,13 +547,19 @@ useEffect(() => {
   );
 
   // TikTok: BEGIN CHECKOUT
-  trackTikTok(
-    "InitiateCheckout",
-    {
-      value: 39,
-      currency: "AUD",
-    }
-  );
+trackTikTok("InitiateCheckout", {
+contents: [
+{
+content_id: "spendshift_full_report",
+content_name: "SpendShift Full Savings Report",
+quantity: 1,
+price: 39,
+},
+],
+content_type: "product",
+value: 39,
+currency: "AUD",
+});
 
   // Meta BEGIN CHECKOUT
   trackMetaStandard("InitiateCheckout", {
