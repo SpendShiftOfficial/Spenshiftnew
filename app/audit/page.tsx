@@ -72,12 +72,13 @@ const qs = [
     icon: Smartphone,
   },
   {
-    q: "How often do you review recurring payments leaving your account?",
+    q: "When did you last compare your electricity or gas plan?",
     options: [
-      "Monthly",
-      "Every few months",
-      "Rarely",
-      "Almost never",
+      "Within 6 months",
+      "6-12 months ago",
+      "Over a year ago",
+      "I honestly don't know",
+      "I don't pay these bills",
     ],
     icon: RefreshCcw,
   },
