@@ -66,8 +66,9 @@ export async function POST(req: Request) {
     });
 const aiStart = Date.now();
     const msg = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-5-5",
       max_tokens: 5000,
+      output_config: { effort: "medium" },
       system: `
 You are SpendShift, an Australian personal-savings audit assistant.
 
