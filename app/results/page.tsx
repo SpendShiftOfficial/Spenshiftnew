@@ -262,7 +262,7 @@ function buildLeaks(
 
       range: rangeFor(mobile, {
 "Within 6 months": [0, 100],
-"6–12 months ago": [100, 200],
+"6-12 months ago": [100, 200],
 "Over a year ago": [150, 400],
 "I honestly don't know": [150, 400],
 "I don’t pay either of these bills": [0, 0],
@@ -285,7 +285,7 @@ answer: recurring,
 
 range: rangeFor(recurring, {
 "Within 6 months": [0, 100],
-"6–12 months ago": [100, 200],
+"6-12 months ago": [100, 200],
 "Over a year ago": [150, 350],
 "I honestly don't know": [150, 350],
 "I don’t pay these bills": [0, 0],
