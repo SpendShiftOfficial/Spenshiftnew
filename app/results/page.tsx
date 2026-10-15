@@ -264,7 +264,7 @@ function buildLeaks(
 "Within 6 months": [0, 100],
 "6–12 months ago": [100, 200],
 "Over a year ago": [150, 400],
-"I honestly don’t know": [150, 400],
+"I honestly don't know": [150, 400],
 "I don’t pay either of these bills": [0, 0],
 }),
 
@@ -287,7 +287,7 @@ range: rangeFor(recurring, {
 "Within 6 months": [0, 100],
 "6–12 months ago": [100, 200],
 "Over a year ago": [150, 350],
-"I honestly don’t know": [150, 350],
+"I honestly don't know": [150, 350],
 "I don’t pay these bills": [0, 0],
 }),
 
@@ -296,7 +296,7 @@ recurring === "I don’t pay these bills"
 ? "You told us you don’t pay the household energy bills, so we’ve excluded this area from your savings estimate."
 : recurring === "Within 6 months"
 ? "You compared your energy plan recently, so there may be less room to save here."
-: recurring === "I honestly don’t know"
+: recurring === "I honestly don't know"
 ? `You’re not sure when you last compared your energy plan. A quick comparison could potentially uncover around ${money(
 amount
 )} per year in savings.`
