@@ -67,7 +67,7 @@ const qs = [
       "Within 6 months",
       "6–12 months ago",
       "Over a year ago",
-      "I honestly don’t know",
+      "I honestly don't know",
       "I don't pay either of these bills",
     ],
     icon: Smartphone,
