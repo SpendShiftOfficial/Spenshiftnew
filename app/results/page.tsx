@@ -261,29 +261,22 @@ function buildLeaks(
       answer: mobile,
 
       range: rangeFor(mobile, {
-        "Within 6 months": [0, 100],
-        "6–12 months ago": [
-          100,
-          200,
-        ],
-        "Over a year ago": [
-          150,
-          400,
-        ],
-        "I honestly don’t know": [
-          150,
-          400,
-        ],
-      }),
+"Within 6 months": [0, 100],
+"6–12 months ago": [100, 200],
+"Over a year ago": [150, 400],
+"I honestly don’t know": [150, 400],
+"I don’t pay either of these bills": [0, 0],
+}),
 
-      copy: (amount) =>
-        mobile ===
-        "Within 6 months"
-          ? "Your plan was reviewed recently, so the saving may be smaller here."
-          : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
-              amount
-            )} per year more than newer offers.`,
-    }),
+copy: (amount) =>
+mobile === "I don’t pay either of these bills"
+? "You told us you don’t pay the household internet or mobile bills, so we’ve excluded this area from your savings estimate."
+: mobile === "Within 6 months"
+? "Your plan was reviewed recently, so the saving may be smaller here."
+: `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
+amount
+)} per year more than newer offers.`,
+}),
 
     createLeak({
 title: "Energy Plan Comparison",
