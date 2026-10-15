@@ -139,13 +139,17 @@ Internet/Mobile plan:
 - Within 6 months: $0–$100/year
 - 6–12 months ago: $100–$200/year
 - Over a year ago: $150–$400/year
-- Don't know: treat as over a year ago
+- I honestly don't know: $150-$400/year
+- I don't pay either of these bills: $0/year
+If the user says "I don't pay either of these bills", exclude internet/mobile from their savings estimate and do not recommend changing or comparing those plans.
 
-Recurring payment leakage:
-- Monthly: $0–$100/year
-- Every few months: $100–$300/year
-- Rarely: $200–$600/year
-- Almost never: $400–$1,000/year
+Energy plan comparison:
+- Within 6 months: $0-$100/year
+- 6-12 months ago: $100-$200/year
+- Over a year ago: $150-$350/year
+- I honestly don't know: $150-$350/year
+- I don't pay these bills: $0/year
+If the user says "I don't pay these bills", exclude energy from their savings estimate and do not recommend changing or comparing an energy plan.
 
 Unplanned purchases:
 - Rarely: $0–$200/year

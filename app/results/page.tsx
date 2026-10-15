@@ -261,53 +261,49 @@ function buildLeaks(
       answer: mobile,
 
       range: rangeFor(mobile, {
-        "Within 6 months": [0, 100],
-        "6–12 months ago": [
-          100,
-          200,
-        ],
-        "Over a year ago": [
-          150,
-          400,
-        ],
-        "I honestly don’t know": [
-          150,
-          400,
-        ],
-      }),
+"Within 6 months": [0, 100],
+"6–12 months ago": [100, 200],
+"Over a year ago": [150, 400],
+"I honestly don’t know": [150, 400],
+"I don’t pay either of these bills": [0, 0],
+}),
 
-      copy: (amount) =>
-        mobile ===
-        "Within 6 months"
-          ? "Your plan was reviewed recently, so the saving may be smaller here."
-          : `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
-              amount
-            )} per year more than newer offers.`,
-    }),
+copy: (amount) =>
+mobile === "I don’t pay either of these bills"
+? "You told us you don’t pay the household internet or mobile bills, so we’ve excluded this area from your savings estimate."
+: mobile === "Within 6 months"
+? "Your plan was reviewed recently, so the saving may be smaller here."
+: `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
+amount
+)} per year more than newer offers.`,
+}),
 
     createLeak({
-      title:
-        "Recurring Payment Leakage",
+title: "Energy Plan Comparison",
 
-      answer: recurring,
+answer: recurring,
 
-      range: rangeFor(recurring, {
-        Monthly: [0, 100],
-        "Every few months": [
-          100,
-          300,
-        ],
-        Rarely: [200, 600],
-        "Almost never": [400, 1000],
-      }),
+range: rangeFor(recurring, {
+"Within 6 months": [0, 100],
+"6–12 months ago": [100, 200],
+"Over a year ago": [150, 350],
+"I honestly don’t know": [150, 350],
+"I don’t pay these bills": [0, 0],
+}),
 
-      copy: (amount) =>
-        recurring === "Monthly"
-          ? "You review recurring payments regularly, so this area looks more controlled."
-          : `You said you review recurring payments ${recurring}. That could allow around ${money(
-              amount
-            )} per year in small charges to continue unnoticed.`,
-    }),
+copy: (amount) =>
+recurring === "I don’t pay these bills"
+? "You told us you don’t pay the household energy bills, so we’ve excluded this area from your savings estimate."
+: recurring === "Within 6 months"
+? "You compared your energy plan recently, so there may be less room to save here."
+: recurring === "I honestly don’t know"
+? `You’re not sure when you last compared your energy plan. A quick comparison could potentially uncover around ${money(
+amount
+)} per year in savings.`
+: `You said you last compared your energy plan ${recurring.toLowerCase()}. A quick comparison could potentially uncover around ${money(
+amount
+)} per year in savings.`,
+}),
 
     createLeak({
       title: "Unplanned Purchases",
