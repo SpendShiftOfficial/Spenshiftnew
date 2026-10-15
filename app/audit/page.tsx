@@ -65,9 +65,9 @@ const qs = [
     q: "When did you last compare your internet or mobile plan?",
     options: [
       "Within 6 months",
-      "6–12 months ago",
+      "6-12 months ago",
       "Over a year ago",
-      "I honestly don’t know",
+      "I honestly don't know",
       "I don't pay either of these bills",
     ],
     icon: Smartphone,
