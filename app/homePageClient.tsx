@@ -184,7 +184,7 @@ export default function Home() {
                   stroke="white"
                   size={20}
                 />
-                100% data-driven, 100% about you
+                Built for Australians. Based on your answers.
               </span>
 
               <h1>
