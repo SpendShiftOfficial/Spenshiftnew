@@ -39,12 +39,12 @@ const faqs = [
   {
     question: "How does it work?",
     answer:
-      "Answer a series of questions about your spending habits, complete your purchase, and you’erwards.",
+      "Complete the free audit and see your initial savings insights. If you want the full personalised report, you can unlock it for a one-time A$39 payment.",
   },
   {
     question: "How much does it cost?",
     answer:
-      "Complete the free audit and see your initial savings insights. If you want the full personalised report, you can unlock it for a one-time A$39 payment.",
+      "The SpendShift audit is free. The full personalised savings report costs A$39 as a one-time payment, with no subscription or ongoing fees.",
   },
   {
     question: "Is this a subscription?",
