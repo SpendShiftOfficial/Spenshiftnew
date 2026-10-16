@@ -39,7 +39,7 @@ const faqs = [
   {
     question: "How does it work?",
     answer:
-      "Answer a series of questions about your spending habits, complete your purchase, and you’ll receive your personalised SpendShift report by email shortly afterwards.",
+      "Complete the free audit and see your initial savings insights. If you want the full personalised report, you can unlock it for a one-time A$39 payment.",
   },
   {
     question: "How much does it cost?",
@@ -184,7 +184,7 @@ export default function Home() {
                   stroke="white"
                   size={20}
                 />
-                100% data-driven, 100% about you
+                Built for Australians. Based on your answers.
               </span>
 
               <h1>
