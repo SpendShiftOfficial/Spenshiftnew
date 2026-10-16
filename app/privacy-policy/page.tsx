@@ -89,11 +89,10 @@ export default function PrivacyPolicy() {
 
               <ul>
                 <li>
-                  audit answers, including information about spending habits,
-                  subscriptions, takeaway and convenience purchases, insurance
-                  comparison habits, mobile or internet plan review habits,
-                  recurring payments, unplanned purchases and stated financial
-                  goals;
+                  audit answers, including information about takeaway and delivery habits,
+                  subscriptions, insurance comparison habits, convenience spending,
+                  internet or mobile plan review habits, electricity or gas plan comparison
+                  habits, unplanned purchases and your stated savings goal;
                 </li>
 
                 <li>
