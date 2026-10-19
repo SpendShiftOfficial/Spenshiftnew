@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Refund Policy | SpendShift",
+  title: "Refund Policy",
   description:
     "Read SpendShift's refund policy, including our 30-day money-back guarantee and Australian Consumer Law rights.",
 };
