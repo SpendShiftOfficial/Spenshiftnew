@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | SpendShift",
+  title: "Cookie Policy",
   description:
     "Learn how SpendShift uses cookies and similar technologies for website operation, analytics, payments and security.",
 };
