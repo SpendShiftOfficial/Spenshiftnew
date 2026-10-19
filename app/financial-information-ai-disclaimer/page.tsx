@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Financial Information and AI Disclaimer | SpendShift",
+  title: "Financial Information and AI Disclaimer",
   description:
     "Read SpendShift's financial information and AI disclaimer, including important limitations about savings estimates, AI-generated content and general information.",
 };
