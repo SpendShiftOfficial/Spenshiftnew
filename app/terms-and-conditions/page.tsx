@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | SpendShift",
+  title: "Terms & Conditions",
   description:
     "Review the terms and conditions governing use of SpendShift, including payments, reports, refunds and AI-generated content.",
 };
