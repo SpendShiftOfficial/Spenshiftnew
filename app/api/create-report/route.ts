@@ -405,7 +405,10 @@ console.log("REPORT_TIMING ai_ms:", Date.now() - aiStart);
       email: session.customer_details?.email || null,
     });
 
-    if (error) throw error;
+    if (error) {
+console.error("SUPABASE_REPORT_INSERT_ERROR:", error);
+throw error;
+}
 
     const customerEmail = session.customer_details?.email;
 
@@ -421,6 +424,13 @@ console.error("Resend email failed:", emailError);
 console.log("REPORT_TIMING total_ms:", Date.now() - totalStart);
     return NextResponse.json({ reportId });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+console.error("CREATE_REPORT_FATAL_ERROR:", e);
+console.error("CREATE_REPORT_ERROR_MESSAGE:", e?.message);
+console.error("CREATE_REPORT_ERROR_CAUSE:", e?.cause);
+
+return NextResponse.json(
+{ error: e?.message || "Could not generate report." },
+{ status: 500 }
+);
+}
 }
