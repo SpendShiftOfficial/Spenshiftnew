@@ -43,6 +43,7 @@ cursor: "pointer",
 Cookie settings
 </button>
 </div>
+        </div>
       </footer>
     );
   }
