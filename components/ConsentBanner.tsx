@@ -33,6 +33,17 @@ return;
 
 setVisible(true);
 }, []);
+  useEffect(() => {
+const openCookieSettings = () => {
+setVisible(true);
+};
+
+window.addEventListener("open-cookie-settings", openCookieSettings);
+
+return () => {
+window.removeEventListener("open-cookie-settings", openCookieSettings);
+};
+}, []);
 
 function saveConsent(choice: ConsentChoice) {
 const previousChoice = localStorage.getItem(
