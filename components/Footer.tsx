@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -10,6 +11,9 @@ import { FaFacebook, FaInstagram } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa";
 
 export default function Footer({ simple = false }: { simple?: boolean }) {
+ const openCookieSettings = () => {
+window.dispatchEvent(new Event("open-cookie-settings"));
+};
 
   if (simple) {
     return (
@@ -19,10 +23,20 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
             © SpendShift 2026. All rights reserved.
           </span>
           <div className="footerLegalLinks">
-            <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
-            <span>|</span>
-            <Link href="/privacy-policy">Privacy Policy</Link>
-          </div>
+<Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
+<span>|</span>
+<Link href="/privacy-policy">Privacy Policy</Link>
+<span>|</span>
+<Link
+href="/cookies"
+onClick={(e) => {
+e.preventDefault();
+openCookieSettings();
+}}
+>
+Cookie settings
+</Link>
+</div>
         </div>
       </footer>
     );
@@ -116,10 +130,24 @@ export default function Footer({ simple = false }: { simple?: boolean }) {
         </span>
 
         <div className="footerLegalLinks">
-          <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
-          <span>|</span>
-          <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
-        </div>
+<Link href="/terms-and-conditions">
+<Circle size={10} color="#fff" /> Terms &amp; Conditions
+</Link>
+<span>|</span>
+<Link href="/privacy-policy">
+<Circle size={10} color="#fff" /> Privacy Policy
+</Link>
+<span>|</span>
+<Link
+href="/cookies"
+onClick={(e) => {
+e.preventDefault();
+openCookieSettings();
+}}
+>
+<Circle size={10} color="#fff" /> Cookie settings
+</Link>
+</div>
       </div>
        <ScrollReveal />
     </footer>

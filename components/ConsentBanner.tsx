@@ -33,6 +33,17 @@ return;
 
 setVisible(true);
 }, []);
+  useEffect(() => {
+const openCookieSettings = () => {
+setVisible(true);
+};
+
+window.addEventListener("open-cookie-settings", openCookieSettings);
+
+return () => {
+window.removeEventListener("open-cookie-settings", openCookieSettings);
+};
+}, []);
 
 function saveConsent(choice: ConsentChoice) {
 const previousChoice = localStorage.getItem(
@@ -54,29 +65,7 @@ setVisible(false);
 }
 
 if (!visible) {
-return (
-<button
-type="button"
-onClick={() => setVisible(true)}
-style={{
-position: "fixed",
-left: "16px",
-bottom: "16px",
-zIndex: 99998,
-border: "1px solid #d1d5db",
-borderRadius: "10px",
-padding: "8px 12px",
-background: "#ffffff",
-color: "#1f2937",
-fontSize: "13px",
-fontWeight: 600,
-cursor: "pointer",
-boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-}}
->
-Cookie settings
-</button>
-);
+  return null;
 }
 
 return (
