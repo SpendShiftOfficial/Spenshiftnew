@@ -27,21 +27,15 @@ window.dispatchEvent(new Event("open-cookie-settings"));
 <span>|</span>
 <Link href="/privacy-policy">Privacy Policy</Link>
 <span>|</span>
-<button
-type="button"
-onClick={openCookieSettings}
-style={{
-background: "none",
-border: "none",
-padding: 0,
-margin: 0,
-color: "inherit",
-font: "inherit",
-cursor: "pointer",
+<Link
+href="/cookies"
+onClick={(e) => {
+e.preventDefault();
+openCookieSettings();
 }}
 >
 Cookie settings
-</button>
+</Link>
 </div>
         </div>
       </footer>
@@ -144,21 +138,15 @@ Cookie settings
 <Circle size={10} color="#fff" /> Privacy Policy
 </Link>
 <span>|</span>
-<button
-type="button"
-onClick={openCookieSettings}
-style={{
-background: "none",
-border: "none",
-padding: 0,
-margin: 0,
-color: "inherit",
-font: "inherit",
-cursor: "pointer",
+<Link
+href="/cookies"
+onClick={(e) => {
+e.preventDefault();
+openCookieSettings();
 }}
 >
 <Circle size={10} color="#fff" /> Cookie settings
-</button>
+</Link>
 </div>
       </div>
        <ScrollReveal />
