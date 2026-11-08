@@ -140,7 +140,7 @@ function SuccessContent() {
               type="button"
               className="btn"
               style={{ minHeight: 58, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
-              onClick={() => router.push("/personalise?session_id=" + encodeURIComponent(sessionId!))}
+              onClick={() => { trackEvent("personalisation_started", { source: "post_payment" }); router.push("/personalise?session_id=" + encodeURIComponent(sessionId!)); }}
             >
               <Sparkles size={20} /> Make my report more accurate <ArrowRight size={18} />
             </button>
@@ -149,7 +149,7 @@ function SuccessContent() {
               type="button"
               className="btn btnSecondary"
               style={{ minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
-              onClick={() => router.replace("/success?session_id=" + encodeURIComponent(sessionId!) + "&generate=1")}
+              onClick={() => { trackEvent("personalisation_skipped", { source: "post_payment" }); router.replace("/success?session_id=" + encodeURIComponent(sessionId!) + "&generate=1"); }}
             >
               <FileText size={19} /> Generate my report now
             </button>
