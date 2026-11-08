@@ -94,6 +94,13 @@ export default function PrivacyPolicy() {
                   internet or mobile plan review habits, electricity or gas plan comparison
                   habits, unplanned purchases and your stated savings goal;
                 </li>
+                <li>
+                  optional paid-report details you choose to provide, such as
+                  approximate electricity, gas, internet and mobile bills,
+                  subscription and takeaway costs, insurance types and premiums,
+                  insurer names, short cover descriptions and other spending
+                  categories you ask us to review;
+                </li>
 
                 <li>
                   your email address, including the email address collected
@@ -135,7 +142,7 @@ export default function PrivacyPolicy() {
               </ul>
 
               <p>
-                SpendShift does not receive or store your any payment card
+                SpendShift does not receive or store your payment card
                 number or security code. Those details are handled by Stripe
                 and, where used, Apple Pay and other relevant financial
                 institutions.
@@ -245,9 +252,12 @@ export default function PrivacyPolicy() {
               <p>
                 SpendShift uses Anthropic’s Claude Application Programming
                 Interface (“API”) to assist with generating personalised
-                reports. The audit answers and related instructions necessary
-                to generate the report are transmitted to Anthropic for
-                processing.
+                reports. Audit answers, selected savings areas and limited
+                information about which optional details were supplied may
+                be transmitted to Anthropic to help write short report explanations.
+                Our current Phase 1 calculation process keeps the detailed
+                insurance premiums, bills and prices in our server-side
+                calculations rather than sending those amounts to Anthropic.
               </p>
 
               <p>
@@ -349,10 +359,12 @@ export default function PrivacyPolicy() {
               <h3>9. Storage and retention</h3>
 
               <p>
-                Generated reports, audit answers, associated email addresses
-                and relevant transaction identifiers are stored in Supabase.
-                Each report is generated once and may be accessed again through
-                its saved report URL.
+                Generated reports, audit answers, optional paid-report details,
+                report calculation summaries, associated email addresses
+                and relevant purchase identifiers are stored in Supabase.
+                Paid orders may also be held in a processing queue so a report
+                can be delivered if a customer closes the website after payment.
+                Each saved report can be accessed again through its report URL.
               </p>
 
               <p>
@@ -495,7 +507,7 @@ export default function PrivacyPolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 9 August 2026</strong>
+                <strong>Last updated: 9 November 2026</strong>
               </p>
 
             </div>
