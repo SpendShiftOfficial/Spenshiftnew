@@ -46,6 +46,7 @@ export async function POST(req: Request) {
       ],
 
       metadata: {
+        product: "spendshift_full_report",
         answers:
           typeof answers === "string" ? answers : JSON.stringify(answers),
       },
