@@ -103,11 +103,47 @@ function currency(amount: number): string {
 function prefix(n: number): string {
   return String(n).padStart(2, "0");
 }
-function evidenceLine(o: SavingsOpportunity): string {
+function evidenceLine(o: SavingsOpportunity, r: ReportRefinements): string {
   const input = "Your original answer: " + o.auditAnswer + ".";
+  const d = r.details;
+  if (o.area === "insurance") {
+    const policies = r.insurancePolicies.map((policy, index) => {
+      const title = policy.type || "Policy " + (index + 1);
+      const price = policy.premium === null ? "premium unknown" : currency(policy.premium) + " per " + (policy.paymentPeriod === "month" ? "month" : "year");
+      const insurer = policy.insurer ? " with " + policy.insurer : "";
+      const coverage = policy.coverDescription ? " (" + policy.coverDescription + ")" : "";
+      return title + ": " + price + insurer + coverage;
+    });
+    return input + (policies.length ? " You listed " + policies.join("; ") + "." : " No individual premium was supplied.") +
+      " These are your CURRENT costs, not savings.";
+  }
+  if (o.area === "phone") {
+    const lines = [
+      d.internetMonthly !== null ? "home internet " + currency(d.internetMonthly) + "/month" : "",
+      d.mobileMonthly !== null ? "mobile " + currency(d.mobileMonthly) + "/month" : "",
+    ].filter(Boolean);
+    return input + (lines.length ? " Your listed costs: " + lines.join("; ") + "." : " No current monthly plan costs were supplied.");
+  }
+  if (o.area === "energy") {
+    const lines = [
+      d.state ? "state " + d.state : "",
+      d.electricityBill !== null ? "electricity " + currency(d.electricityBill) + " per " + (d.electricityPeriod === "month" ? "month" : "quarter") : "",
+      d.gasMonthly !== null ? "gas " + currency(d.gasMonthly) + "/month" : "",
+    ].filter(Boolean);
+    return input + (lines.length ? " Your supplied details: " + lines.join("; ") + "." : " No bill details were supplied.");
+  }
+  if (o.area === "subscriptions" && d.subscriptionsMonthly !== null) {
+    return input + " You estimated " + currency(d.subscriptionsMonthly) + " per month across subscriptions. Only an actually unused or unnecessary service could create a saving.";
+  }
+  if (o.area === "takeaway" && d.takeawayOrder !== null) {
+    return input + " You estimated " + currency(d.takeawayOrder) + " per takeaway order. A cheaper replacement still has a cost.";
+  }
+  if (o.area === "convenience" && d.convenienceWeekly !== null) {
+    return input + " You estimated " + currency(d.convenienceWeekly) + " per week in purchases separate from takeaway and deliveries.";
+  }
   return o.annualSpend === null
     ? input + " We don't have a confirmed bill or spending amount to calculate from."
-    : input + " Based on the costs you entered, approximately " + currency(o.annualSpend) + " per year may currently be spent in this area. This is spending, not money already saved.";
+    : input + " Based on your figures, about " + currency(o.annualSpend) + " per year may currently be spent here. This is spending, not money already saved.";
 }
 
 export function makeReportMarkdown(
@@ -136,7 +172,7 @@ export function makeReportMarkdown(
     summary,
     "## Clarity Statement",
     first ? first.firstAction : "Your best next move is to review one current bill or recurring charge.",
-    "## Your Top Money Leaks",
+    "## Your Priority Savings Areas",
   ];
   if (ops.length === 0) {
     sections.push("No strong opportunities were identified from the information provided. We have not manufactured categories or savings estimates.");
@@ -148,7 +184,7 @@ export function makeReportMarkdown(
       "Estimated saving: " + (op.scenarioSaving === null ? "Not verified — comparison or more information needed" : "Conditional scenario: " + currency(op.scenarioSaving) + "/year"),
       "Confidence: " + (op.scenarioSaving !== null ? "Illustrative — based on your own figures and an explicit change" : "Lower — no verified alternative quote"),
       "What your answer revealed:",
-      evidenceLine(op),
+      evidenceLine(op, refinements),
       "Why this matters:",
       op.assumption,
       "Likely pattern:",
