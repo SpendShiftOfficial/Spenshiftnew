@@ -24,7 +24,8 @@ export async function GET(req: Request) {
     const { data: waiting, error } = await supabaseAdmin
       .from("report_orders")
       .select("stripe_session_id")
-      .eq("status", "awaiting_details")
+      .in("status", ["awaiting_details", "failed"])
+      .lt("attempt_count", 4)
       .lt("created_at", thirtyMinutesAgo)
       .order("created_at", { ascending: true })
       .limit(4);
