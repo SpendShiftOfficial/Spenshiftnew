@@ -1,367 +1,202 @@
 "use client";
 
-import {
-  Suspense,
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
-
 import { trackEvent } from "@/lib/gtag";
 import { trackTikTok } from "@/lib/tiktok";
 import { trackMetaStandard } from "@/lib/meta";
 import {
-  CheckCircle2,
-  LoaderCircle,
-  ShieldCheck,
-  BarChart3,
-  FileText,
-  MessageSquareText,
-  Sparkles,
+  ArrowRight, BarChart3, CheckCircle2, FileText, LoaderCircle,
+  MessageSquareText, ShieldCheck, Sparkles,
 } from "lucide-react";
 
 const steps = [
-  {
-    title: "Payment confirmed",
-    text: "Your payment was successful.",
-    icon: ShieldCheck,
-  },
-  {
-    title:
-      "Analysing spending patterns",
-    text: "Reviewing your audit answers.",
-    icon: BarChart3,
-  },
-  {
-    title:
-      "Calculating opportunities",
-    text: "Estimating your biggest savings areas.",
-    icon: Sparkles,
-  },
-  {
-    title:
-      "Building action plan",
-    text: "Creating your personalised next steps.",
-    icon: FileText,
-  },
-  {
-    title:
-      "Generating scripts",
-    text: "Preparing negotiation and cancellation scripts.",
-    icon: MessageSquareText,
-  },
+  { title: "Payment confirmed", text: "Your purchase has been verified.", icon: ShieldCheck },
+  { title: "Reviewing your answers", text: "Looking at the relevant spending areas.", icon: BarChart3 },
+  { title: "Checking the calculations", text: "Separating spending from potential savings.", icon: Sparkles },
+  { title: "Building your action plan", text: "Preparing useful steps and scripts.", icon: FileText },
+  { title: "Saving your report", text: "Preparing a private link for you.", icon: MessageSquareText },
 ];
 
 function SuccessContent() {
   const router = useRouter();
-
-  const searchParams =
-    useSearchParams();
-
-  const [error, setError] =
-    useState("");
-
-  const [
-    activeStep,
-    setActiveStep,
-  ] = useState(0);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const generating = searchParams.get("generate") === "1";
+  const [mode, setMode] = useState<"checking" | "choice" | "generating" | "error">("checking");
+  const [activeStep, setActiveStep] = useState(0);
+  const [error, setError] = useState("");
+  const startedFor = useRef<string | null>(null);
 
   useEffect(() => {
-    const stepTimer =
-      setInterval(() => {
-        setActiveStep((prev) => {
-          if (
-            prev >=
-            steps.length - 1
-          ) {
-            return prev;
-          }
-
-          return prev + 1;
-        });
-      }, 5000);
-
-    return () =>
-      clearInterval(stepTimer);
-  }, []);
+    if (mode !== "generating") return;
+    const interval = setInterval(() => setActiveStep(prev => Math.min(prev + 1, steps.length - 1)), 7000);
+    return () => clearInterval(interval);
+  }, [mode]);
 
   useEffect(() => {
-  let cancelled = false;
-
-  async function createReport() {
-    const sessionId = searchParams.get("session_id");
-
     if (!sessionId) {
-      setError("Missing payment session.");
+      setMode("error");
+      setError("The payment link is missing. Please use the link from your SpendShift confirmation email.");
       return;
     }
+    const key = sessionId + (generating ? ":generate" : ":choice");
+    if (startedFor.current === key) return;
+    startedFor.current = key;
+    let cancelled = false;
 
-    try {
-      const res = await fetch("/api/create-report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-        }),
+    function recordPurchase() {
+      const trackKey = "purchase_tracked_" + sessionId;
+      if (localStorage.getItem(trackKey)) return;
+      trackEvent("purchase", {
+        transaction_id: sessionId, value: 39, currency: "AUD",
+        items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: 39, quantity: 1 }],
       });
+      trackTikTok("Purchase", {
+        contents: [{ content_id: "spendshift_full_report", content_name: "SpendShift Full Savings Report", quantity: 1, price: 39 }],
+        content_type: "product", value: 39, currency: "AUD",
+      });
+      trackMetaStandard("Purchase", { value: 39, currency: "AUD" });
+      localStorage.setItem(trackKey, "1");
+    }
 
-      const data = await res.json();
-
+    function openReadyReport(reportId: string) {
       if (cancelled) return;
-
-      if (!res.ok) {
-        setError(
-          data.error || "Could not generate report."
-        );
-        return;
+      const trackKey = "paid_report_ready_tracked_" + sessionId;
+      if (!localStorage.getItem(trackKey)) {
+        trackEvent("paid_report_ready", { transaction_id: sessionId, report_id: reportId, value: 39, currency: "AUD" });
+        localStorage.setItem(trackKey, "1");
       }
+      router.replace("/report/" + encodeURIComponent(reportId));
+    }
 
-      if (!data.reportId) {
-        setError(
-          data.error || "Could not generate report."
-        );
-        return;
-      }
-
-      /* =========================
-   GA4 + TIKTOK PURCHASE
-========================= */
-
-const purchaseKey =
-  `purchase_tracked_${sessionId}`;
-
-if (!localStorage.getItem(purchaseKey)) {
-  // GA4
-  trackEvent("purchase", {
-    transaction_id: sessionId,
-    value: 39,
-    currency: "AUD",
-
-    items: [
-      {
-        item_id: "spendshift_full_report",
-        item_name: "SpendShift Full Savings Report",
-        price: 39,
-        quantity: 1,
-      },
-    ],
-  });
-
-  // TikTok
-trackTikTok("Purchase", {
-contents: [
-{
-content_id: "spendshift_full_report",
-content_name: "SpendShift Full Savings Report",
-quantity: 1,
-price: 39,
-},
-],
-content_type: "product",
-value: 39,
-currency: "AUD",
-});
-
-  // META AD TRACK EVENT
-  trackMetaStandard("Purchase", {
-  value: 39,
-  currency: "AUD",
-});
-
-  localStorage.setItem(
-    purchaseKey,
-    "1"
-  );
-
-  console.log("GA4 + TikTok purchase fired", {
-    transaction_id: sessionId,
-    value: 39,
-    currency: "AUD",
-  });
-}
-
-      /* =========================
-         GA4 PAID REPORT READY
-      ========================= */
-
-      const reportReadyKey =
-        `paid_report_ready_tracked_${sessionId}`;
-
-      if (!localStorage.getItem(reportReadyKey)) {
-        trackEvent("paid_report_ready", {
-          transaction_id: sessionId,
-          report_id: data.reportId,
-          value: 39,
-          currency: "AUD",
+    async function checkAndProceed() {
+      try {
+        setMode("checking");
+        setError("");
+        const statusRes = await fetch("/api/payment-status?session_id=" + encodeURIComponent(sessionId!), { cache: "no-store" });
+        const status = await statusRes.json();
+        if (!statusRes.ok || !status.paid) throw new Error(status.error || "Payment could not be verified.");
+        if (cancelled) return;
+        recordPurchase();
+        if (typeof status.reportId === "string" && status.reportId) {
+          openReadyReport(status.reportId);
+          return;
+        }
+        if (!generating) {
+          setMode("choice");
+          return;
+        }
+        setActiveStep(0);
+        setMode("generating");
+        const createRes = await fetch("/api/create-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
         });
-
-        localStorage.setItem(
-          reportReadyKey,
-          "1"
-        );
-
-        console.log(
-          "GA4 paid_report_ready fired",
-          {
-            transaction_id: sessionId,
-            report_id: data.reportId,
+        const created = await createRes.json();
+        if (!createRes.ok) throw new Error(created.error || "Could not generate your report.");
+        if (typeof created.reportId === "string") {
+          openReadyReport(created.reportId);
+          return;
+        }
+        // Another tab or scheduled worker may already be generating this report.
+        // Wait for the server to finish; don't make another costly model request.
+        for (let attempt = 0; attempt < 75 && !cancelled; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, 4000));
+          const poll = await fetch("/api/payment-status?session_id=" + encodeURIComponent(sessionId!), { cache: "no-store" });
+          const current = await poll.json();
+          if (!poll.ok) throw new Error("Report status could not be checked.");
+          if (current.status === "ready" && typeof current.reportId === "string") {
+            openReadyReport(current.reportId);
+            return;
           }
-        );
-      }
-
-      /*
-        Give GA4 a moment to send both events
-        before navigating away.
-      */
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
-
-      if (!cancelled) {
-        router.push(
-          `/report/${data.reportId}`
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Report generation failed:",
-        error
-      );
-
-      if (!cancelled) {
-        setError(
-          "Something went wrong while generating your report."
-        );
+          if (current.status === "failed") throw new Error("Report generation was interrupted. Please retry.");
+        }
+        if (!cancelled) throw new Error("Your report is still processing. Please check your email or retry later.");
+      } catch (caught) {
+        if (cancelled) return;
+        setError(caught instanceof Error ? caught.message : "Something went wrong.");
+        setMode("error");
       }
     }
-  }
-
-  createReport();
-
-  return () => {
-    cancelled = true;
-  };
-}, [router, searchParams]);
+    checkAndProceed();
+    return () => { cancelled = true; };
+  }, [sessionId, generating, router]);
 
   return (
-    <div className="analysisCard">
-      <div
-        className="icon"
-        style={{
-          margin:
-            "0 auto 20px",
-        }}
-      >
-        <ShieldCheck />
-      </div>
-
-      <h1>
-        Payment successful
-      </h1>
-
-      <p>
-        We’re generating your
-        personalised SpendShift
-        report. This can take a
-        little time while we build
-        your insights and action
-        plan.
-      </p>
-
-      <div className="reportLoader">
-        <span />
-      </div>
-
-      <div className="reportSteps">
-        {steps.map(
-          (step, index) => {
-            const Icon =
-              step.icon;
-
-            const done =
-              index <
-              activeStep;
-
-            const active =
-              index ===
-              activeStep;
-
-            return (
-              <div
-                className={`reportStep ${
-                  done
-                    ? "done"
-                    : ""
-                } ${
-                  active
-                    ? "active"
-                    : ""
-                }`}
-                key={
-                  step.title
-                }
-              >
-                <div className="reportStepIcon">
-                  {done ? (
-                    <CheckCircle2
-                      size={20}
-                      fill="#059625"
-                      stroke="white"
-                    />
-                  ) : active ? (
-                    <LoaderCircle
-                      size={20}
-                      className="spin"
-                      color="#059625"
-                    />
-                  ) : (
-                    <Icon
-                      size={20}
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <b>
-                    {step.title}
-                  </b>
-
-                  <p>
-                    {step.text}
-                  </p>
-                </div>
-              </div>
-            );
-          }
-        )}
-      </div>
-
-      <p className="mini">
-        Please don’t close this
-        page. You’ll be redirected
-        automatically when your
-        report is ready.
-      </p>
-
-      {error && (
-        <p
-          style={{
-            color: "red",
-          }}
-        >
-          {error}
-        </p>
+    <main className="analysisCard" style={{ maxWidth: 700, margin: "50px auto", padding: "30px 22px" }}>
+      {mode === "checking" && (
+        <>
+          <LoaderCircle size={36} className="spin" color="#059625" />
+          <h1>Checking your payment</h1>
+          <p>Verifying your purchase securely.</p>
+        </>
       )}
-    </div>
+      {mode === "choice" && (
+        <>
+          <CheckCircle2 size={48} color="#059625" />
+          <h1>Payment successful</h1>
+          <p>Your full SpendShift report is unlocked. Choose how you would like to continue.</p>
+          <div style={{ display: "grid", gap: 15, margin: "26px auto", maxWidth: 480 }}>
+            <button
+              type="button"
+              className="btn"
+              style={{ minHeight: 58, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+              onClick={() => router.push("/personalise?session_id=" + encodeURIComponent(sessionId!))}
+            >
+              <Sparkles size={20} /> Make my report more accurate <ArrowRight size={18} />
+            </button>
+            <p style={{ margin: "-7px 0 5px", fontSize: 13 }}>Answer a few short, relevant questions. Completely optional.</p>
+            <button
+              type="button"
+              className="btn btnSecondary"
+              style={{ minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+              onClick={() => router.replace("/success?session_id=" + encodeURIComponent(sessionId!) + "&generate=1")}
+            >
+              <FileText size={19} /> Generate my report now
+            </button>
+          </div>
+          <p className="mini">Either choice includes your full $39 purchase. We do not charge you again.</p>
+        </>
+      )}
+      {mode === "generating" && (
+        <>
+          <ShieldCheck size={42} color="#059625" />
+          <h1>Preparing your savings report</h1>
+          <p>We're checking your answers and making an action plan. This can take a little time.</p>
+          <div className="reportLoader"><span /></div>
+          <div className="reportSteps" aria-live="polite">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.title} className={"reportStep " + (index < activeStep ? "done" : index === activeStep ? "active" : "")}>
+                  <div className="reportStepIcon">
+                    {index < activeStep ? <CheckCircle2 size={20} fill="#059625" stroke="white" /> :
+                      index === activeStep ? <LoaderCircle size={20} className="spin" color="#059625" /> :
+                        <Icon size={20} />}
+                  </div>
+                  <div><b>{step.title}</b><p>{step.text}</p></div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mini">If you close this page, your payment is recorded. Your report link will be emailed when ready.</p>
+        </>
+      )}
+      {mode === "error" && (
+        <>
+          <h1>We couldn't finish that step</h1>
+          <p role="alert" style={{ color: "#8b2929" }}>{error}</p>
+          <p>Your payment has not been charged again. Please retry using the same link.</p>
+          <button type="button" className="btn" onClick={() => window.location.reload()}>
+            Try again
+          </button>
+          <p className="mini">If this continues, contact info@spendshift.com.au with your purchase email.</p>
+        </>
+      )}
+    </main>
   );
 }
 
@@ -369,15 +204,7 @@ export default function SuccessPage() {
   return (
     <div className="auditPage">
       <Header simple />
-
-      <Suspense
-        fallback={
-          <p>
-            Loading payment
-            session...
-          </p>
-        }
-      >
+      <Suspense fallback={<p style={{ textAlign: "center", padding: 40 }}>Loading your payment session...</p>}>
         <SuccessContent />
       </Suspense>
     </div>
