@@ -118,11 +118,11 @@ function MoneyField({
   );
 }
 
-export default function PersonaliseClient({ allowDemo }: { allowDemo: boolean }) {
+export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allowDemo: boolean; hasPaidSession: boolean }) {
   const router = useRouter();
   const [audit, setAudit] = useState<string[] | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(hasPaidSession);
   const [paymentError, setPaymentError] = useState("");
   const [existingReportId, setExistingReportId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -150,7 +150,38 @@ export default function PersonaliseClient({ allowDemo }: { allowDemo: boolean })
             throw new Error(payload.error || "This payment could not be verified.");
           }
           setAudit(payload.answers);
-          if (typeof payload.reportId === "string") setExistingReportId(payload.reportId);
+          if (typeof payload.reportId === "string") {
+            setExistingReportId(payload.reportId);
+            return;
+          }
+          if (payload.status === "processing") {
+            router.replace("/success?session_id=" + encodeURIComponent(paidSession) + "&generate=1");
+            return;
+          }
+          const saved = payload.refinements;
+          if (saved && typeof saved === "object" && saved.version === 1) {
+            const fromServer = saved.details || {};
+            const restored = { ...initialDetails };
+            (Object.keys(initialDetails) as DetailKey[]).forEach((key) => {
+              const value = fromServer[key];
+              if (typeof value === "number" && Number.isFinite(value)) restored[key] = String(value);
+              else if (typeof value === "string") restored[key] = value;
+            });
+            setDetails(restored);
+            if (typeof saved.additionalArea === "string") {
+              setAdditionalArea(saved.additionalArea as SectionId);
+            }
+            if (Array.isArray(saved.insurancePolicies) && saved.insurancePolicies.length) {
+              setInsurancePolicies(saved.insurancePolicies.slice(0, 6).map((p: Record<string, unknown>, index: number) => ({
+                id: index + 1,
+                type: typeof p.type === "string" ? p.type : "",
+                premium: typeof p.premium === "number" ? String(p.premium) : "",
+                paymentPeriod: p.paymentPeriod === "month" ? "month" : "year",
+                insurer: typeof p.insurer === "string" ? p.insurer : "",
+                coverDescription: typeof p.coverDescription === "string" ? p.coverDescription : "",
+              })));
+            }
+          }
         })
         .catch((error) => setPaymentError(error instanceof Error ? error.message : "Unable to verify payment."))
         .finally(() => setCheckingPayment(false));
@@ -166,7 +197,7 @@ export default function PersonaliseClient({ allowDemo }: { allowDemo: boolean })
     } catch {
       // For isolated preview tests, use sample eight-answer profiles.
     }
-  }, []);
+  }, [allowDemo, router]);
 
 
   // The actual audit takes priority. Example profiles are preview-only and
@@ -294,6 +325,18 @@ export default function PersonaliseClient({ allowDemo }: { allowDemo: boolean })
       })),
     { label: "Unplanned purchase category", value: details.unplannedArea },
   ].filter((item) => item.value !== "");
+
+  if (checkingPayment) {
+    return (
+      <div className={styles.page}>
+        <Header simple />
+        <main className={styles.wrap}>
+          <h1>Checking your payment</h1>
+          <p className={styles.intro}>Confirming your paid report access securely.</p>
+        </main>
+      </div>
+    );
+  }
 
   if (paymentError) {
     return (
