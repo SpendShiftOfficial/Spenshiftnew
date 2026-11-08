@@ -117,7 +117,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
   }
   const policies: InsuranceRefinement[] = rawPolicies.map((entry, index) => {
     const policy = record(entry);
-    const paymentPeriod = policy.paymentPeriod === "month" ? "month" : "year";
+    const paymentPeriod: "month" | "year" = policy.paymentPeriod === "month" ? "month" : "year";
     const type = fixedChoice(policy.type, insuranceTypes, "insurance type");
     const premium = money(policy.premium, "Insurance premium " + (index + 1));
     return {
