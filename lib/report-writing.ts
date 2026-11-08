@@ -227,13 +227,16 @@ export function makeReportMarkdown(
     "Compare like-for-like offers or check the exact cost of an unused service before treating an opportunity as a real saving.",
     "## Scripts You Can Use",
   );
-  const scripts = (ops.length ? ops : [{ area: "subscriptions" }]).slice(0, 2);
+  const scripts = ops.slice(0, 2);
+  if (!scripts.length) {
+    sections.push("No cancellation or negotiation script is suggested without a clear bill or service to review.");
+  }
   for (const op of scripts) {
     const script = nextScript[op.area] || nextScript.subscriptions;
     sections.push("### " + script.name, "When to use:", script.when, "Script:", script.script);
   }
   const tasks = ops.map(o => o.firstAction);
-  const firstTask = tasks[0] || "Review one recurring payment and check its actual cost.";
+  const firstTask = tasks[0] || "Review one essential bill and confirm its amount and current terms.";
   const secondTask = tasks[1] || "Review your bank statement for recurring charges.";
   const thirdTask = tasks[2] || "Check any remaining bills against your current needs.";
   sections.push(
