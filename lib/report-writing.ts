@@ -97,6 +97,25 @@ const nextScript: Record<string, { name: string; when: string; script: string }>
   },
 };
 
+const categoryPattern: Record<string, string> = {
+  subscriptions: "Recurring services can quietly renew even when usage has dropped. The key question is which specific services you still value.",
+  insurance: "Renewal dates, coverage limits and exclusions may differ across your policies. A lower price alone is not proof of a better policy.",
+  takeaway: "A regular takeaway routine may have a realistic opportunity to swap a small number of orders for lower-cost meals.",
+  convenience: "Frequent small purchases are easy to overlook, but reductions only count if those purchases stop and aren't replaced elsewhere.",
+  phone: "Plans may change while your data, speed or coverage needs stay the same. Comparing equivalent options can reveal whether you're overpaying.",
+  energy: "Your rates and usage both affect bills. A like-for-like comparison can help distinguish plan price from normal household usage.",
+  unplanned: "The main opportunity may be creating a pause before buying, not imposing an unrealistic rule about every purchase.",
+};
+const categoryBenefit: Record<string, string> = {
+  subscriptions: "Removing one genuinely unused renewal makes future costs more predictable.",
+  insurance: "Comparing cover carefully reduces uncertainty without sacrificing protection.",
+  takeaway: "A planned replacement reduces the pressure of making an expensive last-minute food choice.",
+  convenience: "Having a repeatable small-purchase plan makes weekly spending easier to predict.",
+  phone: "Knowing exactly what your plan includes makes comparing offers less stressful.",
+  energy: "Checking the whole tariff helps avoid a cheaper-looking plan that costs more overall.",
+  unplanned: "A small delay creates more control over spending decisions without banning purchases.",
+};
+
 function currency(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { maximumFractionDigits: 0 });
 }
@@ -188,7 +207,7 @@ export function makeReportMarkdown(
       "Why this matters:",
       op.assumption,
       "Likely pattern:",
-      "This is worth checking, but your answers alone do not prove you're wasting money.",
+      categoryPattern[op.area],
       "Quick win:",
       op.firstAction,
       "Estimated time: 10 minutes",
@@ -196,7 +215,7 @@ export function makeReportMarkdown(
       op.verification,
       "Estimated time: 20 minutes",
       "Why this reduces stress:",
-      "You can make an informed choice without relying on guesses.",
+      categoryBenefit[op.area],
     );
   });
   sections.push(
