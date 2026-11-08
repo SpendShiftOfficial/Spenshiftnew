@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Plus, Sparkles } from "lucide-react";
 import styles from "./personalise.module.css";
 import { previewProfiles, selectPersonalisationAreas, type PersonalisationArea } from "@/lib/personalisation-questions";
@@ -38,10 +39,12 @@ type InsurancePolicy = {
   type: string;
   premium: string;
   paymentPeriod: "month" | "year";
+  insurer: string;
+  coverDescription: string;
 };
 
 function initialInsurancePolicies(): InsurancePolicy[] {
-  return [{ id: 1, type: "", premium: "", paymentPeriod: "year" }];
+  return [{ id: 1, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "" }];
 }
 
 type Section = { id: SectionId; title: string; explanation: string };
@@ -115,13 +118,39 @@ function MoneyField({
 }
 
 export default function PersonalisePage() {
+  const router = useRouter();
   const [audit, setAudit] = useState<string[] | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [existingReportId, setExistingReportId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [additionalArea, setAdditionalArea] = useState<SectionId | "">("");
   const [details, setDetails] = useState<Details>(initialDetails);
   const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicy[]>(initialInsurancePolicies);
   const [step, setStep] = useState(0);
   const [demoKey, setDemoKey] = useState("subscriptions-insurance");
 
   useEffect(() => {
+    const qs = new URLSearchParams(window.location.search);
+    const paidSession = qs.get("session_id");
+    if (paidSession) {
+      setCheckingPayment(true);
+      setSessionId(paidSession);
+      fetch("/api/payment-status?session_id=" + encodeURIComponent(paidSession), { cache: "no-store" })
+        .then(async (res) => {
+          const payload = await res.json();
+          if (!res.ok || !payload.paid || !Array.isArray(payload.answers)) {
+            throw new Error(payload.error || "This payment could not be verified.");
+          }
+          setAudit(payload.answers);
+          if (typeof payload.reportId === "string") setExistingReportId(payload.reportId);
+        })
+        .catch((error) => setPaymentError(error instanceof Error ? error.message : "Unable to verify payment."))
+        .finally(() => setCheckingPayment(false));
+      return;
+    }
     try {
       const stored = localStorage.getItem("spendshift_answers");
       if (!stored) return;
@@ -130,19 +159,22 @@ export default function PersonalisePage() {
         setAudit(parsed);
       }
     } catch {
-      // No audit is required to view this development-only prototype.
+      // For isolated preview tests, use sample eight-answer profiles.
     }
   }, []);
+
 
   // The actual audit takes priority. Example profiles are preview-only and
   // appear when this stand-alone URL has no earlier audit in localStorage.
   const activeAudit = audit ?? previewProfiles[demoKey].answers;
+  const selectedByAudit = selectPersonalisationAreas(activeAudit);
   const visibleSections = useMemo(() => {
     const selected = selectPersonalisationAreas(activeAudit);
+    if (additionalArea && !selected.includes(additionalArea)) selected.push(additionalArea);
     return selected
       .map((area) => sections.find((section) => section.id === area))
       .filter((section): section is Section => Boolean(section));
-  }, [activeAudit]);
+  }, [activeAudit, additionalArea]);
   const review = step >= visibleSections.length;
   const current = visibleSections[step];
   const progress = visibleSections.length === 0
@@ -163,7 +195,7 @@ export default function PersonalisePage() {
     setInsurancePolicies((previous) => {
       if (previous.length >= 6) return previous;
       const nextId = Math.max(0, ...previous.map((policy) => policy.id)) + 1;
-      return [...previous, { id: nextId, type: "", premium: "", paymentPeriod: "year" }];
+      return [...previous, { id: nextId, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "" }];
     });
   }
 
@@ -195,6 +227,44 @@ export default function PersonalisePage() {
     setStep((index) => Math.min(index + 1, visibleSections.length));
   }
 
+  async function completeQuestionnaire() {
+    if (!sessionId) {
+      setStep(0);
+      setDetails(initialDetails);
+      setInsurancePolicies(initialInsurancePolicies());
+      setAdditionalArea("");
+      return;
+    }
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/personalisation/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          refinements: {
+            version: 1,
+            additionalArea: additionalArea || null,
+            details,
+            insurancePolicies: insurancePolicies
+              .filter((p) => p.type || p.premium || p.insurer || p.coverDescription)
+              .map(({ type, premium, paymentPeriod, insurer, coverDescription }) => ({
+                type, premium, paymentPeriod, insurer, coverDescription,
+              })),
+          },
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save your answers.");
+      router.push("/success?session_id=" + encodeURIComponent(sessionId) + "&generate=1");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Something went wrong. Try again.");
+      setSubmitting(false);
+    }
+  }
+
   const reviewRows = [
     { label: "State or territory", value: details.state },
     { label: "Electricity bill", value: details.electricityBill ? "$" + details.electricityBill + " per " + (details.electricityPeriod === "month" ? "month" : "quarter") : "" },
@@ -207,7 +277,7 @@ export default function PersonalisePage() {
     ...insurancePolicies
       .filter((policy) => policy.type !== "" || policy.premium !== "")
       .map((policy, index) => ({
-        label: "Insurance " + (index + 1) + " — " + (policy.type || "Type not provided"),
+        label: "Insurance " + (index + 1) + " — " + (policy.type || "Type not provided") + (policy.insurer ? " (" + policy.insurer + ")" : ""),
         value: policy.premium !== ""
           ? "$" + Number(policy.premium).toLocaleString("en-AU", { maximumFractionDigits: 2 }) + " per " + (policy.paymentPeriod === "month" ? "month" : "year")
           : "Premium not provided",
@@ -219,16 +289,30 @@ export default function PersonalisePage() {
     <div className={styles.page}>
       <Header simple />
       <main className={styles.wrap}>
-        <div className={styles.eyebrow}><Sparkles size={17} /> Phase 1 preview</div>
+        <div className={styles.eyebrow}><Sparkles size={17} /> {sessionId ? "Your report" : "Phase 1 preview"}</div>
         <h1>Make your savings report more accurate.</h1>
         <p className={styles.intro}>
           A few optional details can make your recommendations more relevant.
           We never need bank access, policy numbers or account passwords.
         </p>
-        <div className={styles.previewNotice}>
-          This is a development preview. Your answers are not saved or sent to the report generator yet.
-        </div>
-        {!audit && (
+        {!sessionId && (
+          <div className={styles.previewNotice}>
+            This is a development preview. Your answers are not saved or sent to the report generator yet.
+          </div>
+        )}
+        {checkingPayment && <div className={styles.previewNotice}>Checking your payment...</div>}
+        {paymentError && <div className={styles.previewNotice} role="alert">{paymentError} Use your original payment confirmation link to continue.</div>}
+        {existingReportId && (
+          <div className={styles.previewNotice}>
+            Your report is already ready. <a href={"/report/" + existingReportId}>Open your report</a>.
+          </div>
+        )}
+        {sessionId && !checkingPayment && !paymentError && !existingReportId && (
+          <p className={styles.selectionNote}>
+            These details are optional. <a href={"/success?session_id=" + encodeURIComponent(sessionId) + "&generate=1"}>Generate my report now without extra questions</a>.
+          </p>
+        )}
+        {!sessionId && !audit && (
           <div className={styles.demoPanel}>
             <label htmlFor="demoProfile">Try another example customer's eight audit answers</label>
             <select
@@ -238,6 +322,7 @@ export default function PersonalisePage() {
                 setDemoKey(event.target.value);
                 setDetails(initialDetails);
                 setInsurancePolicies(initialInsurancePolicies());
+                setAdditionalArea("");
                 setStep(0);
               }}
             >
@@ -247,6 +332,27 @@ export default function PersonalisePage() {
             </select>
             <small>No original audit was found on this preview website, so you're viewing sample customers. A paid customer won't see this selector.</small>
           </div>
+        )}
+        {!checkingPayment && !paymentError && !existingReportId && (
+        <div className={styles.addArea}>
+          <label htmlFor="additionalArea">Did we miss an important area? <span>(optional)</span></label>
+          <select
+            id="additionalArea"
+            value={additionalArea}
+            onChange={(event) => {
+              setAdditionalArea(event.target.value as SectionId | "");
+              setDetails(initialDetails);
+              setInsurancePolicies(initialInsurancePolicies());
+              setStep(0);
+            }}
+          >
+            <option value="">No, these are the right priorities</option>
+            {sections.filter((section) => !selectedByAudit.includes(section.id)).map((section) => (
+              <option key={section.id} value={section.id}>{section.title.replace("Your ", "")}</option>
+            ))}
+          </select>
+          <small>You can add one more category if there's something the short audit didn't capture.</small>
+        </div>
         )}
         <p className={styles.selectionNote}>
           {visibleSections.length
@@ -283,10 +389,17 @@ export default function PersonalisePage() {
                     <ArrowLeft size={18} /> Edit answers
                   </button>
                 )}
-                <button className={styles.primary} type="button" onClick={() => { setStep(0); setDetails(initialDetails); setInsurancePolicies(initialInsurancePolicies()); }}>
-                  Start preview again <ArrowRight size={18} />
+                <button
+                  className={styles.primary}
+                  type="button"
+                  disabled={submitting || checkingPayment || !!paymentError || !!existingReportId}
+                  onClick={completeQuestionnaire}
+                >
+                  {submitting ? "Saving your answers..." : sessionId ? "Generate my report" : "Start preview again"}
+                  <ArrowRight size={18} />
                 </button>
               </div>
+              {submitError && <p role="alert" className={styles.submitError}>{submitError}</p>}
             </>
           ) : (
             <>
@@ -382,6 +495,29 @@ export default function PersonalisePage() {
                           </div>
                         </div>
                         <div className={styles.field}>
+                          <label htmlFor={"insurer-" + policy.id}>Insurance company (optional)</label>
+                          <input
+                            id={"insurer-" + policy.id}
+                            type="text"
+                            maxLength={80}
+                            placeholder="e.g. your insurer's name"
+                            value={policy.insurer}
+                            onChange={(event) => updateInsurancePolicy(policy.id, { insurer: event.target.value })}
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={"coverage-" + policy.id}>Type of cover (optional)</label>
+                          <input
+                            id={"coverage-" + policy.id}
+                            type="text"
+                            maxLength={120}
+                            placeholder="e.g. comprehensive / third party"
+                            value={policy.coverDescription}
+                            onChange={(event) => updateInsurancePolicy(policy.id, { coverDescription: event.target.value })}
+                          />
+                          <small>Only a short coverage description. No policy numbers or personal details.</small>
+                        </div>
+                        <div className={styles.field}>
                           <label htmlFor={"insurancePeriod-" + policy.id}>How often do you pay?</label>
                           <select
                             id={"insurancePeriod-" + policy.id}
@@ -440,7 +576,7 @@ export default function PersonalisePage() {
             </>
           )}
         </section>
-        <p className={styles.footnote}><LockKeyhole size={15} /> All questions are optional. This preview does not process a payment or generate a report.</p>
+        <p className={styles.footnote}><LockKeyhole size={15} /> All questions are optional. {sessionId ? "Your information is used only to prepare your paid report." : "This preview does not process a payment or generate a report."}</p>
       </main>
     </div>
   );
