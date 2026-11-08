@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Sparkles } from "lucide-react";
 import styles from "./personalise.module.css";
+import { previewProfiles, selectPersonalisationAreas, type PersonalisationArea } from "@/lib/personalisation-questions";
 
-type SectionId = "energy" | "phone" | "subscriptions" | "takeaway" | "convenience" | "insurance";
+type SectionId = PersonalisationArea;
 type DetailKey =
   | "state"
   | "electricityBill"
@@ -17,7 +18,8 @@ type DetailKey =
   | "takeawayOrder"
   | "convenienceWeekly"
   | "insuranceType"
-  | "insuranceAnnual";
+  | "insuranceAnnual"
+  | "unplannedArea";
 
 type Details = Record<DetailKey, string>;
 const initialDetails: Details = {
@@ -32,45 +34,45 @@ const initialDetails: Details = {
   convenienceWeekly: "",
   insuranceType: "",
   insuranceAnnual: "",
+  unplannedArea: "",
 };
 
-type Section = { id: SectionId; title: string; explanation: string; showFor: (audit: string[]) => boolean };
+type Section = { id: SectionId; title: string; explanation: string };
 const sections: Section[] = [
   {
     id: "energy",
     title: "Your electricity and gas bills",
     explanation: "Your state and approximate bills help us avoid guessing what you pay.",
-    showFor: (audit) => audit[5] !== "I don’t pay these bills",
   },
   {
     id: "phone",
     title: "Your internet and mobile plans",
     explanation: "Enter only bills you personally pay. Leave the others blank.",
-    showFor: (audit) => audit[4] !== "I don’t pay either of these bills",
   },
   {
     id: "subscriptions",
     title: "Your subscriptions",
     explanation: "A rough monthly total is more useful than guessing what each service costs.",
-    showFor: () => true,
   },
   {
     id: "takeaway",
     title: "Your takeaway and delivery",
     explanation: "Use your typical order price, rather than your most expensive one.",
-    showFor: (audit) => audit[0] !== "Never",
   },
   {
     id: "convenience",
     title: "Your small convenience purchases",
     explanation: "Think coffees, snacks and quick lunches. Don't include takeaway orders again.",
-    showFor: (audit) => audit[3] !== "Rarely",
   },
   {
     id: "insurance",
     title: "Your insurance",
     explanation: "Choose one policy you would like to review. Never enter a policy or account number.",
-    showFor: (audit) => audit[2] !== "I don’t currently have insurance",
+  },
+  {
+    id: "unplanned",
+    title: "Your unplanned purchases",
+    explanation: "What kinds of things do you tend to buy without planning? You don't need to guess an amount or count spending twice.",
   },
 ];
 
@@ -109,6 +111,7 @@ export default function PersonalisePage() {
   const [audit, setAudit] = useState<string[] | null>(null);
   const [details, setDetails] = useState<Details>(initialDetails);
   const [step, setStep] = useState(0);
+  const [demoKey, setDemoKey] = useState("subscriptions-insurance");
 
   useEffect(() => {
     try {
@@ -123,16 +126,42 @@ export default function PersonalisePage() {
     }
   }, []);
 
-  const visibleSections = useMemo(
-    () => sections.filter((section) => !audit || section.showFor(audit)),
-    [audit],
-  );
+  // The actual audit takes priority. Example profiles are preview-only and
+  // appear when this stand-alone URL has no earlier audit in localStorage.
+  const activeAudit = audit ?? previewProfiles[demoKey].answers;
+  const visibleSections = useMemo(() => {
+    const selected = selectPersonalisationAreas(activeAudit);
+    return selected
+      .map((area) => sections.find((section) => section.id === area))
+      .filter((section): section is Section => Boolean(section));
+  }, [activeAudit]);
   const review = step >= visibleSections.length;
   const current = visibleSections[step];
-  const progress = Math.round((Math.min(step, visibleSections.length) / visibleSections.length) * 100);
+  const progress = visibleSections.length === 0
+    ? 100
+    : Math.round((Math.min(step, visibleSections.length) / visibleSections.length) * 100);
 
   function update(key: DetailKey, value: string) {
     setDetails((previous) => ({ ...previous, [key]: value }));
+  }
+
+  // Skipping a section must also discard its answers if someone comes back.
+  function skipSection() {
+    const keysBySection: Record<SectionId, DetailKey[]> = {
+      energy: ["state", "electricityBill", "gasMonthly"],
+      phone: ["internetMonthly", "mobileMonthly"],
+      subscriptions: ["subscriptionsMonthly"],
+      takeaway: ["takeawayOrder"],
+      convenience: ["convenienceWeekly"],
+      insurance: ["insuranceType", "insuranceAnnual"],
+      unplanned: ["unplannedArea"],
+    };
+    setDetails((previous) => {
+      const next = { ...previous };
+      for (const key of keysBySection[current.id]) next[key] = "";
+      return next;
+    });
+    setStep((index) => Math.min(index + 1, visibleSections.length));
   }
 
   const reviewRows = [
@@ -146,6 +175,7 @@ export default function PersonalisePage() {
     { label: "Convenience purchases", value: details.convenienceWeekly ? "$" + details.convenienceWeekly + " per week" : "" },
     { label: "Insurance type", value: details.insuranceType },
     { label: "Insurance premium", value: details.insuranceAnnual ? "$" + details.insuranceAnnual + " per year" : "" },
+    { label: "Unplanned purchase category", value: details.unplannedArea },
   ].filter((item) => item.value !== "");
 
   return (
@@ -161,6 +191,30 @@ export default function PersonalisePage() {
         <div className={styles.previewNotice}>
           This is a development preview. Your answers are not saved or sent to the report generator yet.
         </div>
+        {!audit && (
+          <div className={styles.demoPanel}>
+            <label htmlFor="demoProfile">Try another example customer's eight audit answers</label>
+            <select
+              id="demoProfile"
+              value={demoKey}
+              onChange={(event) => {
+                setDemoKey(event.target.value);
+                setDetails(initialDetails);
+                setStep(0);
+              }}
+            >
+              {Object.entries(previewProfiles).map(([key, profile]) => (
+                <option key={key} value={key}>{profile.label}</option>
+              ))}
+            </select>
+            <small>No original audit was found on this preview website, so you're viewing sample customers. A paid customer won't see this selector.</small>
+          </div>
+        )}
+        <p className={styles.selectionNote}>
+          {visibleSections.length
+            ? "Based on the eight audit answers, we've selected only the " + visibleSections.length + " area" + (visibleSections.length === 1 ? "" : "s") + " most worth checking. These are possibilities, not confirmed overpayments."
+            : "These audit answers don't indicate a strong need for extra questions. We won't ask unnecessary ones."}
+        </p>
 
         <div className={styles.progressTop}>
           <strong>{review ? "Review your details" : "Question " + (step + 1) + " of " + visibleSections.length}</strong>
@@ -174,8 +228,8 @@ export default function PersonalisePage() {
           {review ? (
             <>
               <div className={styles.check}><CheckCircle2 size={26} /></div>
-              <h2>Here's what you shared</h2>
-              <p className={styles.help}>Any blank answers will stay unknown. We won't make up missing figures.</p>
+              <h2>{visibleSections.length ? "Here's what you shared" : "No extra questions needed"}</h2>
+              <p className={styles.help}>{visibleSections.length ? "Any blank answers will stay unknown. We won't make up missing figures." : "Your original eight answers are enough to continue. We won't ask about spending areas that don't look relevant."}</p>
               {reviewRows.length ? (
                 <dl className={styles.reviewRows}>
                   {reviewRows.map((item) => (
@@ -183,12 +237,14 @@ export default function PersonalisePage() {
                   ))}
                 </dl>
               ) : (
-                <p className={styles.empty}>You skipped all the questions. That's fine — your original eight audit answers can still be used.</p>
+                <p className={styles.empty}>{visibleSections.length ? "You skipped the optional questions. That is fine — your original eight audit answers can still be used." : "No additional information is needed for this example."}</p>
               )}
               <div className={styles.actions}>
-                <button className={styles.secondary} type="button" onClick={() => setStep(Math.max(0, visibleSections.length - 1))}>
-                  <ArrowLeft size={18} /> Edit answers
-                </button>
+                {visibleSections.length > 0 && (
+                  <button className={styles.secondary} type="button" onClick={() => setStep(Math.max(0, visibleSections.length - 1))}>
+                    <ArrowLeft size={18} /> Edit answers
+                  </button>
+                )}
                 <button className={styles.primary} type="button" onClick={() => { setStep(0); setDetails(initialDetails); }}>
                   Start preview again <ArrowRight size={18} />
                 </button>
@@ -248,6 +304,19 @@ export default function PersonalisePage() {
                     <MoneyField id="insuranceAnnual" label="Annual premium for that one policy" value={details.insuranceAnnual} onChange={update} hint="An estimate is fine. We won't assume you can save a fixed percentage of it." />
                   </>
                 )}
+                {current.id === "unplanned" && (
+                  <div className={styles.field}>
+                    <label htmlFor="unplannedArea">Which purchases are most likely to be unplanned?</label>
+                    <select id="unplannedArea" value={details.unplannedArea} onChange={(event) => update("unplannedArea", event.target.value)}>
+                      <option value="">Not sure / skip</option>
+                      <option>Online shopping</option>
+                      <option>Clothes or accessories</option>
+                      <option>Entertainment or hobbies</option>
+                      <option>Other purchases</option>
+                    </select>
+                    <small>We won't add another guessed savings amount for spending already counted elsewhere.</small>
+                  </div>
+                )}
               </div>
               <div className={styles.actions}>
                 {step > 0 ? (
@@ -259,7 +328,7 @@ export default function PersonalisePage() {
                   {step === visibleSections.length - 1 ? "Review answers" : "Next question"} <ArrowRight size={18} />
                 </button>
               </div>
-              <button className={styles.skip} type="button" onClick={() => setStep((index) => Math.min(index + 1, visibleSections.length))}>
+              <button className={styles.skip} type="button" onClick={skipSection}>
                 Skip this question
               </button>
             </>
