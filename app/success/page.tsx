@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { trackEvent } from "@/lib/gtag";
@@ -27,7 +27,6 @@ function SuccessContent() {
   const [mode, setMode] = useState<"checking" | "choice" | "generating" | "error">("checking");
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState("");
-  const startedFor = useRef<string | null>(null);
 
   useEffect(() => {
     if (mode !== "generating") return;
@@ -41,9 +40,6 @@ function SuccessContent() {
       setError("The payment link is missing. Please use the link from your SpendShift confirmation email.");
       return;
     }
-    const key = sessionId + (generating ? ":generate" : ":choice");
-    if (startedFor.current === key) return;
-    startedFor.current = key;
     let cancelled = false;
 
     function recordPurchase() {
