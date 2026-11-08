@@ -11,6 +11,7 @@ export type PaidOrder = {
   customer_email: string | null;
   created_at: string;
   processing_started_at: string | null;
+  attempt_count: number;
 };
 
 const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.spendshift.com.au").replace(/\/$/, "");
@@ -65,7 +66,7 @@ export async function ensurePaidOrder(session: Stripe.Checkout.Session): Promise
 export async function readPaidOrder(sessionId: string): Promise<PaidOrder | null> {
   const { data, error } = await supabaseAdmin
     .from("report_orders")
-    .select("stripe_session_id,status,answers,refinements,report_id,customer_email,created_at,processing_started_at")
+    .select("stripe_session_id,status,answers,refinements,report_id,customer_email,created_at,processing_started_at,attempt_count")
     .eq("stripe_session_id", sessionId)
     .maybeSingle();
   if (error) throw new Error("Could not load the payment record.");
