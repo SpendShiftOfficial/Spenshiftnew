@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Plus, Sparkles } from "lucide-react";
 import styles from "./personalise.module.css";
+import { trackEvent } from "@/lib/gtag";
 import { previewProfiles, selectPersonalisationAreas, type PersonalisationArea } from "@/lib/personalisation-questions";
 
 type SectionId = PersonalisationArea;
@@ -258,6 +259,11 @@ export default function PersonalisePage() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save your answers.");
+      trackEvent("personalisation_completed", {
+        sections_presented: visibleSections.length,
+        extra_area_selected: Boolean(additionalArea),
+        insurance_policies: insurancePolicies.filter((policy) => policy.type || policy.premium || policy.insurer).length,
+      });
       router.push("/success?session_id=" + encodeURIComponent(sessionId) + "&generate=1");
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Something went wrong. Try again.");
@@ -275,7 +281,7 @@ export default function PersonalisePage() {
     { label: "Average takeaway order", value: details.takeawayOrder ? "$" + details.takeawayOrder : "" },
     { label: "Convenience purchases", value: details.convenienceWeekly ? "$" + details.convenienceWeekly + " per week" : "" },
     ...insurancePolicies
-      .filter((policy) => policy.type !== "" || policy.premium !== "")
+      .filter((policy) => policy.type !== "" || policy.premium !== "" || policy.insurer !== "" || policy.coverDescription !== "")
       .map((policy, index) => ({
         label: "Insurance " + (index + 1) + " — " + (policy.type || "Type not provided") + (policy.insurer ? " (" + policy.insurer + ")" : ""),
         value: policy.premium !== ""
