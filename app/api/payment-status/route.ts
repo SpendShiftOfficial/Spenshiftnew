@@ -18,6 +18,7 @@ export async function GET(req: Request) {
         answers: auditAnswersFromSession(session),
         status: existingReportId ? "ready" : order.status,
         reportId: existingReportId,
+        refinements: order.refinements || null,
       },
       { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } },
     );
