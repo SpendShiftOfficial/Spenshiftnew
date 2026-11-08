@@ -278,3 +278,65 @@
   color: #53665a;
   margin: 15px 0 20px;
 }
+
+.insuranceList {
+  display: grid;
+  gap: 16px;
+}
+.policyCard {
+  background: #f8faf7;
+  border: 1px solid #dce7dc;
+  border-radius: 15px;
+  padding: 20px;
+  display: grid;
+  gap: 17px;
+}
+.policyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.policyHeader strong {
+  font-size: 16px;
+  color: #213f29;
+}
+.removePolicy {
+  border: 0;
+  color: #8d3636;
+  background: none;
+  padding: 8px 0 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.removePolicy:hover { color: #642020; }
+.addPolicy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  background: #eef8f0;
+  border: 1px dashed #73b584;
+  border-radius: 12px;
+  color: #18642f;
+  min-height: 48px;
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.addPolicy:hover { background: #e0f2e4; }
+.policyHint {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #657168;
+  margin: 0;
+}
+@media (max-width: 570px) {
+  .policyCard { padding: 15px; }
+}
