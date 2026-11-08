@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.report_orders (
   refinements jsonb,
   customer_email text,
   report_id text,
+  attempt_count integer NOT NULL DEFAULT 0,
   paid_at timestamptz NOT NULL DEFAULT now(),
   processing_started_at timestamptz,
   ready_at timestamptz,
