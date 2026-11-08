@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import ts from "typescript";
 
+const nativeRequire = createRequire(import.meta.url);
 const cache = new Map();
 function loadTs(file) {
   const filename = path.resolve(file.endsWith(".ts") ? file : file + ".ts");
@@ -15,7 +17,7 @@ function loadTs(file) {
   const module = { exports: {} };
   cache.set(filename, module);
   const localRequire = (request) => {
-    if (!request.startsWith(".")) throw new Error("Unexpected test dependency: " + request);
+    if (!request.startsWith(".")) return nativeRequire(request);
     return loadTs(path.resolve(path.dirname(filename), request));
   };
   new Function("require", "module", "exports", compiled)(localRequire, module, module.exports);
@@ -73,4 +75,13 @@ assert.throws(() => validateRefinements({ additionalArea: "bank-passwords" }), /
 assert.equal(validateRefinements({ details: { electricityBill: "0" } }).details.electricityBill, 0);
 assert.equal(validateRefinements({ insurancePolicies: [{ type: "Health", premium: "100", paymentPeriod: "month" }] }).insurancePolicies[0].paymentPeriod, "month");
 
-console.log("Phase 1 calculation and input-validation checks passed.");
+const { makeReportMarkdown } = loadTs("lib/report-writing");
+const output = makeReportMarkdown(audit, details, result, null);
+assert.match(output, /\$175\/year/, "Scenario total is calculated by the server.");
+assert.match(output, /Car: \$1,800 per year/, "Insurance premiums appear as existing spending.");
+assert.match(output, /Health: \$250 per month/, "Each policy is listed separately.");
+assert.match(output, /NOT potential savings|NOT potential savings|NOT savings|not savings/i);
+assert.doesNotMatch(output, /\$4,276\/year/, "No fallback invented saving.");
+assert.equal((output.match(/### 0\d\./g) || []).length, 2, "Only relevant savings areas appear.");
+
+console.log("Phase 1 category selection, validation, calculations and report checks passed.");
