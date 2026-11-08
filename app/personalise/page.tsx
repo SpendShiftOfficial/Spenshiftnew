@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
-import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Plus, Sparkles } from "lucide-react";
 import styles from "./personalise.module.css";
 import { previewProfiles, selectPersonalisationAreas, type PersonalisationArea } from "@/lib/personalisation-questions";
 
@@ -17,8 +17,6 @@ type DetailKey =
   | "subscriptionsMonthly"
   | "takeawayOrder"
   | "convenienceWeekly"
-  | "insuranceType"
-  | "insuranceAnnual"
   | "unplannedArea";
 
 type Details = Record<DetailKey, string>;
@@ -32,10 +30,19 @@ const initialDetails: Details = {
   subscriptionsMonthly: "",
   takeawayOrder: "",
   convenienceWeekly: "",
-  insuranceType: "",
-  insuranceAnnual: "",
   unplannedArea: "",
 };
+
+type InsurancePolicy = {
+  id: number;
+  type: string;
+  premium: string;
+  paymentPeriod: "month" | "year";
+};
+
+function initialInsurancePolicies(): InsurancePolicy[] {
+  return [{ id: 1, type: "", premium: "", paymentPeriod: "year" }];
+}
 
 type Section = { id: SectionId; title: string; explanation: string };
 const sections: Section[] = [
@@ -67,7 +74,7 @@ const sections: Section[] = [
   {
     id: "insurance",
     title: "Your insurance",
-    explanation: "Choose one policy you would like to review. Never enter a policy or account number.",
+    explanation: "Tell us about the insurance policies you would like to review. Add another only if it applies to you. Never enter a policy or account number.",
   },
   {
     id: "unplanned",
@@ -110,6 +117,7 @@ function MoneyField({
 export default function PersonalisePage() {
   const [audit, setAudit] = useState<string[] | null>(null);
   const [details, setDetails] = useState<Details>(initialDetails);
+  const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicy[]>(initialInsurancePolicies);
   const [step, setStep] = useState(0);
   const [demoKey, setDemoKey] = useState("subscriptions-insurance");
 
@@ -145,6 +153,28 @@ export default function PersonalisePage() {
     setDetails((previous) => ({ ...previous, [key]: value }));
   }
 
+  function updateInsurancePolicy(id: number, patch: Partial<Omit<InsurancePolicy, "id">>) {
+    setInsurancePolicies((previous) =>
+      previous.map((policy) => policy.id === id ? { ...policy, ...patch } : policy),
+    );
+  }
+
+  function addInsurancePolicy() {
+    setInsurancePolicies((previous) => {
+      if (previous.length >= 6) return previous;
+      const nextId = Math.max(0, ...previous.map((policy) => policy.id)) + 1;
+      return [...previous, { id: nextId, type: "", premium: "", paymentPeriod: "year" }];
+    });
+  }
+
+  function removeInsurancePolicy(id: number) {
+    setInsurancePolicies((previous) =>
+      previous.length === 1
+        ? initialInsurancePolicies()
+        : previous.filter((policy) => policy.id !== id),
+    );
+  }
+
   // Skipping a section must also discard its answers if someone comes back.
   function skipSection() {
     const keysBySection: Record<SectionId, DetailKey[]> = {
@@ -153,7 +183,7 @@ export default function PersonalisePage() {
       subscriptions: ["subscriptionsMonthly"],
       takeaway: ["takeawayOrder"],
       convenience: ["convenienceWeekly"],
-      insurance: ["insuranceType", "insuranceAnnual"],
+      insurance: [],
       unplanned: ["unplannedArea"],
     };
     setDetails((previous) => {
@@ -161,6 +191,7 @@ export default function PersonalisePage() {
       for (const key of keysBySection[current.id]) next[key] = "";
       return next;
     });
+    if (current.id === "insurance") setInsurancePolicies(initialInsurancePolicies());
     setStep((index) => Math.min(index + 1, visibleSections.length));
   }
 
@@ -173,8 +204,14 @@ export default function PersonalisePage() {
     { label: "Subscriptions", value: details.subscriptionsMonthly ? "$" + details.subscriptionsMonthly + " per month" : "" },
     { label: "Average takeaway order", value: details.takeawayOrder ? "$" + details.takeawayOrder : "" },
     { label: "Convenience purchases", value: details.convenienceWeekly ? "$" + details.convenienceWeekly + " per week" : "" },
-    { label: "Insurance type", value: details.insuranceType },
-    { label: "Insurance premium", value: details.insuranceAnnual ? "$" + details.insuranceAnnual + " per year" : "" },
+    ...insurancePolicies
+      .filter((policy) => policy.type !== "" || policy.premium !== "")
+      .map((policy, index) => ({
+        label: "Insurance " + (index + 1) + " — " + (policy.type || "Type not provided"),
+        value: policy.premium !== ""
+          ? "$" + Number(policy.premium).toLocaleString("en-AU", { maximumFractionDigits: 2 }) + " per " + (policy.paymentPeriod === "month" ? "month" : "year")
+          : "Premium not provided",
+      })),
     { label: "Unplanned purchase category", value: details.unplannedArea },
   ].filter((item) => item.value !== "");
 
@@ -200,6 +237,7 @@ export default function PersonalisePage() {
               onChange={(event) => {
                 setDemoKey(event.target.value);
                 setDetails(initialDetails);
+                setInsurancePolicies(initialInsurancePolicies());
                 setStep(0);
               }}
             >
@@ -245,7 +283,7 @@ export default function PersonalisePage() {
                     <ArrowLeft size={18} /> Edit answers
                   </button>
                 )}
-                <button className={styles.primary} type="button" onClick={() => { setStep(0); setDetails(initialDetails); }}>
+                <button className={styles.primary} type="button" onClick={() => { setStep(0); setDetails(initialDetails); setInsurancePolicies(initialInsurancePolicies()); }}>
                   Start preview again <ArrowRight size={18} />
                 </button>
               </div>
@@ -293,16 +331,84 @@ export default function PersonalisePage() {
                   <MoneyField id="convenienceWeekly" label="Approximate convenience spending per week" value={details.convenienceWeekly} onChange={update} hint="Do not include takeaway or delivery costs a second time." />
                 )}
                 {current.id === "insurance" && (
-                  <>
-                    <div className={styles.field}>
-                      <label htmlFor="insuranceType">Which policy would you like to review?</label>
-                      <select id="insuranceType" value={details.insuranceType} onChange={(e) => update("insuranceType", e.target.value)}>
-                        <option value="">Not sure / prefer not to say</option>
-                        <option>Car</option><option>Home or contents</option><option>Health</option><option>Other</option>
-                      </select>
-                    </div>
-                    <MoneyField id="insuranceAnnual" label="Annual premium for that one policy" value={details.insuranceAnnual} onChange={update} hint="An estimate is fine. We won't assume you can save a fixed percentage of it." />
-                  </>
+                  <div className={styles.insuranceList}>
+                    {insurancePolicies.map((policy, index) => (
+                      <div className={styles.policyCard} key={policy.id}>
+                        <div className={styles.policyHeader}>
+                          <strong>Policy {index + 1}</strong>
+                          {insurancePolicies.length > 1 && (
+                            <button
+                              type="button"
+                              className={styles.removePolicy}
+                              onClick={() => removeInsurancePolicy(policy.id)}
+                              aria-label={"Remove insurance policy " + (index + 1)}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={"insuranceType-" + policy.id}>Insurance type</label>
+                          <select
+                            id={"insuranceType-" + policy.id}
+                            value={policy.type}
+                            onChange={(event) => updateInsurancePolicy(policy.id, { type: event.target.value })}
+                          >
+                            <option value="">Not sure / prefer not to say</option>
+                            <option>Car</option>
+                            <option>Home or contents</option>
+                            <option>Health</option>
+                            <option>Life or income protection</option>
+                            <option>Pet</option>
+                            <option>Travel</option>
+                            <option>Other</option>
+                          </select>
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={"insurancePremium-" + policy.id}>Approximate premium (optional)</label>
+                          <div className={styles.moneyInput}>
+                            <span aria-hidden="true">$</span>
+                            <input
+                              id={"insurancePremium-" + policy.id}
+                              type="number"
+                              min="0"
+                              max="100000"
+                              step="0.01"
+                              inputMode="decimal"
+                              placeholder="Optional"
+                              value={policy.premium}
+                              onChange={(event) => updateInsurancePolicy(policy.id, { premium: event.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div className={styles.field}>
+                          <label htmlFor={"insurancePeriod-" + policy.id}>How often do you pay?</label>
+                          <select
+                            id={"insurancePeriod-" + policy.id}
+                            value={policy.paymentPeriod}
+                            onChange={(event) => updateInsurancePolicy(policy.id, { paymentPeriod: event.target.value === "month" ? "month" : "year" })}
+                          >
+                            <option value="year">Yearly</option>
+                            <option value="month">Monthly</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                    {insurancePolicies.length < 6 && (
+                      <button
+                        className={styles.addPolicy}
+                        type="button"
+                        onClick={addInsurancePolicy}
+                      >
+                        <Plus size={18} /> Add another insurance policy
+                      </button>
+                    )}
+                    <p className={styles.policyHint}>
+                      Include only policies you want help reviewing, up to six.
+                      Each amount is optional. Your premium is not automatically an overpayment.
+                      Do not enter policy numbers or insurer login details.
+                    </p>
+                  </div>
                 )}
                 {current.id === "unplanned" && (
                   <div className={styles.field}>
