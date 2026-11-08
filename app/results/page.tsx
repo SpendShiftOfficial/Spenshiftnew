@@ -831,7 +831,7 @@ alert(
                       "#059625",
                   }}
                 >
-                  biggest money leaks
+                  possible money leaks
                 </span>
               </h1>
 
@@ -867,7 +867,7 @@ alert(
                 <div>
                   <p>
                     Real insights.
-                    Real savings.
+                    Practical next steps.
                   </p>
                 </div>
               </div>
@@ -881,8 +881,8 @@ alert(
               }}
             >
               <span className="badge">
-                Total Recoverable Cash
-                Found
+                Indicative Savings
+                Range
               </span>
 
               <h2
@@ -898,12 +898,7 @@ alert(
               <p className="conclu-para">
                 <Info size={34} />
 
-                Based on your answers,
-                we estimated your
-                annual savings using
-                category averages and
-                conservative reduction
-                targets.
+                These are early estimates from eight audit answers, not verified savings. Your detailed report will assess the figures, and actual savings may be lower or unavailable.
               </p>
 
               <p
