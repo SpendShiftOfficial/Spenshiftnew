@@ -39,7 +39,7 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
   // Atomic conditional update: concurrent clicks or webhook retries do not generate twice.
   const { data: claimed, error: claimError } = await supabaseAdmin
     .from("report_orders")
-    .update({ status: "processing", processing_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), last_error: null })
+    .update({ status: "processing", processing_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), last_error: null, attempt_count: (order.attempt_count || 0) + 1 })
     .eq("stripe_session_id", sessionId)
     .in("status", ["awaiting_details", "failed"])
     .select("stripe_session_id,refinements")
