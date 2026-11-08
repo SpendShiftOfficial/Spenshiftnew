@@ -1,14 +1,11 @@
-name: Phase 1 TypeScript checks
+name: Phase 1 quality checks
 on:
-  push:
-    branches:
-      - phase-1-personalisation-2026-11
   pull_request:
     branches:
       - main
 
 jobs:
-  typecheck:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,3 +15,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: node scripts/check-phase1.mjs
+      - run: npm run build
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          NEXT_PUBLIC_SITE_URL: https://example.com
