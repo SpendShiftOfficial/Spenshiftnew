@@ -41,18 +41,27 @@ export function auditAnswersFromSession(session: Stripe.Checkout.Session): strin
   return answers as string[];
 }
 
+function isCorrectReportPurchase(session: Stripe.Checkout.Session): boolean {
+  return session.mode === "payment" &&
+    session.currency?.toLowerCase() === "aud" &&
+    session.amount_total === 3900 &&
+    (!session.metadata?.product || session.metadata.product === "spendshift_full_report");
+}
+
 export async function paidSession(sessionId: string): Promise<Stripe.Checkout.Session> {
   if (typeof sessionId !== "string" || !/^cs_(?:test|live)_[A-Za-z0-9]{12,200}$/.test(sessionId)) {
     throw new Error("Invalid payment session.");
   }
   const session = await getStripe().checkout.sessions.retrieve(sessionId);
   if (session.payment_status !== "paid") throw new Error("Payment is not complete.");
+  if (!isCorrectReportPurchase(session)) throw new Error("Payment does not match a SpendShift full report.");
   return session;
 }
 
 /** Idempotent: duplicate webhook calls never reset an existing order. */
 export async function ensurePaidOrder(session: Stripe.Checkout.Session): Promise<{ order: PaidOrder; created: boolean }> {
   if (session.payment_status !== "paid") throw new Error("Cannot record an unpaid order.");
+  if (!isCorrectReportPurchase(session)) throw new Error("Invalid report purchase.");
   const answers = auditAnswersFromSession(session);
   const { data: created, error } = await supabaseAdmin
     .from("report_orders")
