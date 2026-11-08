@@ -340,3 +340,47 @@
 @media (max-width: 570px) {
   .policyCard { padding: 15px; }
 }
+
+.addArea {
+  display: grid;
+  gap: 9px;
+  padding: 15px 17px;
+  margin: 8px 0 18px;
+  background: #fff;
+  border: 1px solid #d8e5d9;
+  border-radius: 13px;
+}
+.addArea label {
+  color: #1f3c28;
+  font-size: 14px;
+  font-weight: 700;
+}
+.addArea label span {
+  color: #6a776b;
+  font-weight: 400;
+}
+.addArea select {
+  width: 100%;
+  background: #fff;
+  color: #193922;
+  border: 1px solid #cbd7cd;
+  min-height: 48px;
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+  font-size: 15px;
+}
+.addArea small {
+  color: #6e796f;
+  line-height: 1.5;
+}
+.submitError {
+  margin-top: 14px;
+  color: #991b1b;
+  font-weight: 600;
+  font-size: 13px;
+}
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
