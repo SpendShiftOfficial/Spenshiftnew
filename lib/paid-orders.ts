@@ -17,8 +17,15 @@ export type PaidOrder = {
 const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.spendshift.com.au").replace(/\/$/, "");
 
 export function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY is not configured.");
-  return new Stripe(process.env.STRIPE_SECRET_KEY);
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY is not configured.");
+  // Paid preview tests must be deliberately enabled with test-mode Stripe and
+  // a staging database. Otherwise the preview cannot read/create paid orders.
+  if (process.env.VERCEL_ENV === "preview" &&
+      (!key.startsWith("sk_test_") || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
+    throw new Error("Preview payment testing is disabled until staging is configured.");
+  }
+  return new Stripe(key);
 }
 
 export function auditAnswersFromSession(session: Stripe.Checkout.Session): string[] {
