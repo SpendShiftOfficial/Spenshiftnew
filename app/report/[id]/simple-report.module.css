@@ -411,3 +411,5 @@
 .insurancePicker>select:focus-visible{outline:3px solid #9acfaa;outline-offset:2px}
 .insurancePicker .helpDetails{margin-top:5px}
 .resultRow p{font-size:15px;line-height:1.55;color:#465e4c}
+
+.editLink{display:inline-flex;align-items:center;gap:6px;margin-top:16px;padding:10px 0;color:#0b7030;font-weight:750;font-size:15px;text-decoration:underline;text-underline-offset:4px}.editLink:focus-visible{outline:3px solid #a4d9b0;outline-offset:3px}
