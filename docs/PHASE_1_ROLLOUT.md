@@ -1,5 +1,15 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
+## Supabase staging status — 9 November 2026
+
+- Isolated **Supabase development branch** `phase-1-personalisation-test` created. Its compute charge is US$0.01344/hour plus potential usage. **Delete it once testing is complete.**
+- Branch started without production data or a saved schema migration history. A minimal test-only version of `public.reports` was created first using the verified production column definitions.
+- The Phase 1 SQL migration was **successfully applied to the development branch**. It created `public.report_orders`, new report refinement and savings-summary columns, and a unique index on the paid session identifier.
+- Read-only checks confirmed zero data rows in `reports` and `report_orders`, RLS enabled, no `anon` or `authenticated` read/write access to the order table, and `service_role` access.
+- The production Supabase database has **not** been migrated. Do not copy production customer data into the test branch.
+- The database security adviser reports an informational "RLS enabled, no policy" notice for the test tables. This is intentional while all reads/writes are restricted to server-side service role; reassess before introducing user-facing database access.
+- Next: configure the Vercel preview with **test environment** Supabase and Stripe credentials, then perform end-to-end test payments. Never use production Stripe keys in the preview.
+
 Branch: phase-1-personalisation-2026-11
 Draft PR: https://github.com/SpendShiftOfficial/Spenshiftnew/pull/27
 
