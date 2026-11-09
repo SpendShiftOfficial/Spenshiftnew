@@ -1,15 +1,33 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
+## Guided Phase 1 quality upgrade — 9 November 2026 (NOT LIVE)
+
+- All seven audit topics can be flagged if each answer suggests a meaningful area to review. No fixed top-three cutoff.
+- After a paid Stripe Checkout, the default next screen is the guided questions. There is no "skip the full personalisation stage" upsell/choice screen. Each amount is still optional, and customers can select "Not sure" or skip its section.
+- Subscription question asks Yes / No / Not sure to an unused service. No cancellation advice if all services are used. Only a named unused charge with a known amount can support an estimated cancellation saving.
+- Takeaway flow can collect usual order price, orders per week, a realistic number of orders to swap, and the cost of feeding the same people at home. Only the NET difference is a conditional scenario.
+- Small everyday spending collects current weekly amount and a customer-selected lower weekly goal. This is labelled a target, not confirmed savings, and customers must not count takeaway twice.
+- Insurance supports up to six policies, monthly/yearly premiums and optional renewal timing. Reports show policy-specific safety checks and links to matching official guides, without pretending to have checked insurer quotes.
+- Phone and energy advice can link to the relevant official Australian guides; no unverified plan comparisons are displayed.
+- Unplanned shopping advice responds to what customers buy and what triggers it, but does not add a guessed saving.
+- Paid report shows the first three ranked areas as big, easy-to-read cards and every other flagged area under an obvious "Your other areas" section with expandable steps.
+- Generic "Need help? Copy a message" has been replaced by explicit instructions to contact an insurer or phone company.
+- The existing A$39 Stripe flow, secure report URLs, webhook signature checks and development Supabase branch are unchanged. No new paid services or database migration were added.
+- Abandoned paid orders are now eligible for audit-only recovery 24 HOURS after purchase, to give customers time to finish their guided questions. Confirm that email recovery works before launch.
+- This change is on draft pull request #27 only; production code and production database remain unchanged.
+- The branch's preview checkout flag is OFF during development review. Enable only for a separate Stripe sandbox end-to-end test, then turn it back off.
+- Next acceptance gate: tests across all-seven, two-area, no-clear-area, unanswered-values and three-policy cases; mobile usability; entire sandbox checkout/report flow; and independent feedback about whether the plan is worth A$39.
+
 ## Customer experience redesign — 9 November 2026
 
 - Free results no longer show pre-set dollar ranges, category dollar tiles, or unverified "money leak" values.
 - Free results use the same 0–4 ranking signals as optional paid questions, not invented annual savings. If no strong area appears, customers are told NOT to buy a report on those answers.
 - Checkout now says "Step-by-Step Savings Plan" with the existing A$39 price and the same Stripe product metadata identifier.
-- After payment, the customer sees clear options to add details or make a plan immediately.
+- Superseded by the guided Phase 1 quality upgrade above: every paying customer now reaches the question flow by default.
 - The personalisation screen has shorter wording. "Want to check another bill?" is optional and appears only at the final review, not before the first question.
 - The main report now uses big, clear cards, customer-provided spending, three steps per area, optional copyable messages and a three-task checklist saved only in the customer's browser.
 - The report DOES NOT lead with an annual savings estimate. No yearly saving is inferred from insurance premiums, recent review dates, a subscription count, takeaway order frequency, or assumed shopping reductions.
-- The only current annual saving scenario is an exact price the customer voluntarily supplies for a specific unused subscription. It must still be cancelled before money is genuinely saved.
+- Superseded by the guided Phase 1 quality upgrade: exact unused subscription charges, customer-chosen net takeaway swaps and weekly small-buy goals can each produce a clearly labelled conditional estimate.
 - The new report renders directly from the saved structured calculation data. Existing saved structured reports display the new layout without regenerating. Legacy reports without the structured summary retain their old renderer.
 - Reports generated after this redesign store a shorter plain-language report string and v2 structured summary. There is no AI wording call in the new report generator.
 - Preview-only fictional examples are available at \`/report-preview\` on the Phase 1 branch. This route returns 404 in Production and never charges money.
@@ -29,11 +47,11 @@
 - Only the `phase-1-personalisation-2026-11` Git branch received isolated Preview environment overrides. **Production variables were not edited.**
 - `SUPABASE_URL` targets `https://pcjgzbaigtsnevhcjqyd.supabase.co`, the isolated development database.
 - `NEXT_PUBLIC_SITE_URL` targets the stable branch preview hostname.
-- `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` and `CRON_SECRET` currently contain **non-working test placeholders** on this branch. No secret values are stored in Git.
-- `SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS=false`, `PHASE1_TEST_EMAILS=disabled`, and `PHASE1_TEST_AI=disabled` deliberately disable preview purchases, outgoing emails and AI usage.
+- The test-only Stripe key, Supabase development key and test webhook signing key have since been connected and verified in the isolated preview. Email and AI remain disabled for sandbox testing; never store secrets in Git.
+- The preview checkout flag is set to **false for design review**. `PHASE1_TEST_EMAILS` and `PHASE1_TEST_AI` are still disabled.
 - Code guards reject preview checkout and database access if the project points to Production credentials.
 - The optional status endpoint `/api/phase1-status` exposes readiness booleans but never secrets; it returns 404 in Production.
-- **Not yet configured:** an actual **Stripe test-mode secret key**, the development branch's **Supabase service-role/secret key**, signed Stripe test webhook with Preview protection bypass, and test email service.
+- Stripe test mode, the isolated Supabase connection and signed test webhook have passed a previous sandbox end-to-end purchase. A new end-to-end test of this redesign is still required; test email delivery is not yet verified.
 - Test credentials must be entered in Vercel's branch-specific environment variables **directly by the account owner**; never paste credentials into chat or screenshots.
 - After correct test credentials are entered, confirm readiness then enable `SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS=true` **on the same branch only**. Do not enable the flag with placeholders.
 - Vercel preview protection is enabled. Stripe's webhook cannot reach a protected preview without a securely configured bypass. Use only the test webhook endpoint and signing secret.
@@ -54,7 +72,7 @@ Draft PR: https://github.com/SpendShiftOfficial/Spenshiftnew/pull/27
 ## Implemented
 1. Optional questions based on eight audit answers, plus one additional area chosen by the customer.
 2. Multiple insurance policies with separate premiums, payment periods, insurer names and short cover descriptions.
-3. A post-payment choice to personalise or generate immediately; never a second charge.
+3. Guided optional answers are the default next step after payment; individual amounts can be skipped, and there is no second charge.
 4. Deterministic calculations that distinguish current costs from conditional scenarios and exclude unverified insurance/energy/phone savings.
 5. Verified Stripe payment checks, signature-checked webhook, durable paid-order queue, resume email, report recovery and secure random report IDs.
 6. An action-first report that highlights a realistic next step and how to verify actual savings.
@@ -86,7 +104,7 @@ Draft PR: https://github.com/SpendShiftOfficial/Spenshiftnew/pull/27
 
 ### 4. Scheduled-recovery limitation
 - The current compatible Vercel schedule runs once daily, at 01:00 UTC.
-- Abandoned paid orders become eligible for fallback generation 30 minutes after purchase, but are processed on the next scheduled cron, which could be much later.
+- Abandoned paid orders become eligible for fallback generation 24 hours after purchase, but are processed on the next scheduled cron, which could be later.
 - If the webhook and email service are configured, the customer should receive a resume link shortly after payment.
 - For faster automatic recovery, use a Vercel plan supporting sub-daily crons or another supported scheduler and test it first.
 - Cron processes up to four eligible orders per run and retries failed generation up to four times.
