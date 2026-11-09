@@ -71,7 +71,7 @@ try{
  for(let i=0;i<90;i++){try{const r=await fetch(base+'/');if(r.ok)break;}catch{}if(i===89)throw new Error('Local app did not start: '+logs.slice(-3000));await new Promise(r=>setTimeout(r,1000));}
  browser=await chromium.launch({headless:true});
  for(const viewport of [{width:1280,height:900},{width:375,height:812}]){
-  const context=await browser.newContext({viewport});const page=await context.newPage();
+  const context=await browser.newContext({viewport});const page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
   await test('truthful public pages '+viewport.width,async()=>{
    for(const route of ['/','/pricing','/whats-included','/how-it-works']){await go(page,route);const text=await page.locator('body').innerText();assert.ok(!/3,050|30-day action plan|AI Powered/.test(text));await noOverflow(page);}
   });
@@ -112,7 +112,7 @@ try{
   });
   await context.close();
  }
- const context=await browser.newContext({viewport:{width:375,height:812}});const page=await context.newPage();
+ const context=await browser.newContext({viewport:{width:375,height:812}});const page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
  const privateRequests=[];context.on('request',request=>{if(/google-analytics|googletagmanager|clarity\.ms|connect\.facebook|analytics\.tiktok/.test(request.url()))privateRequests.push(request.url());});
  await context.addInitScript(()=>localStorage.setItem('spendshift_cookie_consent','granted'));
  await test('private pages stay tracker-free even with consent',async()=>{for(const route of ['/audit','/results','/personalise','/report-preview?customer=all-seven']){const response=await page.goto(base+route,{waitUntil:'networkidle'});const headers=response.headers();assert.match(headers['content-security-policy']||'',/connect-src 'self'/);await page.waitForTimeout(150);}assert.deepEqual(privateRequests,[]);});
@@ -130,6 +130,6 @@ try{
  await context.close();
  console.log('Browser checks: '+tests+' groups passed. Provider payment/draft replies were mocked; no real Stripe payment or email was sent.');
  fs.writeFileSync('test-artifacts/browser-summary.json',JSON.stringify({groupsPassed:tests,desktopWidth:1280,mobileWidth:375,providerMode:'mocked',realStripePaymentTested:false,emailDeliveryTested:false},null,2));
-}catch(error){fs.writeFileSync('test-artifacts/server-log.txt',logs);console.error(error);process.exitCode=1;}finally{await browser?.close();server.kill('SIGTERM');}
+}catch(error){fs.writeFileSync('test-artifacts/server-log.txt',logs);console.error(error);process.exitCode=1;}finally{await browser?.close().catch(()=>{});server.kill('SIGTERM');process.exit(process.exitCode || 0);}
 `);
 }
