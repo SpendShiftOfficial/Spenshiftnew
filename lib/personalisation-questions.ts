@@ -56,6 +56,12 @@ export const areaNames: Record<PersonalisationArea, string> = {
   unplanned: "Unplanned shopping",
 };
 
+/** Score for deciding where to start. This is never a dollar value. */
+export function auditPriorityScore(area: PersonalisationArea, auditAnswers: string[]): number {
+  const rule = rules[area];
+  return rule.signals[auditAnswers[rule.index]] ?? 0;
+}
+
 export function selectPersonalisationAreas(auditAnswers: string[]): PersonalisationArea[] {
   if (auditAnswers.length !== 8 ||
       auditAnswers.some(answer => typeof answer !== "string")) return [];
