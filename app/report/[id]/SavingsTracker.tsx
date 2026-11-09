@@ -8,6 +8,7 @@ export type TrackerOption = { key: string; title: string };
 type Entry = {
   id: string;
   key: string;
+  label: string;
   before: number;
   after: number;
   fees: number;
@@ -51,7 +52,8 @@ export default function SavingsTracker({
       if (Array.isArray(saved)) {
         setEntries(saved.filter((entry): entry is Entry =>
           entry && typeof entry.id === "string" &&
-          options.some(option => option.key === entry.key) &&
+          (options.some(option => option.key === entry.key) ||
+            (typeof entry.label === "string" && entry.label.length < 120)) &&
           ["week", "month", "year"].includes(entry.period) &&
           typeof entry.date === "string" &&
           [entry.before, entry.after, entry.fees].every(n =>
@@ -108,6 +110,7 @@ export default function SavingsTracker({
     const next: Entry = {
       id: editId || crypto.randomUUID(),
       key: itemKey,
+      label: options.find(option => option.key === itemKey)?.title || "Bill",
       before: Number(before),
       after: Number(after),
       fees: Number(fees || "0"),
@@ -142,9 +145,12 @@ export default function SavingsTracker({
         const difference = checkedDifference(entry.before, entry.after, entry.fees);
         return (
           <article className={styles.resultRow} key={entry.id}>
-            <strong>{options.find(item => item.key === entry.key)?.title || "Bill"}</strong>
+            <strong>{entry.label || options.find(item => item.key === entry.key)?.title || "Bill"}</strong>
             <p>You recorded {money(difference)} {difference >= 0 ? "less" : "more"} for this {entry.period}, after fees, on {entry.date}.</p>
-            <button type="button" onClick={() => startEdit(entry)}>Edit</button>
+            {options.some(option => option.key === entry.key) &&
+              <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
+            {!options.some(option => option.key === entry.key) &&
+              <small>From an earlier version of your plan</small>}
             <button type="button" onClick={() => store(entries.filter(item => item.id !== entry.id))}>Remove</button>
           </article>
         );
