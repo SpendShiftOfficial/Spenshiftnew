@@ -1,5 +1,20 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
+## Vercel preview isolation — 9 November 2026
+
+- Vercel project: `business-solutions/spenshiftnew`, on Hobby.
+- Only the `phase-1-personalisation-2026-11` Git branch received isolated Preview environment overrides. **Production variables were not edited.**
+- `SUPABASE_URL` targets `https://pcjgzbaigtsnevhcjqyd.supabase.co`, the isolated development database.
+- `NEXT_PUBLIC_SITE_URL` targets the stable branch preview hostname.
+- `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` and `CRON_SECRET` currently contain **non-working test placeholders** on this branch. No secret values are stored in Git.
+- `SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS=false`, `PHASE1_TEST_EMAILS=disabled`, and `PHASE1_TEST_AI=disabled` deliberately disable preview purchases, outgoing emails and AI usage.
+- Code guards reject preview checkout and database access if the project points to Production credentials.
+- The optional status endpoint `/api/phase1-status` exposes readiness booleans but never secrets; it returns 404 in Production.
+- **Not yet configured:** an actual **Stripe test-mode secret key**, the development branch's **Supabase service-role/secret key**, signed Stripe test webhook with Preview protection bypass, and test email service.
+- Test credentials must be entered in Vercel's branch-specific environment variables **directly by the account owner**; never paste credentials into chat or screenshots.
+- After correct test credentials are entered, confirm readiness then enable `SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS=true` **on the same branch only**. Do not enable the flag with placeholders.
+- Vercel preview protection is enabled. Stripe's webhook cannot reach a protected preview without a securely configured bypass. Use only the test webhook endpoint and signing secret.
+
 ## Supabase staging status — 9 November 2026
 
 - Isolated **Supabase development branch** `phase-1-personalisation-test` created. Its compute charge is US$0.01344/hour plus potential usage. **Delete it once testing is complete.**
