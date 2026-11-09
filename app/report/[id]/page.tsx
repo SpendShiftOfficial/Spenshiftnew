@@ -1,5 +1,8 @@
 import type React from "react";
 import Header from "@/components/Header";
+import SimpleSavingsReport from "./SimpleSavingsReport";
+import { validateRefinements } from "@/lib/report-refinements";
+import type { SavingsAnalysis } from "@/lib/savings-engine";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import {
@@ -304,6 +307,35 @@ export default async function ReportPage({
     .single();
 
   if (!data) notFound();
+
+  // Use the new short, action-first report for structured Phase 1 reports.
+  // Older saved reports without a structured summary keep their old renderer.
+  const saved = data.savings_summary;
+  if (saved && typeof saved === "object" && Array.isArray(saved.opportunities) &&
+      Array.isArray(data.answers) && data.answers.length === 8 &&
+      saved.opportunities.every((o: any) =>
+        o && typeof o.area === "string" &&
+        ["subscriptions", "insurance", "takeaway", "convenience", "phone", "energy", "unplanned"].includes(o.area) &&
+        typeof o.title === "string" && typeof o.firstAction === "string")) {
+    const refinements = validateRefinements(data.refinements);
+    const analysis: SavingsAnalysis = {
+      opportunities: saved.opportunities,
+      estimatedAnnualScenario: typeof saved.estimatedAnnualScenario === "number"
+        ? saved.estimatedAnnualScenario : null,
+      disclaimer: typeof saved.disclaimer === "string" ? saved.disclaimer : "",
+    };
+    return (
+      <div className="auditPage">
+        <Header simple />
+        <SimpleSavingsReport
+          reportId={id}
+          answers={data.answers}
+          analysis={analysis}
+          refinements={refinements}
+        />
+      </div>
+    );
+  }
 
   const reportText = cleanOldJson(data.report);
   const model = data.savings_summary && typeof data.savings_summary === "object"
