@@ -43,7 +43,7 @@ export function prepareDraft(d:PlanDraft){
 export function restoreDraft(answers:string[],saved:unknown):PlanDraft{
  if(!saved||typeof saved!=='object')return blankDraft(answers);
  const value=saved as Record<string,unknown>;
- if(value.draft){try{return cleanDraft({...obj(value.draft),answers});}catch{return blankDraft(answers);}}
+ if(value.draft){try{const draft=obj(value.draft);const draftAnswers=Array.isArray(draft.answers)?draft.answers:answers;return cleanDraft({...draft,answers:draftAnswers});}catch{return blankDraft(answers);}}
  const d=blankDraft(answers);const details=value.details as Record<string,unknown>||{};
  for(const key of Object.keys(d.details)){if(typeof details[key]==='string'||typeof details[key]==='number')d.details[key]=String(details[key]);}
  if(d.details.gasMonthly&&!d.details.hasGas)d.details.hasGas='yes';
