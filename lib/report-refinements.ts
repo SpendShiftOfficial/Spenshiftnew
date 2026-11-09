@@ -13,9 +13,16 @@ export type PersonalisationDetails = {
   mobileMonthly: number | null;
   subscriptionsMonthly: number | null;
   unusedSubscriptionMonthly: number | null;
+  unusedSubscriptionChoice: "" | "yes" | "no" | "not_sure";
+  unusedSubscriptionName: string;
   takeawayOrder: number | null;
+  takeawayOrdersPerWeek: number | null;
+  takeawaySwapPerWeek: number | null;
+  takeawayReplacementCost: number | null;
   convenienceWeekly: number | null;
+  convenienceGoalWeekly: number | null;
   unplannedArea: string;
+  shoppingTrigger: string;
 };
 
 export type InsuranceRefinement = {
@@ -24,6 +31,7 @@ export type InsuranceRefinement = {
   paymentPeriod: "month" | "year";
   insurer: string;
   coverDescription: string;
+  renewal: "" | "soon" | "later" | "not_sure";
 };
 
 export type ReportRefinements = {
@@ -39,6 +47,9 @@ const areas: PersonalisationArea[] = [
 const states = new Set(["", "NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]);
 const insuranceTypes = new Set(["", "Car", "Home or contents", "Health", "Life or income protection", "Pet", "Travel", "Other"]);
 const unplannedTypes = new Set(["", "Online shopping", "Clothes or accessories", "Entertainment or hobbies", "Other purchases"]);
+const unusedChoices = new Set(["", "yes", "no", "not_sure"]);
+const renewalChoices = new Set(["", "soon", "later", "not_sure"]);
+const triggerChoices = new Set(["", "Sales or deals", "Boredom", "Social media", "Other", "Not sure"]);
 
 function record(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -61,6 +72,15 @@ function money(value: unknown, label: string): number | null {
     throw new Error(label + " is outside the allowed range.");
   }
   return parsed;
+}
+
+function countPerWeek(value: unknown, label: string): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const raw = String(value);
+  if (!/^(?:0|[1-9]\\d?)$/.test(raw)) throw new Error(label + " must be a whole number.");
+  const n = Number(raw);
+  if (n > 21) throw new Error(label + " must be 21 or less.");
+  return n;
 }
 
 function fixedChoice(value: unknown, allowed: Set<string>, label: string): string {
@@ -92,9 +112,16 @@ export function emptyRefinements(): ReportRefinements {
       mobileMonthly: null,
       subscriptionsMonthly: null,
       unusedSubscriptionMonthly: null,
+      unusedSubscriptionChoice: "",
+      unusedSubscriptionName: "",
       takeawayOrder: null,
+      takeawayOrdersPerWeek: null,
+      takeawaySwapPerWeek: null,
+      takeawayReplacementCost: null,
       convenienceWeekly: null,
+      convenienceGoalWeekly: null,
       unplannedArea: "",
+      shoppingTrigger: "",
     },
     insurancePolicies: [],
   };
@@ -128,6 +155,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
       paymentPeriod,
       insurer: optionalText(policy.insurer, 80, "Insurer name"),
       coverDescription: optionalText(policy.coverDescription, 120, "Coverage note"),
+      renewal: fixedChoice(policy.renewal, renewalChoices, "renewal timing") as InsuranceRefinement["renewal"],
     };
   }).filter((policy) =>
     policy.type || policy.premium !== null || policy.insurer || policy.coverDescription,
@@ -135,9 +163,26 @@ export function validateRefinements(input: unknown): ReportRefinements {
 
   const subscriptionsMonthly = money(details.subscriptionsMonthly, "Subscription total");
   const unusedSubscriptionMonthly = money(details.unusedSubscriptionMonthly, "Unused subscription price");
+  const unusedSubscriptionChoice = fixedChoice(details.unusedSubscriptionChoice, unusedChoices, "unused subscription answer") as PersonalisationDetails["unusedSubscriptionChoice"];
+  const effectiveUnusedChoice = unusedSubscriptionChoice || (unusedSubscriptionMonthly !== null ? "yes" : "");
+  if (effectiveUnusedChoice !== "yes" && unusedSubscriptionMonthly !== null) {
+    throw new Error("Choose Yes before entering an unused subscription price.");
+  }
   if (unusedSubscriptionMonthly !== null && subscriptionsMonthly !== null &&
       unusedSubscriptionMonthly > subscriptionsMonthly) {
     throw new Error("An unused subscription cannot cost more than your monthly subscription total.");
+  }
+  const takeawayOrdersPerWeek = countPerWeek(details.takeawayOrdersPerWeek, "Takeaway orders");
+  const takeawaySwapPerWeek = countPerWeek(details.takeawaySwapPerWeek, "Meals to swap");
+  if (takeawayOrdersPerWeek !== null && takeawaySwapPerWeek !== null &&
+      takeawaySwapPerWeek > takeawayOrdersPerWeek) {
+    throw new Error("You can't swap more takeaway orders than you buy.");
+  }
+  const convenienceWeekly = money(details.convenienceWeekly, "Small buys each week");
+  const convenienceGoalWeekly = money(details.convenienceGoalWeekly, "New weekly small-buy goal");
+  if (convenienceWeekly !== null && convenienceGoalWeekly !== null &&
+      convenienceGoalWeekly > convenienceWeekly) {
+    throw new Error("Your new weekly goal must be no higher than what you spend now.");
   }
 
   return {
@@ -152,9 +197,16 @@ export function validateRefinements(input: unknown): ReportRefinements {
       mobileMonthly: money(details.mobileMonthly, "Mobile bill"),
       subscriptionsMonthly,
       unusedSubscriptionMonthly,
+      unusedSubscriptionChoice: effectiveUnusedChoice,
+      unusedSubscriptionName: optionalText(details.unusedSubscriptionName, 60, "Subscription name"),
       takeawayOrder: money(details.takeawayOrder, "Takeaway order"),
-      convenienceWeekly: money(details.convenienceWeekly, "Convenience spending"),
+      takeawayOrdersPerWeek,
+      takeawaySwapPerWeek,
+      takeawayReplacementCost: money(details.takeawayReplacementCost, "Cost to make a meal instead"),
+      convenienceWeekly,
+      convenienceGoalWeekly,
       unplannedArea: fixedChoice(details.unplannedArea, unplannedTypes, "unplanned purchases"),
+      shoppingTrigger: fixedChoice(details.shoppingTrigger, triggerChoices, "shopping trigger"),
     },
     insurancePolicies: policies,
   };
