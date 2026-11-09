@@ -24,7 +24,7 @@ const rules: Record<PersonalisationArea, Rule> = {
   insurance: { index: 2, signals: {
     "I don’t currently have insurance": 0, "Within 6 months": 0,
     "6–12 months ago": 1, "1–2 years ago": 2,
-    "Over 2 years ago": 3, "Never / not sure": 3,
+    "Over 2 years ago": 3, "Never / not sure": 3, "Never": 3, "Not sure": 2,
   }},
   convenience: { index: 3, signals: {
     "Rarely": 0, "1–2 times/week": 2, "3–5 times/week": 3, "Daily": 4,
@@ -83,9 +83,11 @@ export function reasonForArea(area: PersonalisationArea, answers: string[]): str
     case "subscriptions":
       return answers[1] === "Not sure" ? "You're not sure how many you pay for." : "You pay for " + answers[1] + " subscriptions.";
     case "insurance":
-      return answers[2] === "Never / not sure"
+      return answers[2] === "Never / not sure" || answers[2] === "Not sure"
         ? "You're not sure when you last checked your insurance."
-        : "You last checked your insurance " + answers[2].toLowerCase() + ".";
+        : answers[2] === "Never"
+          ? "You've never checked your insurance price."
+          : "You last checked your insurance " + answers[2].toLowerCase() + ".";
     case "takeaway": return "You buy takeaway " + answers[0].toLowerCase() + ".";
     case "convenience": return "You buy coffee, snacks or quick lunches " + answers[3].toLowerCase() + ".";
     case "phone": return answers[4]==="I honestly don't know"?"You're not sure when you last checked your phone or internet price.":"You last checked your phone or internet price " + answers[4].toLowerCase() + ".";
