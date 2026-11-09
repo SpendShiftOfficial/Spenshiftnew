@@ -54,20 +54,30 @@ function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string[] {
     ];
   }
   if (op.area === "takeaway") {
-    if (d.takeawaySwapPerWeek === 0) return ["Keep your meal routine for now.", "Check the full cost, including delivery, before your next order.", "Only change something if it fits your needs and costs less."];
-    if (d.takeawayOrdersPerWeek !== null && d.takeawaySwapPerWeek !== null &&
-        d.takeawaySwapPerWeek > 0 && d.takeawaySwapPerWeek <= d.takeawayOrdersPerWeek) {
-      const n = d.takeawaySwapPerWeek;
+    if (d.takeawaySwapPerWeek === 0) return [
+      "Keep your takeaway routine if that is what works for you.",
+      "Check the full cost, including delivery fees, before your next order.",
+      "Only make a change if it suits your needs and costs less.",
+    ];
+    const n = d.takeawaySwapPerWeek;
+    const relevant =
+      d.takeawayReason === "busy" ? "For busy nights, choose food you can make quickly, like wraps, eggs or a simple rice bowl. Buy what you need ahead of time."
+      : d.takeawayReason === "tired" ? "Make an extra meal when you have more energy. Keep it ready in the fridge or freezer for a tiring day."
+      : d.takeawayReason === "enjoy" ? "Keep your favourite takeaway night. Choose less important orders to replace so the plan feels worth keeping."
+      : d.takeawayReason === "family" ? "Pick easy meals that feed everyone, such as pasta or wraps. Work out the full cost for the same number of people."
+      : "Choose a home meal that you enjoy and can make on a normal week. Buy the food ahead of time.";
+    if (d.takeawayOrdersPerWeek !== null && n !== null &&
+        n > 0 && n <= d.takeawayOrdersPerWeek) {
       return [
-        "Mark " + n + " orders next week that you could replace with food from home.",
-        "Pick " + n + " easy " + (n === 1 ? "meal" : "meals") + " to make at home. Buy the food in one shop.",
-        "Keep the takeaway receipts and food-shop costs. Compare the price for the same people.",
+        "Pick " + n + (n === 1 ? " takeaway order" : " takeaway orders") + " you could replace next week.",
+        relevant,
+        "Check the full cost of each home meal for the same people. Count the difference, including any extra travel.",
       ];
     }
     return [
-      "Look back over the last 7 days. Count your takeaway orders and the full price of each.",
-      "Choose how many orders you could replace each week and still enjoy your food.",
-      "Price a meal at home for the same people. Compare the two totals.",
+      "Count how many takeaway orders you usually buy each week.",
+      relevant,
+      "Choose a change you could keep doing and compare the full cost of both meals.",
     ];
   }
   if (op.area === "convenience") {
