@@ -1,6 +1,7 @@
 import {validateAuditAnswers} from './audit-schema';
 import {selectPersonalisationAreas, type PersonalisationArea} from './personalisation-questions';
 import {emptyRefinements,validateRefinements} from './report-refinements';
+import {findAuditConflict} from './plan-conflicts';
 export const sectionKeys:Record<PersonalisationArea,string[]>={
  subscriptions:['subscriptionsMonthly','unusedSubscriptionChoice','unusedSubscriptionName','unusedSubscriptionMonthly'],
  takeaway:['takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost'],
@@ -29,6 +30,8 @@ export function cleanDraft(input:unknown):PlanDraft{
 }
 export function selectedDraftAreas(d:PlanDraft):PersonalisationArea[]{const areas=selectPersonalisationAreas(d.answers);if(d.additionalArea&&!areas.includes(d.additionalArea as PersonalisationArea))areas.push(d.additionalArea as PersonalisationArea);return areas;}
 export function prepareDraft(d:PlanDraft){
+ const conflict=findAuditConflict(d);
+ if(conflict) throw new Error(conflict.message);
  const areas=selectedDraftAreas(d);const details:Record<string,string>={};
  for(const area of areas)for(const key of sectionKeys[area])details[key]=d.details[key]||'';
  if(details.hasGas==='no'||details.hasGas==='not_sure')details.gasMonthly='';
