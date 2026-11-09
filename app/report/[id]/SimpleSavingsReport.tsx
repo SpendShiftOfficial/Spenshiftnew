@@ -1,5 +1,5 @@
 import type { SavingsAnalysis, SavingsOpportunity } from "@/lib/savings-engine";
-import type { ReportRefinements } from "@/lib/report-refinements";
+import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refinements";
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
 import CopyMessage from "./CopyMessage";
@@ -13,220 +13,370 @@ type Props = {
 };
 
 function money(amount: number): string {
-  return "$" + amount.toLocaleString("en-AU", {
-    minimumFractionDigits: 0, maximumFractionDigits: 2,
-  });
+  return "$" + amount.toLocaleString("en-AU", { maximumFractionDigits: 2 });
 }
 
-const steps: Record<SavingsOpportunity["area"], string[]> = {
-  subscriptions: [
-    "Open your bank app. Find your monthly subscriptions.",
-    "Pick one you do not use.",
-    "Cancel it with the company. Check your next bank statement.",
-  ],
-  insurance: [
-    "Find the policy that renews next.",
-    "Get two quotes for the same cover.",
-    "Check the cover, total price and fees before you change.",
-  ],
-  takeaway: [
-    "Choose one takeaway meal you buy often.",
-    "Find an easy meal that costs less.",
-    "Check both prices. Count only what you keep.",
-  ],
-  convenience: [
-    "Think of one snack, coffee or quick lunch you could skip.",
-    "Plan a cheaper choice for next time.",
-    "See what you spend less on your next bank statement.",
-  ],
-  phone: [
-    "Find your latest phone or internet bill.",
-    "Compare two plans with the same speed, data and coverage.",
-    "Check the price after discounts end before you switch.",
-  ],
-  energy: [
-    "Find your latest power or gas bill.",
-    "Compare plans using the amount of energy you use.",
-    "Check all charges before you switch.",
-  ],
-  unplanned: [
-    "The next time you want something extra, wait one day.",
-    "Ask yourself if you still need it.",
-    "If you skip it, note what you kept. Do not count it twice.",
-  ],
+function insuranceAnnual(policy: InsuranceRefinement): number {
+  return (policy.premium ?? 0) * (policy.paymentPeriod === "month" ? 12 : 1);
+}
+
+function insuranceTip(type: string): string {
+  if (type === "Car") return "Check the car's value, who can drive it, and what you pay if you claim.";
+  if (type === "Home or contents") return "Check what your home and things are covered for. Look closely at flood and storm cover.";
+  if (type === "Health") return "Check hospital cover, waiting times, and extras you use. Don't drop cover just to pay less.";
+  if (type === "Life or income protection") return "Check when the cover pays, what it leaves out, and any waiting time. Get advice before dropping cover.";
+  if (type === "Pet") return "Check yearly limits, what care is not covered, and what you pay for a claim.";
+  if (type === "Travel") return "Check your trip dates, medical cover, and activities that are not covered.";
+  return "Check what is covered, what is not, and what you pay for a claim.";
+}
+
+function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string[] {
+  const d = r.details;
+  if (op.area === "subscriptions") {
+    if (d.unusedSubscriptionChoice === "no") return [
+      "Keep the services you use. Write down what each one costs.",
+      "Check if the same service has a cheaper plan that still meets your needs.",
+      "Change only if the total price is lower. Check next month's bill.",
+    ];
+    if (d.unusedSubscriptionChoice === "yes") return [
+      "Find the charge for " + (d.unusedSubscriptionName || "the unused service") + " in your bank app.",
+      "Open that service's account page and check how to cancel it.",
+      "Cancel only if you don't use it. Save the email and check your next bill.",
+    ];
+    return [
+      "Open your bank app and look at the last two months.",
+      "Write down each app, streaming bill, and membership you pay for.",
+      "Mark the ones you use. Check for old charges or cheaper plans.",
+    ];
+  }
+  if (op.area === "takeaway") {
+    if (d.takeawayOrdersPerWeek !== null && d.takeawaySwapPerWeek !== null &&
+        d.takeawaySwapPerWeek > 0 && d.takeawaySwapPerWeek <= d.takeawayOrdersPerWeek) {
+      const n = d.takeawaySwapPerWeek;
+      return [
+        "Pick " + n + " " + (n === 1 ? "day" : "days") + " next week when you'd usually order takeaway.",
+        "Pick " + n + " easy " + (n === 1 ? "meal" : "meals") + " to make at home. Buy the food in one shop.",
+        "Keep the takeaway receipts and food-shop costs. Compare the price for the same people.",
+      ];
+    }
+    return [
+      "Look back over the last 7 days. Count your takeaway orders and the full price of each.",
+      "Choose how many orders you could replace each week and still enjoy your food.",
+      "Price a meal at home for the same people. Compare the two totals.",
+    ];
+  }
+  if (op.area === "convenience") {
+    if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
+        d.convenienceGoalWeekly <= d.convenienceWeekly) {
+      return [
+        "Set a weekly limit of " + money(d.convenienceGoalWeekly) + " for coffee, snacks and quick buys.",
+        "Choose which days you'll buy them. Bring a drink or snack on the other days.",
+        "Check the total after 7 days. Change your goal if it feels too hard.",
+      ];
+    }
+    return [
+      "Check last week's coffee, snack and quick-buy costs.",
+      "Choose a weekly limit that still lets you enjoy some treats.",
+      "Bring a drink or snack on the days you'd rather not spend.",
+    ];
+  }
+  if (op.area === "insurance") {
+    const policies = [...r.insurancePolicies];
+    const first = policies.filter(p => p.renewal === "soon")
+      .sort((a,b) => insuranceAnnual(b) - insuranceAnnual(a))[0]
+      || policies.filter(p => p.premium !== null)
+        .sort((a,b) => insuranceAnnual(b) - insuranceAnnual(a))[0]
+      || policies[0];
+    const firstName = first?.type || "one insurance policy";
+    return [
+      "Start with " + firstName + (first?.renewal === "soon" ? " because it renews soon." : "."),
+      "Get two quotes for the same cover. Ask for the full yearly price.",
+      "Check what is not covered and what you'd pay for a claim. Keep the cover you need.",
+    ];
+  }
+  if (op.area === "phone") return [
+    "Find your latest phone or internet bill. Note what you pay and the data or speed you use.",
+    "Ask your provider for a cheaper plan. Check two other plans with the same coverage.",
+    "Check fees, when a sale price ends, and what your new bill would be.",
+  ];
+  if (op.area === "energy") return [
+    "Find your latest power or gas bill. Keep it next to you.",
+    "Use a free government comparison site if one serves your state.",
+    "Compare total yearly costs for your own energy use, not just the headline rate.",
+  ];
+  if (d.shoppingTrigger === "Sales or deals") return [
+    "Turn off sale emails and shopping alerts for 7 days.",
+    "Put any item you want on a list. Wait one day before buying.",
+    "Check the list next week. Only buy what you still need.",
+  ];
+  if (d.shoppingTrigger === "Boredom") return [
+    "Write down three free things you enjoy doing.",
+    "When you're bored, try one of them before opening a shop app.",
+    "Wait a day before buying something you did not plan to buy.",
+  ];
+  if (d.shoppingTrigger === "Social media") return [
+    "Hide shopping ads and unfollow deal pages for 7 days.",
+    "Keep items you want on a list, not in a shopping basket.",
+    "Check your list after one day. Only buy what you still need.",
+  ];
+  if (d.unplannedArea === "Online shopping") return [
+    "Remove saved card details from shopping sites.",
+    "Put the next item you want on a list and wait a day.",
+    "Buy it only if you still need it and can afford it.",
+  ];
+  if (d.unplannedArea === "Clothes or accessories") return [
+    "Check what clothes and shoes you already own.",
+    "Make a list of what you need before opening a shop.",
+    "Wait a day before buying anything not on the list.",
+  ];
+  return [
+    "Write down what you want before you go shopping.",
+    "If something extra catches your eye, wait a day.",
+    "Only count money saved if you chose not to buy it.",
+  ];
+}
+
+const messages = {
+  insurance: "Hi, I'm checking my insurance price. Can you give me a quote for the same cover I have now? Please show the full yearly cost, any fees, and what isn't covered. Thanks.",
+  phone: "Hi, I'm checking my phone or internet plan. Do you have a cheaper plan with the same data, speed and coverage? Please show the full price after any deal ends, and any fees. Thanks.",
 };
 
-const messages: Partial<Record<SavingsOpportunity["area"], string>> = {
-  subscriptions: "Hi, I'm checking my subscriptions. What is my monthly price? When will you charge me next? How can I cancel, and will there be any fees? Thanks.",
-  insurance: "Hi, I'm checking my insurance. Can you give me a quote with the same cover I have now? Please show the full price, fees and anything that is not covered. Thanks.",
-  phone: "Hi, I'm checking my phone or internet bill. Do you have a cheaper plan with the same data, speed and coverage? What will it cost after any sale price ends? Thanks.",
-  energy: "Hi, I'm checking my energy bill. Can you compare your plans using my real usage? Please show the full price and all fees. Thanks.",
-};
-
-function AreaCost({ opportunity, refinements }: {
-  opportunity: SavingsOpportunity;
-  refinements: ReportRefinements;
-}) {
-  const d = refinements.details;
-  const area = opportunity.area;
-  if (area === "subscriptions") {
-    return d.subscriptionsMonthly === null ? <p className={styles.unknown}>You did not add a monthly price.</p> : (
-      <div className={styles.costLine}>
+function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinements: ReportRefinements }) {
+  const d = r.details;
+  if (op.area === "subscriptions") return (
+    <>
+      {d.subscriptionsMonthly !== null && <div className={styles.costLine}>
         <strong>{money(d.subscriptionsMonthly)} <small>/ month</small></strong>
         <span>What you pay for subscriptions now</span>
-      </div>
-    );
-  }
-  if (area === "insurance") {
-    return refinements.insurancePolicies.length ? (
+      </div>}
+      {op.scenarioSaving !== null && d.unusedSubscriptionChoice === "yes" && (
+        <div className={styles.possible}>
+          <strong>Possible yearly saving: {money(op.scenarioSaving)}</strong>
+          <p>If you cancel {d.unusedSubscriptionName || "the unused service"} at {money(d.unusedSubscriptionMonthly ?? 0)}/month and do not replace it.</p>
+          <small>You haven't saved this money yet.</small>
+        </div>
+      )}
+    </>
+  );
+  if (op.area === "takeaway") return (
+    <>
+      {d.takeawayOrder !== null && <div className={styles.costLine}>
+        <strong>{money(d.takeawayOrder)} <small>/ order</small></strong>
+        <span>Your usual takeaway order</span>
+      </div>}
+      {d.takeawayOrder !== null && d.takeawayOrdersPerWeek !== null && (
+        <p className={styles.costExplanation}>
+          {d.takeawayOrdersPerWeek} orders a week costs about <strong>{money(d.takeawayOrder * d.takeawayOrdersPerWeek)}/week</strong> at that price.
+        </p>
+      )}
+      {op.scenarioSaving !== null && d.takeawaySwapPerWeek !== null &&
+       d.takeawayReplacementCost !== null && d.takeawayOrder !== null && (
+        <div className={styles.possible}>
+          <strong>Your plan: {money((d.takeawayOrder - d.takeawayReplacementCost) * d.takeawaySwapPerWeek)} less per week</strong>
+          <p>Swap {d.takeawaySwapPerWeek} orders each week. Food at home costs {money(d.takeawayReplacementCost)} for the same people.</p>
+          <p>If you keep this up for 52 weeks, you could save up to <b>{money(op.scenarioSaving)} a year</b>.</p>
+          <small>This is a goal, not money saved yet. Extra costs can lower the amount.</small>
+        </div>
+      )}
+      {d.takeawaySwapPerWeek !== null && op.scenarioSaving === null && (
+        <p className={styles.costExplanation}>You want to replace {d.takeawaySwapPerWeek} orders each week. Add the full cost of meals at home to work out a fair saving.</p>
+      )}
+    </>
+  );
+  if (op.area === "convenience") return (
+    <>
+      {d.convenienceWeekly !== null && <div className={styles.costLine}>
+        <strong>{money(d.convenienceWeekly)} <small>/ week</small></strong>
+        <span>What you spend on small buys now</span>
+      </div>}
+      {op.scenarioSaving !== null && d.convenienceGoalWeekly !== null &&
+        d.convenienceWeekly !== null && (
+        <div className={styles.possible}>
+          <strong>Your goal: {money(d.convenienceGoalWeekly)} a week</strong>
+          <p>That's {money(d.convenienceWeekly - d.convenienceGoalWeekly)} less each week, or up to {money(op.scenarioSaving)} a year if you keep to it.</p>
+          <small>This is a goal, not money saved yet. Don't count takeaway here too.</small>
+        </div>
+      )}
+    </>
+  );
+  if (op.area === "insurance") {
+    const policies = [...r.insurancePolicies].sort((a,b) => {
+      const byRenewal = (a.renewal === "soon" ? 1 : 0) - (b.renewal === "soon" ? 1 : 0);
+      return byRenewal !== 0 ? -byRenewal : insuranceAnnual(b) - insuranceAnnual(a);
+    });
+    return policies.length ? (
       <div className={styles.policies}>
-        {refinements.insurancePolicies.map((p, i) => (
+        {policies.map((p,i) => (
           <div className={styles.policy} key={i}>
             <div>
-              <strong>{p.type || "Insurance policy " + (i + 1)}</strong>
-              {p.insurer ? <small>{p.insurer}</small> : null}
-              {p.coverDescription ? <small>{p.coverDescription}</small> : null}
+              <strong>{p.type || "Policy " + (i+1)}</strong>
+              {p.renewal === "soon" && <small>Renews in the next 3 months</small>}
+              {p.insurer && <small>{p.insurer}</small>}
+              {p.coverDescription && <small>{p.coverDescription}</small>}
+              <small>{insuranceTip(p.type)}</small>
             </div>
-            <span>{p.premium === null ? "No price given" : money(p.premium) + " / " + (p.paymentPeriod === "month" ? "month" : "year")}</span>
+            <span>{p.premium === null ? "Price not given" : money(p.premium) + " / " + (p.paymentPeriod === "month" ? "month" : "year")}</span>
           </div>
         ))}
-        {refinements.insurancePolicies.every(p => p.premium !== null) ? (
-          <p className={styles.costSummary}>
-            Total you pay now: <strong>{money(refinements.insurancePolicies.reduce((sum,p) => sum + (p.premium ?? 0) * (p.paymentPeriod === "month" ? 12 : 1), 0))} / year</strong>
+        {policies.every(p => p.premium !== null) && (
+          <p className={styles.costSummary}>Your total insurance cost:
+            <strong>{money(policies.reduce((sum,p) => sum + insuranceAnnual(p),0))} / year</strong>
           </p>
-        ) : null}
+        )}
       </div>
-    ) : <p className={styles.unknown}>You did not add your insurance costs.</p>;
+    ) : <p className={styles.unknown}>You didn't add any policy prices. Your plan will show how to check them.</p>;
   }
-  if (area === "phone") {
-    return (
-      <div className={styles.costDetails}>
-        {d.mobileMonthly !== null && <p><span>Mobile</span><strong>{money(d.mobileMonthly)} / month</strong></p>}
-        {d.internetMonthly !== null && <p><span>Internet</span><strong>{money(d.internetMonthly)} / month</strong></p>}
-        {d.mobileMonthly === null && d.internetMonthly === null && <p className={styles.unknown}>You did not add a bill amount.</p>}
-      </div>
-    );
-  }
-  if (area === "energy") {
-    return (
-      <div className={styles.costDetails}>
-        {d.state && <p><span>Your state</span><strong>{d.state}</strong></p>}
-        {d.electricityBill !== null && <p><span>Power bill</span><strong>{money(d.electricityBill)} / {d.electricityPeriod === "month" ? "month" : "3 months"}</strong></p>}
-        {d.gasMonthly !== null && <p><span>Gas bill</span><strong>{money(d.gasMonthly)} / month</strong></p>}
-        {d.electricityBill === null && d.gasMonthly === null && <p className={styles.unknown}>You did not add a bill amount.</p>}
-      </div>
-    );
-  }
-  if (area === "takeaway") {
-    return d.takeawayOrder !== null ? <div className={styles.costLine}>
-      <strong>{money(d.takeawayOrder)} <small>/ order</small></strong>
-      <span>What you pay for a normal takeaway order</span>
-    </div> : <p className={styles.unknown}>You did not add an order price.</p>;
-  }
-  if (area === "convenience") {
-    return d.convenienceWeekly !== null ? <div className={styles.costLine}>
-      <strong>{money(d.convenienceWeekly)} <small>/ week</small></strong>
-      <span>What you spend on small buys</span>
-    </div> : <p className={styles.unknown}>You did not add a weekly amount.</p>;
-  }
-  return d.unplannedArea
-    ? <p className={styles.simpleFact}>You picked: <strong>{d.unplannedArea}</strong>.</p>
-    : <p className={styles.unknown}>You can start without a spending amount.</p>;
+  if (op.area === "energy") return (
+    <div className={styles.costDetails}>
+      {d.state && <p><span>State</span><strong>{d.state}</strong></p>}
+      {d.electricityBill !== null && <p><span>Power bill</span><strong>{money(d.electricityBill)} / {d.electricityPeriod === "month" ? "month" : "3 months"}</strong></p>}
+      {d.gasMonthly !== null && <p><span>Gas</span><strong>{money(d.gasMonthly)} / month</strong></p>}
+    </div>
+  );
+  if (op.area === "phone") return (
+    <div className={styles.costDetails}>
+      {d.mobileMonthly !== null && <p><span>Mobile</span><strong>{money(d.mobileMonthly)} / month</strong></p>}
+      {d.internetMonthly !== null && <p><span>Internet</span><strong>{money(d.internetMonthly)} / month</strong></p>}
+    </div>
+  );
+  return (
+    <div className={styles.costDetails}>
+      {d.unplannedArea && <p><span>What you buy</span><strong>{d.unplannedArea}</strong></p>}
+      {d.shoppingTrigger && <p><span>What makes you shop</span><strong>{d.shoppingTrigger}</strong></p>}
+    </div>
+  );
 }
 
-function shortTask(area: SavingsOpportunity["area"]): string {
-  const tasks: Record<SavingsOpportunity["area"], string> = {
-    subscriptions: "Check subscriptions you no longer use.",
-    insurance: "Get two quotes for one insurance policy.",
-    takeaway: "Swap one takeaway meal for a cheaper meal.",
-    convenience: "Choose one small buy to cut back.",
-    phone: "Compare two phone or internet plans.",
-    energy: "Compare two power or gas plans.",
-    unplanned: "Wait one day before your next extra buy.",
-  };
-  return tasks[area];
+function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements }) {
+  const area = op.area;
+  const state = r.details.state;
+  if (area === "energy") {
+    const url = state === "VIC"
+      ? "https://compare.energy.vic.gov.au/languages/english"
+      : ["NSW","QLD","SA","TAS","ACT"].includes(state)
+        ? "https://www.energymadeeasy.gov.au/offer-search"
+        : null;
+    return url ? (
+      <p className={styles.guide}>
+        <a href={url} target="_blank" rel="noopener noreferrer">Open the free government energy comparison site</a>
+        <span>Use your own bill to compare plans. We have not checked prices for you.</span>
+      </p>
+    ) : (
+      <p className={styles.smallNote}>Your state may use a different way to compare plans. Ask your energy retailer or local consumer agency for the right tool.</p>
+    );
+  }
+  if (area === "subscriptions") return (
+    <p className={styles.guide}>
+      <a href="https://support.apple.com/en-au/118428" target="_blank" rel="noopener noreferrer">Find or cancel an Apple subscription</a>
+      <a href="https://support.google.com/googleplay/answer/7018481?hl=en" target="_blank" rel="noopener noreferrer">Find or cancel a Google Play subscription</a>
+      <span>For other services, open the company's account or billing page.</span>
+    </p>
+  );
+  if (area === "insurance" || area === "phone") return (
+    <>
+      <details className={styles.helpDetails}>
+        <summary>{area === "insurance" ? "Ask your insurer for a price to compare" : "Ask your phone company about a better plan"}</summary>
+        <div className={styles.message}>
+          <p>Send this to {area === "insurance" ? "your insurance company" : "your phone or internet company"}:</p>
+          <blockquote>{messages[area]}</blockquote>
+          <CopyMessage message={messages[area]} />
+        </div>
+      </details>
+      <p className={styles.guide}>
+        <a href={area === "insurance"
+          ? "https://moneysmart.gov.au/car-insurance/how-to-save-money-on-car-insurance"
+          : "https://www.acma.gov.au/switch-your-phone-or-internet-provider"}
+          target="_blank" rel="noopener noreferrer">
+          {area === "insurance" ? "Read the free MoneySmart insurance guide" : "Read the free phone switching guide"}
+        </a>
+      </p>
+    </>
+  );
+  }
+  return null;
+}
+
+function AreaCard({ op, index, answers, refinements }: {
+  op: SavingsOpportunity;
+  index: number;
+  answers: string[];
+  refinements: ReportRefinements;
+}) {
+  const steps = firstSteps(op, refinements);
+  return (
+    <article className={styles.card} id={"area-" + op.area}>
+      <div className={styles.cardTitle}>
+        <span className={styles.number}>{index + 1}</span>
+        <div>
+          <h2>{op.title}</h2>
+          <p>{reasonForArea(op.area, answers)}</p>
+        </div>
+      </div>
+      <AreaNumbers op={op} refinements={refinements} />
+      <div className={styles.steps}>
+        <h3>What to do</h3>
+        <ol>{steps.map((step,i) => <li key={i}>{step}</li>)}</ol>
+      </div>
+      <UsefulHelp op={op} r={refinements} />
+    </article>
+  );
+}
+
+function firstTask(op: SavingsOpportunity, r: ReportRefinements): string {
+  return firstSteps(op,r)[0];
 }
 
 export default function SimpleSavingsReport({ reportId, answers, analysis, refinements }: Props) {
-  const opportunities = analysis.opportunities.slice(0, 4);
-  const count = opportunities.length;
-  const todo = opportunities.length
-    ? [...opportunities.slice(0, 2).map(op => shortTask(op.area)), "Check the next bill to see what you really saved."]
-    : ["Find a bill you pay each month.", "Check whether you still need that plan.", "Compare the price before you make a change."];
-
-  const knownUnused = refinements.details.unusedSubscriptionMonthly;
-  const subsTotal = refinements.details.subscriptionsMonthly;
-  const canShowSubscriptionExample =
-    opportunities.some(o => o.area === "subscriptions") &&
-    knownUnused !== null && knownUnused > 0 &&
-    (subsTotal === null || knownUnused <= subsTotal);
+  const ops = analysis.opportunities;
+  const first = ops.slice(0, 3);
+  const more = ops.slice(3);
+  const tasks = first.length
+    ? [...first.slice(0, 2).map(op => firstTask(op, refinements)), "Check what you actually spent after making changes."]
+    : ["Find a bill you pay each month.", "See if the plan still suits you.", "Compare the full price before you change."];
 
   return (
     <main className={styles.page}>
       <div className={styles.wrap}>
         <header className={styles.hero}>
-          <span className={styles.kicker}>YOUR SPENDSHIFT PLAN</span>
-          <h1>{count ? "Your " + count + " best " + (count === 1 ? "place" : "places") + " to check" : "Your simple money plan"}</h1>
-          <p>{count
-            ? "We used your answers to pick where to start. Do one thing at a time."
-            : "Your answers did not show a clear money problem. We won't make one up."}</p>
+          <span className={styles.kicker}>YOUR SPENDSHIFT SAVINGS PLAN</span>
+          <h1>{ops.length
+            ? "Your " + ops.length + " " + (ops.length === 1 ? "area" : "areas") + " to check"
+            : "Your simple money plan"}</h1>
+          <p>{ops.length
+            ? "We checked all your answers. Start with the first " + Math.min(3,ops.length) +
+              (Math.min(3,ops.length) === 1 ? " area." : " areas.") +
+              " You can do the rest when you're ready."
+            : "Your answers did not show a clear problem. We won't make one up."}</p>
           <div className={styles.notice}>
-            <strong>No made-up savings.</strong> We haven't checked live prices. You'll see what you pay now and how to find a better deal.
+            <strong>Numbers you can trust.</strong> What you pay now is not money saved. We only show possible savings when you gave us the costs to work them out.
           </div>
         </header>
 
-        <section className={styles.areas} aria-label="Your places to check">
-          {opportunities.map((op, index) => {
-            const message = messages[op.area];
-            return (
-              <article className={styles.card} key={op.area} id={"area-" + op.area}>
-                <div className={styles.cardTitle}>
-                  <span className={styles.number}>{index + 1}</span>
-                  <div>
-                    <h2>{op.title}</h2>
-                    <p>{reasonForArea(op.area, answers)}</p>
-                  </div>
-                </div>
-                <AreaCost opportunity={op} refinements={refinements} />
-                <div className={styles.steps}>
-                  <h3>What to do</h3>
-                  <ol>
-                    {steps[op.area].map((step, i) => <li key={i}>{step}</li>)}
-                  </ol>
-                </div>
-                {op.area === "subscriptions" && canShowSubscriptionExample && (
-                  <p className={styles.possible}>
-                    <strong>{money(knownUnused * 12)} / year</strong> is what you could keep if you cancel the {money(knownUnused)} / month service you said you don't use. It's not saved until you cancel it.
-                  </p>
-                )}
-                {op.area === "insurance" && (
-                  <p className={styles.smallNote}>We don't know how much you could save on insurance yet. A cheaper price may mean less cover. Check before you switch.</p>
-                )}
-                {op.area === "takeaway" && (
-                  <p className={styles.smallNote}>A meal you make also costs money. Only count the price difference.</p>
-                )}
-                {message && (
-                  <details className={styles.helpDetails}>
-                    <summary>Need help? Copy a message</summary>
-                    <div className={styles.message}>
-                      <p>{message}</p>
-                      <CopyMessage message={message} />
-                    </div>
-                  </details>
-                )}
-              </article>
-            );
-          })}
-        </section>
+        {first.length > 0 && <section className={styles.areas} aria-label="Start here">
+          {first.map((op,i) => <AreaCard key={op.area} op={op} index={i} answers={answers} refinements={refinements} />)}
+        </section>}
+
+        {more.length > 0 && <section className={styles.moreAreas} aria-label="More places to check">
+          <h2>Your other {more.length} {more.length === 1 ? "area" : "areas"}</h2>
+          <p>These matter too. Open each one when you're ready.</p>
+          <div className={styles.moreList}>
+            {more.map((op,i) => (
+              <details className={styles.moreItem} key={op.area}>
+                <summary><span>{i + 4}. {op.title}</span><span className={styles.moreCue}>Show steps</span></summary>
+                <AreaCard op={op} index={i+3} answers={answers} refinements={refinements} />
+              </details>
+            ))}
+          </div>
+        </section>}
 
         <section className={styles.lastCard}>
-          <h2>Your 3 things to do</h2>
+          <h2>Your 3 things to do first</h2>
           <p>Tick each one when you're done.</p>
-          <PlanChecklist reportId={reportId} items={todo} />
+          <PlanChecklist reportId={reportId} items={tasks} />
         </section>
 
         <footer className={styles.footer}>
-          <p><strong>How to count real savings:</strong> Check what you paid before and after. Take away any new costs or fees.</p>
+          <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
         </footer>
       </div>
