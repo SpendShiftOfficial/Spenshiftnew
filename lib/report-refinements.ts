@@ -26,6 +26,7 @@ export type PersonalisationDetails = {
   hasGas: string;
   phoneService: string;
   takeawayAmountPeriod: "order" | "week";
+  takeawayReason: string;
   convenienceOverlap: string;
 };
 
@@ -129,6 +130,7 @@ export function emptyRefinements(): ReportRefinements {
       hasGas: "",
       phoneService: "",
       takeawayAmountPeriod: "order",
+      takeawayReason: "",
       convenienceOverlap: "",
     },
     insurancePolicies: [],
@@ -218,6 +220,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
       hasGas: fixedChoice(details.hasGas, new Set(["", "yes", "no", "not_sure"]), "gas answer"),
       phoneService: fixedChoice(details.phoneService, new Set(["", "mobile", "internet", "both", "neither", "not_sure"]), "phone bills"),
       takeawayAmountPeriod: details.takeawayAmountPeriod === "week" ? "week" : "order",
+      takeawayReason: fixedChoice(details.takeawayReason, new Set(["", "busy", "tired", "enjoy", "family", "other"]), "takeaway reason"),
       convenienceOverlap: fixedChoice(details.convenienceOverlap, new Set(["", "yes", "no", "not_sure"]), "overlapping spending"),
     },
     insurancePolicies: policies,
