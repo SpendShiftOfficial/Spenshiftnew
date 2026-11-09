@@ -301,7 +301,7 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
     );
     const generalGuide = {
       label: "How to check insurance — MoneySmart",
-      url: "https://moneysmart.gov.au/supporting-first-nations-people-with-money-matters/how-to-choose-insurance",
+      url: "https://moneysmart.gov.au/insurance",
     };
     return (
       <>
