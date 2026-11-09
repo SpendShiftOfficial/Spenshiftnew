@@ -45,7 +45,13 @@ function SuccessContent() {
     // Private payment and report pages deliberately send no analytics.
     function recordPurchase() {}
     function openReadyReport(reportId: string) {
-      if (!cancelled) window.location.replace("/report/" + encodeURIComponent(reportId));
+      if (cancelled) return;
+      // This private payment token is held only in this browser session.
+      // It is not sent to analytics or included in the report HTML.
+      try {
+        sessionStorage.setItem("spendshift_edit_session_" + reportId, sessionId!);
+      } catch {}
+      window.location.replace("/report/" + encodeURIComponent(reportId));
     }
 
     async function checkAndProceed() {
