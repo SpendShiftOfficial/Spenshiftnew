@@ -4,7 +4,7 @@ import {emptyRefinements,validateRefinements} from './report-refinements';
 import {findAuditConflict} from './plan-conflicts';
 export const sectionKeys:Record<PersonalisationArea,string[]>={
  subscriptions:['subscriptionsMonthly','unusedSubscriptionChoice','unusedSubscriptionName','unusedSubscriptionMonthly'],
- takeaway:['takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost'],
+ takeaway:['takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost','takeawayReason'],
  convenience:['convenienceWeekly','convenienceGoalWeekly','convenienceOverlap'],
  phone:['phoneService','mobileMonthly','internetMonthly'],
  energy:['state','electricityBill','electricityPeriod','hasGas','gasMonthly'],
