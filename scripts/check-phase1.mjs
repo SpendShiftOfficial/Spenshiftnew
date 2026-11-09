@@ -111,4 +111,19 @@ assert.equal(analyseSavings(household, validateRefinements({
   details: { internetMonthly: 79.95, mobileMonthly: 44.9, electricityBill: 425.50, electricityPeriod: "quarter" },
 })).estimatedAnnualScenario, null, "Paid bills are not automatically cheaper elsewhere.");
 
-console.log("Phase 1 checks passed: rankings, honesty, exact bills, named subscriptions, no overlap, short report.");
+// Keep the customer-facing promises aligned between free and paid.
+const freePage = fs.readFileSync("app/results/page.tsx", "utf8");
+assert.match(freePage, /We don't know how much you can save yet/);
+assert.doesNotMatch(freePage, /Indicative Savings\s+Range|money\(totalMax\)|Total Recoverable Cash|Save.*per year/);
+
+const questionsPage = fs.readFileSync("app/personalise/PersonaliseClient.tsx", "utf8");
+assert.match(questionsPage, /Want to check another bill\?/);
+assert.doesNotMatch(questionsPage, /Did we miss an important area\?/);
+assert.match(questionsPage, /Skip anything you don't know/);
+
+const simpleReportPage = fs.readFileSync("app/report/[id]/SimpleSavingsReport.tsx", "utf8");
+assert.match(simpleReportPage, /Your 3 things to do/);
+assert.match(simpleReportPage, /We haven't checked live prices/);
+assert.doesNotMatch(simpleReportPage, /Conditional savings scenario|Executive Summary|30-Day Action Plan/);
+
+console.log("Phase 1 checks passed: rankings, honesty, exact bills, named subscriptions, no overlap, short report and clear UI.");
