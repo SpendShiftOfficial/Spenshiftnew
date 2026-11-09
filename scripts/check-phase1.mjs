@@ -41,10 +41,11 @@ const details = validateRefinements({
 });
 const result = analyseSavings(audit, details);
 assert.equal(result.opportunities.length, 2);
-assert.equal(result.opportunities[0].scenarioSaving, 175);
+assert.equal(result.opportunities[0].scenarioSaving, 180);
 assert.equal(result.opportunities[1].scenarioSaving, null);
-assert.equal(result.opportunities[1].annualSpend, 7675);
-assert.equal(result.estimatedAnnualScenario, 175, "Premiums are NOT counted as savings.");
+assert.equal(result.opportunities[1].annualSpend, 7680);
+assert.equal(result.opportunities[0].annualSpend, 1440, "Customer subscription spend must not be arbitrarily rounded.");
+assert.equal(result.estimatedAnnualScenario, 180, "Premiums are NOT counted as savings.");
 
 const none = ["Never", "0–2", "Within 6 months", "Rarely", "Within 6 months", "Within 6 months", "Rarely", "Feel more financially in control"];
 assert.deepEqual(selectPersonalisationAreas(none), []);
@@ -59,9 +60,9 @@ const highHabits = ["Almost daily", "0–2", "Within 6 months", "Daily", "Within
 const habits = analyseSavings(highHabits, validateRefinements({
   details: { takeawayOrder: "30", convenienceWeekly: "35" },
 }));
-assert.equal(habits.opportunities.find(o => o.area === "takeaway")?.scenarioSaving, 3125);
-assert.equal(habits.opportunities.find(o => o.area === "convenience")?.scenarioSaving, 375);
-assert.equal(habits.estimatedAnnualScenario, 3500);
+assert.equal(habits.opportunities.find(o => o.area === "takeaway")?.scenarioSaving, 3120);
+assert.equal(habits.opportunities.find(o => o.area === "convenience")?.scenarioSaving, 364);
+assert.equal(habits.estimatedAnnualScenario, 3484);
 
 const overlapping = analyseSavings(highHabits, validateRefinements({
   additionalArea: "unplanned", details: { takeawayOrder: "30", convenienceWeekly: "35", unplannedArea: "Online shopping" },
@@ -77,7 +78,7 @@ assert.equal(validateRefinements({ insurancePolicies: [{ type: "Health", premium
 
 const { makeReportMarkdown } = loadTs("lib/report-writing");
 const output = makeReportMarkdown(audit, details, result, null);
-assert.match(output, /\$175\/year/, "Scenario total is calculated by the server.");
+assert.match(output, /\$180\/year/, "Scenario total is calculated by the server.");
 assert.match(output, /Car: \$1,800 per year/, "Insurance premiums appear as existing spending.");
 assert.match(output, /Health: \$250 per month/, "Each policy is listed separately.");
 assert.match(output, /NOT potential savings|NOT potential savings|NOT savings|not savings/i);
