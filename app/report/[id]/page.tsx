@@ -332,6 +332,8 @@ export default async function ReportPage({
           answers={data.answers}
           analysis={analysis}
           refinements={refinements}
+          allowCorrections={Number((saved as Record<string,unknown>).version) >= 3}
+          revision={typeof (saved as Record<string,unknown>).edit_revision === "number" ? (saved as Record<string,unknown>).edit_revision as number : 1}
         />
       </div>
     );
