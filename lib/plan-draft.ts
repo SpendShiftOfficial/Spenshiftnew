@@ -16,7 +16,7 @@ export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'year'
 export function blankDraft(answers:string[]):PlanDraft{
  const details:Record<string,string>={};Object.keys(emptyRefinements().details).forEach(key=>details[key]='');
  details.electricityPeriod='quarter';details.takeawayAmountPeriod='order';
- return {version:1,answers,details,insurancePolicies:[emptyPolicy()],additionalArea:'',step:0};
+ return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalArea:'',step:0};
 }
 function obj(input:unknown):Record<string,unknown>{if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Please check your saved answers.');return input as Record<string,unknown>;}
 export function cleanDraft(input:unknown):PlanDraft{
