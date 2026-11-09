@@ -72,12 +72,8 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       firstAction = "Choose one policy to check. Start with the one that renews soon.";
       verification = "Get two quotes for the same cover. Check the price, fees and what each plan covers.";
     } else if (area === "takeaway") {
-      const orders = answers[0] === "1–2 times/week" ? 1.5 :
-        answers[0] === "3–5 times/week" ? 4 :
-        answers[0] === "Almost daily" ? 6.5 : 0;
-      if (orders > 0 && d.takeawayOrder !== null) {
-        annualSpend = cents(d.takeawayOrder * orders * 52);
-      }
+      // The audit asks about a range of orders, not an exact count.
+      // An order price alone does not prove a yearly spending total.
       assumption = "Food you cook at home also costs money. We can't say what you'll save until you check both costs.";
       firstAction = "Pick one takeaway meal to swap for a cheaper meal.";
       verification = "Compare the price of both meals. Count only the difference.";
