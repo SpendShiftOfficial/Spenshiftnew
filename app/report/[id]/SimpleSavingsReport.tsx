@@ -383,7 +383,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
     if (op.area === "insurance") {
       return refinements.insurancePolicies.length > 0
         ? refinements.insurancePolicies.map((policy, index) => ({
-            key: "insurance-" + index,
+            key: "insurance-" + index + "-" + (policy.type || "other").toLowerCase().replace(/[^a-z0-9]+/g,"-") + "-" + (policy.insurer || "").toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,24),
             title: (policy.type || "Policy " + (index + 1)) + " insurance",
           }))
         : [{ key: "insurance", title: "Insurance" }];
