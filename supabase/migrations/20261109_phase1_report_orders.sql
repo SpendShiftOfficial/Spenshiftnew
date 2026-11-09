@@ -28,6 +28,12 @@ CREATE INDEX IF NOT EXISTS report_orders_report_id_idx
   ON public.report_orders(report_id)
   WHERE report_id IS NOT NULL;
 
+-- Enforce one generated report per paid Stripe Checkout session.
+-- Preflight confirmed the existing reports have no duplicated non-null session IDs.
+CREATE UNIQUE INDEX IF NOT EXISTS reports_stripe_session_id_unique
+  ON public.reports(stripe_session_id)
+  WHERE stripe_session_id IS NOT NULL;
+
 ALTER TABLE public.reports
   ADD COLUMN IF NOT EXISTS refinements jsonb;
 
@@ -37,7 +43,10 @@ ALTER TABLE public.reports
 -- All new customer financial data is handled with the service role on the server.
 -- No browser-side read/write access to the new table.
 ALTER TABLE public.report_orders ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.report_orders FROM anon, authenticated;
+REVOKE ALL ON public.report_orders FROM PUBLIC, anon, authenticated;
+-- As of late 2026, Supabase no longer grants new public-schema tables
+-- Data API privileges automatically. The server-side SDK uses service_role.
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.report_orders TO service_role;
 -- Existing reports remain as they were until their RLS setup is audited.
 -- We do not grant new public access to the reports table.
 
