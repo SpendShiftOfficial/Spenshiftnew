@@ -50,38 +50,80 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
 
     if (area === "subscriptions") {
       if (d.subscriptionsMonthly !== null) annualSpend = cents(d.subscriptionsMonthly * 12);
-      if (d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0 &&
-          (d.subscriptionsMonthly === null ||
-           d.unusedSubscriptionMonthly <= d.subscriptionsMonthly)) {
+      const unused = d.unusedSubscriptionChoice === "yes";
+      const label = d.unusedSubscriptionName ? d.unusedSubscriptionName : "the service";
+      if (unused && d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0 &&
+          (d.subscriptionsMonthly === null || d.unusedSubscriptionMonthly <= d.subscriptionsMonthly)) {
         scenarioSaving = cents(d.unusedSubscriptionMonthly * 12);
-        assumption = "You said a service you don't use costs $" +
+        assumption = "If you cancel " + label + " at $" +
           d.unusedSubscriptionMonthly.toLocaleString("en-AU") +
-          " a month. You would keep this money only if you cancel it and don't replace it.";
+          " a month, you may keep $" + scenarioSaving.toLocaleString("en-AU") +
+          " a year. This is not a saving until it is cancelled.";
+        firstAction = "Check how to cancel " + label + ".";
+        verification = "Cancel it only if you don't need it. Check your next statement for the missing charge.";
+      } else if (d.unusedSubscriptionChoice === "no") {
+        assumption = "You said you use all your subscriptions. We won't tell you to cancel one.";
+        firstAction = "List your subscriptions and check whether any have a cheaper plan.";
+        verification = "Compare the same service and features. Only change when it still suits you.";
+      } else if (d.unusedSubscriptionChoice === "yes") {
+        assumption = "You found an unused service, but we don't know its price.";
+        firstAction = "Find the unused service's monthly charge.";
+        verification = "Check its price and cancel it if you no longer need it.";
       } else {
-        assumption = "We don't know which services you can cancel. Your total bill is not money you can save.";
+        assumption = "We don't know if any subscriptions are unused. We can't call your total bill a saving.";
+        firstAction = "Check your bank app for subscriptions you've forgotten about.";
+        verification = "If every service is useful, check for cheaper plans instead of cancelling.";
       }
-      firstAction = "Open your bank app and find the subscriptions you pay for.";
-      verification = "Find one you don't use. Check its price and how to cancel it.";
     } else if (area === "insurance") {
       const policies = refinements.insurancePolicies;
       if (policies.length > 0 && policies.every(p => p.premium !== null)) {
         annualSpend = cents(policies.reduce((sum, p) =>
           sum + (p.premium ?? 0) * (p.paymentPeriod === "month" ? 12 : 1), 0));
       }
-      assumption = "These are the bills you pay, not money you have saved. We have not checked insurance quotes.";
-      firstAction = "Choose one policy to check. Start with the one that renews soon.";
-      verification = "Get two quotes for the same cover. Check the price, fees and what each plan covers.";
+      const soon = policies.find(p => p.renewal === "soon");
+      const mostExpensive = policies.filter(p => p.premium !== null)
+        .sort((a,b) => (b.premium ?? 0) * (b.paymentPeriod === "month" ? 12 : 1) -
+          (a.premium ?? 0) * (a.paymentPeriod === "month" ? 12 : 1))[0];
+      const priority = soon || mostExpensive;
+      assumption = "These are the prices you pay now. We have not checked other quotes.";
+      firstAction = priority
+        ? "Start by checking your " + (priority.type || "insurance") + " policy."
+        : "Choose one policy to check first.";
+      verification = "Ask for two quotes with the same cover. Check the full price, what is covered, claim costs and fees.";
     } else if (area === "takeaway") {
-      // The audit asks about a range of orders, not an exact count.
-      // An order price alone does not prove a yearly spending total.
-      assumption = "Food you cook at home also costs money. We can't say what you'll save until you check both costs.";
-      firstAction = "Pick one takeaway meal to swap for a cheaper meal.";
-      verification = "Compare the price of both meals. Count only the difference.";
+      if (d.takeawayOrder !== null && d.takeawayOrdersPerWeek !== null) {
+        annualSpend = cents(d.takeawayOrder * d.takeawayOrdersPerWeek * 52);
+      }
+      const swaps = d.takeawaySwapPerWeek;
+      const orders = d.takeawayOrdersPerWeek;
+      const homeCost = d.takeawayReplacementCost;
+      if (d.takeawayOrder !== null && orders !== null && swaps !== null &&
+          homeCost !== null && swaps > 0 && swaps <= orders && d.takeawayOrder > homeCost) {
+        scenarioSaving = cents((d.takeawayOrder - homeCost) * swaps * 52);
+        assumption = "Plan: swap " + swaps + " of your " + orders + " orders each week. Each swap could save $" +
+          cents(d.takeawayOrder - homeCost).toLocaleString("en-AU") +
+          " after paying $" + homeCost.toLocaleString("en-AU") + " for food at home.";
+        firstAction = "Plan " + swaps + " takeaway " + (swaps === 1 ? "swap" : "swaps") + " for next week.";
+      } else {
+        assumption = "Food at home costs money too. We need a full order price, how often you order and a home-meal cost before we can work out a fair saving.";
+        firstAction = "Count your takeaway orders this week and decide how many you could swap.";
+      }
+      verification = "Shop for food to feed the SAME people. Write down both totals and count only the difference.";
     } else if (area === "convenience") {
       if (d.convenienceWeekly !== null) annualSpend = cents(d.convenienceWeekly * 52);
-      assumption = "This is the amount you spend. We don't know which buys you can skip.";
-      firstAction = "Find one snack, coffee or quick buy you could skip.";
-      verification = "Track what you did not buy. Don't count takeaway twice.";
+      if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
+          d.convenienceGoalWeekly < d.convenienceWeekly) {
+        scenarioSaving = cents((d.convenienceWeekly - d.convenienceGoalWeekly) * 52);
+        assumption = "You chose a weekly goal of $" +
+          d.convenienceGoalWeekly.toLocaleString("en-AU") +
+          ". This is a goal, not money already saved. It only counts if you stay within it.";
+        firstAction = "Set aside $" + d.convenienceGoalWeekly.toLocaleString("en-AU") +
+          " for small buys next week.";
+      } else {
+        assumption = "We know what you spend, but not what you'd like to cut back.";
+        firstAction = "Pick a weekly limit for coffees, snacks and quick buys.";
+      }
+      verification = "Check your spending at the end of the week. Don't count takeaway twice.";
     } else if (area === "phone") {
       const amounts = [d.internetMonthly, d.mobileMonthly].filter((n): n is number => n !== null);
       if (amounts.length) annualSpend = cents(amounts.reduce((a, b) => a + b, 0) * 12);
@@ -98,8 +140,14 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       verification = "Compare plans using your real usage. Check rates and fees.";
     } else if (area === "unplanned") {
       assumption = "We can't guess how much money you'd keep. These buys may overlap with other spending.";
-      firstAction = "Wait one day before your next unplanned buy.";
-      verification = "If you choose not to buy it, count only what you actually kept.";
+      const trigger = d.shoppingTrigger;
+      if (trigger === "Sales or deals") firstAction = "Mute sale emails for 7 days and wait before buying.";
+      else if (trigger === "Boredom") firstAction = "Write a short free-to-do list for when you're bored.";
+      else if (trigger === "Social media") firstAction = "Hide shopping ads and wait a day before you buy.";
+      else if (d.unplannedArea === "Online shopping") firstAction = "Take saved cards off shopping sites. Wait a day before checkout.";
+      else if (d.unplannedArea === "Clothes or accessories") firstAction = "Check what you already own before buying more.";
+      else firstAction = "Wait one day before an unplanned buy.";
+      verification = "If you skip a buy, record the real amount you kept. Don't count other spending twice.";
     }
 
     return {
