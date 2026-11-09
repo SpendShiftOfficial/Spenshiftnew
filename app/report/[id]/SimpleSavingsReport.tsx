@@ -292,7 +292,6 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
       </p>
     </>
   );
-  }
   return null;
 }
 
