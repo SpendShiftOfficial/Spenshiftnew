@@ -364,7 +364,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
         <p className={styles.intro}>
           {visibleSections.length === 0
             ? "No extra questions needed."
-            : "Just " + visibleSections.length + " short question" + (visibleSections.length === 1 ? "" : "s") + ". All optional."}
+            : visibleSections.length + " things to check. Skip anything you don't know."}
         </p>
         {!sessionId && (
           <div className={styles.previewNotice}>
