@@ -126,7 +126,7 @@ try{
   await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#takeawayOrder');assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
   await page.getByText('Check or change my first answers',{exact:true}).click();await page.locator('#audit-edit-0').selectOption('Never');await page.waitForTimeout(1300);assert.equal(saved.answers[0],'Never');assert.match(await page.locator('h1').innerText(),/Make your plan/);
  });
- await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.locator('#audit-edit-7').selectOption('Reduce stress');await page.waitForTimeout(1300);assert.match(await page.getByRole('alert').innerText(),/another tab/);});
+ await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.locator('#audit-edit-7').selectOption('Reduce stress');await page.waitForTimeout(1300);assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);});
  await context.close();
  console.log('Browser checks: '+tests+' groups passed. Provider payment/draft replies were mocked; no real Stripe payment or email was sent.');
  fs.writeFileSync('test-artifacts/browser-summary.json',JSON.stringify({groupsPassed:tests,desktopWidth:1280,mobileWidth:375,providerMode:'mocked',realStripePaymentTested:false,emailDeliveryTested:false},null,2));
