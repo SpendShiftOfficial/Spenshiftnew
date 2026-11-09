@@ -2,7 +2,7 @@ import type { SavingsAnalysis, SavingsOpportunity } from "@/lib/savings-engine";
 import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refinements";
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
-import SavingsTracker from "./SavingsTracker";
+import SavingsTracker, { type TrackerOption } from "./SavingsTracker";
 import QuoteCheck from "./QuoteCheck";
 import {takeawayMath} from "@/lib/savings-math";
 import {goalIntro,priorityReason,rankOpportunities} from "@/lib/plan-priority";
@@ -377,6 +377,26 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
   const tasks = first.length
     ? [...first.slice(0, 2).map(op => firstTask(op, refinements)), "Check what you actually spent after making changes."]
     : ["Find a bill you pay each month.", "See if the plan still suits you.", "Compare the full price before you change."];
+  const trackerOptions: TrackerOption[] = ops.flatMap(op => {
+    if (op.area === "insurance") {
+      return refinements.insurancePolicies.length > 0
+        ? refinements.insurancePolicies.map((policy, index) => ({
+            key: "insurance-" + index,
+            title: (policy.type || "Policy " + (index + 1)) + " insurance",
+          }))
+        : [{ key: "insurance", title: "Insurance" }];
+    }
+    if (op.area === "phone") return [
+      { key: "mobile", title: "Mobile phone" },
+      { key: "internet", title: "Home internet" },
+    ];
+    if (op.area === "energy") return [
+      { key: "electricity", title: "Electricity" },
+      { key: "gas", title: "Gas" },
+    ];
+    return [{ key: op.area, title: op.title }];
+  });
+
 
   return (
     <main className={styles.page}>
@@ -420,7 +440,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           <PlanChecklist reportId={reportId} items={tasks} />
         </section>
 
-        <SavingsTracker reportId={reportId} areas={ops.map(op=>({area:op.area,title:op.title}))} />
+        <SavingsTracker reportId={reportId} options={trackerOptions} />
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
