@@ -384,3 +384,61 @@
   cursor: not-allowed;
   opacity: .65;
 }
+
+/* Phase 1: keep optional detail out of the main path. */
+.reviewExtra {
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+}
+.extraLink {
+  border: 0;
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #08792a;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  padding: 10px 0;
+  cursor: pointer;
+  width: fit-content;
+}
+.extraLink:hover { color: #045a1e; }
+.optionalDetails {
+  border: 1px solid #dce9df;
+  background: #f8fbf8;
+  border-radius: 13px;
+  padding: 13px 15px;
+}
+.optionalDetails summary {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #16612f;
+  font-weight: 700;
+  cursor: pointer;
+}
+.optionalInner {
+  display: grid;
+  gap: 17px;
+  padding: 18px 0 4px;
+}
+.field > input[type="text"] {
+  min-height: 50px;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.addArea {
+  margin: 0;
+}
+.wrap h1 {
+  font-size: clamp(32px, 5vw, 44px);
+  letter-spacing: -.035em;
+  line-height: 1.14;
+}
+.panel h2 {
+  font-size: clamp(25px, 4vw, 30px);
+  line-height: 1.22;
+}
+.field label { font-size: 15px; }
+.field input, .field select { font-size: 16px; }
