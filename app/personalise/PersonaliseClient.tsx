@@ -18,9 +18,16 @@ type DetailKey =
   | "mobileMonthly"
   | "subscriptionsMonthly"
   | "unusedSubscriptionMonthly"
+  | "unusedSubscriptionChoice"
+  | "unusedSubscriptionName"
   | "takeawayOrder"
+  | "takeawayOrdersPerWeek"
+  | "takeawaySwapPerWeek"
+  | "takeawayReplacementCost"
   | "convenienceWeekly"
-  | "unplannedArea";
+  | "convenienceGoalWeekly"
+  | "unplannedArea"
+  | "shoppingTrigger";
 
 type Details = Record<DetailKey, string>;
 const initialDetails: Details = {
@@ -32,9 +39,16 @@ const initialDetails: Details = {
   mobileMonthly: "",
   subscriptionsMonthly: "",
   unusedSubscriptionMonthly: "",
+  unusedSubscriptionChoice: "",
+  unusedSubscriptionName: "",
   takeawayOrder: "",
+  takeawayOrdersPerWeek: "",
+  takeawaySwapPerWeek: "",
+  takeawayReplacementCost: "",
   convenienceWeekly: "",
+  convenienceGoalWeekly: "",
   unplannedArea: "",
+  shoppingTrigger: "",
 };
 
 type InsurancePolicy = {
@@ -44,10 +58,11 @@ type InsurancePolicy = {
   paymentPeriod: "month" | "year";
   insurer: string;
   coverDescription: string;
+  renewal: "" | "soon" | "later" | "not_sure";
 };
 
 function initialInsurancePolicies(): InsurancePolicy[] {
-  return [{ id: 1, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "" }];
+  return [{ id: 1, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "", renewal: "" }];
 }
 
 type Section = { id: SectionId; title: string; explanation: string };
@@ -65,17 +80,17 @@ const sections: Section[] = [
   {
     id: "subscriptions",
     title: "Your subscriptions",
-    explanation: "A rough total is fine.",
+    explanation: "You can use a rough monthly total.",
   },
   {
     id: "takeaway",
     title: "Your takeaway food",
-    explanation: "Think of a normal order.",
+    explanation: "Use your usual order for the whole group you feed.",
   },
   {
     id: "convenience",
     title: "Your small everyday buys",
-    explanation: "Think coffee, snacks and lunch. Do not count takeaway twice.",
+    explanation: "Do not include takeaway food again.",
   },
   {
     id: "insurance",
@@ -85,7 +100,7 @@ const sections: Section[] = [
   {
     id: "unplanned",
     title: "Your unplanned shopping",
-    explanation: "Choose the type of things you buy without planning.",
+    explanation: "Tell us what you buy most often.",
   },
 ];
 
@@ -115,6 +130,34 @@ function MoneyField({
           onChange={(event) => onChange(id, event.target.value)}
         />
       </div>
+      {hint && <small>{hint}</small>}
+    </div>
+  );
+}
+
+function WholeNumberField({
+  id, label, value, onChange, hint,
+}: {
+  id: DetailKey;
+  label: string;
+  value: string;
+  onChange: (key: DetailKey, value: string) => void;
+  hint?: string;
+}) {
+  return (
+    <div className={styles.field}>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="number"
+        min="0"
+        max="21"
+        step="1"
+        inputMode="numeric"
+        placeholder="Not sure"
+        value={value}
+        onChange={event => onChange(id, event.target.value)}
+      />
       {hint && <small>{hint}</small>}
     </div>
   );
@@ -182,6 +225,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
                 paymentPeriod: p.paymentPeriod === "month" ? "month" : "year",
                 insurer: typeof p.insurer === "string" ? p.insurer : "",
                 coverDescription: typeof p.coverDescription === "string" ? p.coverDescription : "",
+                renewal: p.renewal === "soon" || p.renewal === "later" || p.renewal === "not_sure" ? p.renewal : "",
               })));
             }
           }
@@ -234,7 +278,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
     setInsurancePolicies((previous) => {
       if (previous.length >= 6) return previous;
       const nextId = Math.max(0, ...previous.map((policy) => policy.id)) + 1;
-      return [...previous, { id: nextId, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "" }];
+      return [...previous, { id: nextId, type: "", premium: "", paymentPeriod: "year", insurer: "", coverDescription: "", renewal: "" }];
     });
   }
 
@@ -251,11 +295,11 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
     const keysBySection: Record<SectionId, DetailKey[]> = {
       energy: ["state", "electricityBill", "gasMonthly"],
       phone: ["internetMonthly", "mobileMonthly"],
-      subscriptions: ["subscriptionsMonthly", "unusedSubscriptionMonthly"],
-      takeaway: ["takeawayOrder"],
-      convenience: ["convenienceWeekly"],
+      subscriptions: ["subscriptionsMonthly", "unusedSubscriptionMonthly", "unusedSubscriptionChoice", "unusedSubscriptionName"],
+      takeaway: ["takeawayOrder", "takeawayOrdersPerWeek", "takeawaySwapPerWeek", "takeawayReplacementCost"],
+      convenience: ["convenienceWeekly", "convenienceGoalWeekly"],
       insurance: [],
-      unplanned: ["unplannedArea"],
+      unplanned: ["unplannedArea", "shoppingTrigger"],
     };
     setDetails((previous) => {
       const next = { ...previous };
@@ -289,8 +333,8 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
             details,
             insurancePolicies: insurancePolicies
               .filter((p) => p.type || p.premium || p.insurer || p.coverDescription)
-              .map(({ type, premium, paymentPeriod, insurer, coverDescription }) => ({
-                type, premium, paymentPeriod, insurer, coverDescription,
+              .map(({ type, premium, paymentPeriod, insurer, coverDescription, renewal }) => ({
+                type, premium, paymentPeriod, insurer, coverDescription, renewal,
               })),
           },
         }),
@@ -316,9 +360,15 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
     { label: "Internet", value: details.internetMonthly ? "$" + details.internetMonthly + " per month" : "" },
     { label: "Mobile", value: details.mobileMonthly ? "$" + details.mobileMonthly + " per month" : "" },
     { label: "Subscriptions", value: details.subscriptionsMonthly ? "$" + details.subscriptionsMonthly + " per month" : "" },
-    { label: "Unused subscription", value: details.unusedSubscriptionMonthly ? "$" + details.unusedSubscriptionMonthly + " per month" : "" },
-    { label: "Average takeaway order", value: details.takeawayOrder ? "$" + details.takeawayOrder : "" },
-    { label: "Convenience purchases", value: details.convenienceWeekly ? "$" + details.convenienceWeekly + " per week" : "" },
+    { label: "Unused subscription?", value: details.unusedSubscriptionChoice === "yes" ? "Yes" : details.unusedSubscriptionChoice === "no" ? "No" : details.unusedSubscriptionChoice === "not_sure" ? "Not sure" : "" },
+    { label: "Unused service", value: details.unusedSubscriptionChoice === "yes" ? details.unusedSubscriptionName : "" },
+    { label: "Unused service price", value: details.unusedSubscriptionChoice === "yes" && details.unusedSubscriptionMonthly ? "$" + details.unusedSubscriptionMonthly + " per month" : "" },
+    { label: "Usual takeaway order", value: details.takeawayOrder ? "$" + details.takeawayOrder : "" },
+    { label: "Orders each week", value: details.takeawayOrdersPerWeek },
+    { label: "Orders to swap each week", value: details.takeawaySwapPerWeek },
+    { label: "Cost to feed same people at home", value: details.takeawayReplacementCost ? "$" + details.takeawayReplacementCost : "" },
+    { label: "Small buys now", value: details.convenienceWeekly ? "$" + details.convenienceWeekly + " per week" : "" },
+    { label: "Small buys goal", value: details.convenienceGoalWeekly ? "$" + details.convenienceGoalWeekly + " per week" : "" },
     ...insurancePolicies
       .filter((policy) => policy.type !== "" || policy.premium !== "" || policy.insurer !== "" || policy.coverDescription !== "")
       .map((policy, index) => ({
@@ -328,6 +378,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
           : "Premium not provided",
       })),
     { label: "Unplanned purchase category", value: details.unplannedArea },
+    { label: "What makes you shop", value: details.shoppingTrigger },
   ].filter((item) => item.value !== "");
 
   if (checkingPayment) {
@@ -364,7 +415,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
         <p className={styles.intro}>
           {visibleSections.length === 0
             ? "No extra questions needed."
-            : visibleSections.length + " things to check. Skip anything you don't know."}
+            : "Let's check " + visibleSections.length + " spending " + (visibleSections.length === 1 ? "area" : "areas") + ". You can skip anything you don't know."}
         </p>
         {!sessionId && (
           <div className={styles.previewNotice}>
@@ -379,9 +430,7 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
           </div>
         )}
         {sessionId && !checkingPayment && !paymentError && !existingReportId && (
-          <p className={styles.selectionNote}>
-            <a href={"/success?session_id=" + encodeURIComponent(sessionId) + "&generate=1"}>Skip questions and make my plan now</a>
-          </p>
+          <p className={styles.selectionNote}>You can skip any amount you don't know. We won't make up numbers.</p>
         )}
         {!sessionId && !audit && allowDemo && (
           <div className={styles.demoPanel}>
@@ -513,20 +562,57 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
                 )}
                 {current.id === "subscriptions" && (
                   <>
-                    <MoneyField id="subscriptionsMonthly" label="About how much do they cost each month?" value={details.subscriptionsMonthly} onChange={update} hint="Add all your subscriptions together." />
-                    <details className={styles.optionalDetails}>
-                      <summary>Have one you don't use? (optional)</summary>
-                      <div className={styles.optionalInner}>
-                        <MoneyField id="unusedSubscriptionMonthly" label="How much is that one each month?" value={details.unusedSubscriptionMonthly} onChange={update} hint="Only enter this if you know the price. We won't guess." />
-                      </div>
-                    </details>
+                    <MoneyField id="subscriptionsMonthly" label="How much do all your subscriptions cost each month?" value={details.subscriptionsMonthly} onChange={update} hint="Add up apps, streaming and memberships." />
+                    <div className={styles.field}>
+                      <label htmlFor="unusedSubscriptionChoice">Do you pay for a subscription you no longer use?</label>
+                      <select id="unusedSubscriptionChoice" value={details.unusedSubscriptionChoice} onChange={event => {
+                        const answer = event.target.value;
+                        setDetails(previous => ({
+                          ...previous,
+                          unusedSubscriptionChoice: answer,
+                          unusedSubscriptionMonthly: answer === "yes" ? previous.unusedSubscriptionMonthly : "",
+                          unusedSubscriptionName: answer === "yes" ? previous.unusedSubscriptionName : "",
+                        }));
+                      }}>
+                        <option value="">Choose an answer</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="not_sure">Not sure</option>
+                      </select>
+                    </div>
+                    {details.unusedSubscriptionChoice === "yes" && (
+                      <>
+                        <div className={styles.field}>
+                          <label htmlFor="unusedSubscriptionName">Which subscription? (optional)</label>
+                          <input id="unusedSubscriptionName" type="text" maxLength={60}
+                            placeholder="For example, an app"
+                            value={details.unusedSubscriptionName}
+                            onChange={e => update("unusedSubscriptionName", e.target.value)} />
+                        </div>
+                        <MoneyField id="unusedSubscriptionMonthly"
+                          label="How much does that one cost each month?"
+                          value={details.unusedSubscriptionMonthly} onChange={update}
+                          hint="If you don't know, leave this blank." />
+                      </>
+                    )}
+                    {details.unusedSubscriptionChoice === "not_sure" && (
+                      <p className={styles.policyHint}>That's okay. Your plan will show you how to find out.</p>
+                    )}
                   </>
                 )}
                 {current.id === "takeaway" && (
-                  <MoneyField id="takeawayOrder" label="Average amount you pay per takeaway order" value={details.takeawayOrder} onChange={update} hint="Only include what you personally pay." />
+                  <>
+                    <MoneyField id="takeawayOrder" label="How much is one usual takeaway order?" value={details.takeawayOrder} onChange={update} hint="Include the whole order, not just one person's meal." />
+                    <WholeNumberField id="takeawayOrdersPerWeek" label="How many orders do you buy in a week?" value={details.takeawayOrdersPerWeek} onChange={update} hint="Use a normal week. Not sure? Skip." />
+                    <WholeNumberField id="takeawaySwapPerWeek" label="How many could you replace with food from home?" value={details.takeawaySwapPerWeek} onChange={update} hint="Pick a number you could keep doing each week." />
+                    <MoneyField id="takeawayReplacementCost" label="What would food from home cost instead?" value={details.takeawayReplacementCost} onChange={update} hint="Cost to feed the SAME people. Include all food costs." />
+                  </>
                 )}
                 {current.id === "convenience" && (
-                  <MoneyField id="convenienceWeekly" label="Approximate convenience spending per week" value={details.convenienceWeekly} onChange={update} hint="Do not include takeaway or delivery costs a second time." />
+                  <>
+                    <MoneyField id="convenienceWeekly" label="How much do you spend on coffee, snacks and quick buys each week?" value={details.convenienceWeekly} onChange={update} hint="Do not add takeaway or unplanned shopping twice." />
+                    <MoneyField id="convenienceGoalWeekly" label="What weekly amount could you aim for?" value={details.convenienceGoalWeekly} onChange={update} hint="This is a goal, not money you have saved yet. You can skip it." />
+                  </>
                 )}
                 {current.id === "insurance" && (
                   <div className={styles.insuranceList}>
@@ -608,6 +694,16 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
                           </div>
                         </details>
                         <div className={styles.field}>
+                          <label htmlFor={"renewal-" + policy.id}>When will this insurance renew? (optional)</label>
+                          <select id={"renewal-" + policy.id} value={policy.renewal}
+                            onChange={event => updateInsurancePolicy(policy.id, {renewal: event.target.value as InsurancePolicy["renewal"]})}>
+                            <option value="">Skip</option>
+                            <option value="soon">In the next 3 months</option>
+                            <option value="later">Later than 3 months</option>
+                            <option value="not_sure">Not sure</option>
+                          </select>
+                        </div>
+                        <div className={styles.field}>
                           <label htmlFor={"insurancePeriod-" + policy.id}>How often do you pay?</label>
                           <select
                             id={"insurancePeriod-" + policy.id}
@@ -644,7 +740,19 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
                       <option>Entertainment or hobbies</option>
                       <option>Other purchases</option>
                     </select>
-                    <small>We won't add another guessed savings amount for spending already counted elsewhere.</small>
+                    <small>We won't count shopping already listed as takeaway or snacks.</small>
+                    <div className={styles.field}>
+                      <label htmlFor="shoppingTrigger">What makes you want to buy something?</label>
+                      <select id="shoppingTrigger" value={details.shoppingTrigger}
+                        onChange={event => update("shoppingTrigger", event.target.value)}>
+                        <option value="">Not sure / skip</option>
+                        <option>Sales or deals</option>
+                        <option>Boredom</option>
+                        <option>Social media</option>
+                        <option>Other</option>
+                        <option>Not sure</option>
+                      </select>
+                    </div>
                   </div>
                 )}
               </div>
