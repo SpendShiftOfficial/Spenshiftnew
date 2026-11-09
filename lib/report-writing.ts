@@ -2,68 +2,69 @@ import type { ReportRefinements } from "./report-refinements";
 import type { SavingsAnalysis } from "./savings-engine";
 import { reasonForArea } from "./personalisation-questions";
 
-function money(value: number): string {
-  return "$" + value.toLocaleString("en-AU", { maximumFractionDigits: 2 });
+function money(amount: number): string {
+  return "$" + amount.toLocaleString("en-AU", { maximumFractionDigits: 2 });
 }
 
-/**
- * Keep a short plain-language copy with each report.
- * The customer-facing web page uses the same structured data to make big,
- * easy-to-read cards. No AI or guessed prices are needed to write this.
- */
+/** Store an easy-to-read plain-text copy alongside the structured plan. */
 export function makeReportMarkdown(
   answers: string[],
   refinements: ReportRefinements,
   analysis: SavingsAnalysis,
 ): string {
   const ops = analysis.opportunities;
+  const d = refinements.details;
   const lines: string[] = [
-    "# Your SpendShift plan",
+    "# Your SpendShift savings plan",
     ops.length
-      ? "We found " + ops.length + (ops.length === 1 ? " place" : " places") + " worth checking."
-      : "Your answers did not show a clear money problem. We won't invent one.",
-    "We have not checked live prices. Your bills are costs, not savings.",
+      ? "Your answers show " + ops.length + " " + (ops.length === 1 ? "area" : "areas") + " to check."
+      : "Your answers did not show a clear money problem.",
+    "We have not checked live prices. We do not count bills as money saved.",
   ];
 
-  ops.forEach((op, index) => {
-    lines.push(
-      "## " + (index + 1) + ". " + op.title,
-      reasonForArea(op.area, answers),
-    );
-    if (op.area === "subscriptions" && refinements.details.subscriptionsMonthly !== null) {
-      lines.push("You pay " + money(refinements.details.subscriptionsMonthly) + " per month.");
+  ops.forEach((op,index) => {
+    lines.push("## " + (index+1) + ". " + op.title, reasonForArea(op.area, answers));
+    if (op.area === "subscriptions" && d.subscriptionsMonthly !== null) {
+      lines.push("You pay " + money(d.subscriptionsMonthly) + " each month.");
+      if (d.unusedSubscriptionChoice === "no") lines.push("You said you use all your subscriptions. We won't tell you to cancel one.");
+      if (d.unusedSubscriptionChoice === "not_sure") lines.push("You are not sure if any services are unused.");
     } else if (op.area === "insurance") {
-      for (const p of refinements.insurancePolicies) {
-        lines.push(
-          (p.type || "Insurance") + ": " +
-          (p.premium === null ? "Price not given" : money(p.premium) + " per " + (p.paymentPeriod === "month" ? "month" : "year")),
-        );
+      for(const p of refinements.insurancePolicies) {
+        lines.push((p.type || "Insurance") + ": " +
+          (p.premium === null ? "Price not given" : money(p.premium) + " per " + (p.paymentPeriod === "month" ? "month" : "year")) +
+          (p.renewal === "soon" ? " (Renews soon)" : ""));
       }
-    } else if (op.annualSpend !== null) {
-      lines.push("What you may pay now: about " + money(op.annualSpend) + " a year, from the amounts you entered.");
+    } else if (op.area === "takeaway") {
+      if (d.takeawayOrder !== null) lines.push("Your usual takeaway order: " + money(d.takeawayOrder) + ".");
+      if (d.takeawayOrdersPerWeek !== null) lines.push("You buy " + d.takeawayOrdersPerWeek + " orders each week.");
+      if (d.takeawaySwapPerWeek !== null) lines.push("Your goal is to replace " + d.takeawaySwapPerWeek + " orders a week.");
+      if (d.takeawayReplacementCost !== null) lines.push("Food from home for the same people: " + money(d.takeawayReplacementCost) + ".");
+    } else if (op.area === "convenience") {
+      if (d.convenienceWeekly !== null) lines.push("You spend " + money(d.convenienceWeekly) + " a week on small buys.");
+      if (d.convenienceGoalWeekly !== null) lines.push("Your weekly goal: " + money(d.convenienceGoalWeekly) + ".");
+    } else if (op.area === "energy") {
+      if (d.electricityBill !== null) lines.push("Power bill: " + money(d.electricityBill) + " per " + (d.electricityPeriod === "month" ? "month" : "3 months") + ".");
+      if (d.gasMonthly !== null) lines.push("Gas bill: " + money(d.gasMonthly) + " a month.");
+    } else if (op.area === "phone") {
+      if (d.mobileMonthly !== null) lines.push("Mobile: " + money(d.mobileMonthly) + " a month.");
+      if (d.internetMonthly !== null) lines.push("Internet: " + money(d.internetMonthly) + " a month.");
+    } else if (op.area === "unplanned") {
+      if (d.unplannedArea) lines.push("You buy: " + d.unplannedArea + ".");
+      if (d.shoppingTrigger) lines.push("What makes you shop: " + d.shoppingTrigger + ".");
     }
-    lines.push("What to do: " + op.firstAction, "Next: " + op.verification);
-    if (op.area === "subscriptions" && refinements.details.unusedSubscriptionMonthly !== null &&
-        refinements.details.unusedSubscriptionMonthly > 0 &&
-        (refinements.details.subscriptionsMonthly === null ||
-         refinements.details.unusedSubscriptionMonthly <= refinements.details.subscriptionsMonthly)) {
-      lines.push(
-        "If you cancel the unused " + money(refinements.details.unusedSubscriptionMonthly) +
-        " per month service you named, you could keep " +
-        money(refinements.details.unusedSubscriptionMonthly * 12) +
-        " a year. You have not saved it yet.",
-      );
-    } else {
-      lines.push("We don't know how much you'll save yet. Check the real prices first.");
-    }
+    lines.push("What to do: " + op.firstAction, "How to check: " + op.verification);
+    if (op.scenarioSaving !== null) lines.push(
+      "If you follow the change you chose, you could save " + money(op.scenarioSaving) +
+      " a year. This is not money saved yet.",
+    );
+    else lines.push("We don't know the saving yet. Check real prices first.");
   });
 
-  lines.push(
-    "## Your 3 things to do",
-    ...ops.slice(0, 2).map(op => "- " + op.firstAction),
-    "- Check your next bill to see what you really saved.",
+  lines.push("## Start here",
+    ...ops.slice(0,2).map(op => "- " + op.firstAction),
+    "- Check what you actually spent after making a change.",
     "## Important",
-    "Only count money you actually keep after paying any new costs or fees.",
+    "Only count money you keep, after any costs or fees. Do not count the same money twice.",
     "This plan gives general money tips, not personal financial advice.",
   );
   return lines.join("\n\n");
