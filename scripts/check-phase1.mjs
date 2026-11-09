@@ -74,4 +74,81 @@ check('recovery leaves unpaid and unfinished drafts untouched',()=>{const cron=f
 check('optimistic draft writes cannot silently overwrite another tab',()=>{const api=fs.readFileSync('app/api/personalisation/draft/route.ts','utf8');assert.match(api,/body\.revision\s*!==\s*order\.updated_at/);assert.match(api,/\.eq\(["']updated_at["'],\s*body\.revision\)/);assert.match(api,/409/);});
 check('marketing reflects implemented product',()=>{for(const file of ['app/homePageClient.tsx','app/pricing/page.tsx','app/whats-included/page.tsx','app/how-it-works/page.tsx','components/SavingsOffer.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/3,050|1,300|30-day action plan|AI Powered|AI-powered/);assert.match(fs.readFileSync('components/SavingsOffer.tsx','utf8'),/A\$39/);});
 check('post-report corrections require payment and preserve revision history',()=>{const code=fs.readFileSync('app/api/report/revise/route.ts','utf8');assert.match(code,/paidSession\(data\.sessionId\)/);assert.match(code,/spendshift_update_report_revision/);assert.match(code,/p_expected_updated_at/);const migration=fs.readFileSync('supabase/migrations/20261110_phase1_report_revisions.sql','utf8');assert.match(migration,/SECURITY DEFINER/);assert.match(migration,/REVOKE ALL ON FUNCTION/);});
+const {findAuditConflict}=loadTs('lib/plan-conflicts');
+check('audit and detailed takeaway answers must agree',()=>{
+  const d=blankDraft(high);
+  d.details.takeawayOrdersPerWeek='0';
+  assert.equal(findAuditConflict(d)?.area,'takeaway');
+  assert.throws(()=>prepareDraft(d),/do not match/);
+  d.details.takeawayOrdersPerWeek='6';
+  assert.equal(findAuditConflict(d),null);
+});
+check('insurance and household bill contradictions are caught',()=>{
+  const d=blankDraft(high);
+  d.answers[2]='I don’t currently have insurance';
+  d.additionalArea='insurance';
+  d.insurancePolicies=[{type:'Car',premium:'1800',paymentPeriod:'year',insurer:'',coverDescription:'',renewal:''}];
+  assert.equal(findAuditConflict(d)?.area,'insurance');
+  const d2=blankDraft(high);
+  d2.answers[4]="I don't pay either of these bills";
+  d2.additionalArea='phone';d2.details.phoneService='mobile';
+  assert.equal(findAuditConflict(d2)?.area,'phone');
+  const d3=blankDraft(high);
+  d3.answers[5]="I don't pay these bills";
+  d3.additionalArea='energy';d3.details.electricityBill='220';
+  assert.equal(findAuditConflict(d3)?.area,'energy');
+});
+check('unused takeaway barrier is validated and used in personal steps',()=>{
+  const d=validateRefinements({details:{takeawayReason:'busy'}});
+  assert.equal(d.details.takeawayReason,'busy');
+  assert.throws(()=>validateRefinements({details:{takeawayReason:'never_cook_again'}}),/Invalid/);
+  const src=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+  assert.match(src,/d.takeawayReason === "busy"/);
+  assert.match(src,/d.takeawayReason === "tired"/);
+  assert.match(src,/d.takeawayReason === "enjoy"/);
+});
+check('skipping a question does not throw away already entered amounts',()=>{
+  const src=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+  assert.match(src,/Leave it blank and tap Next/);
+  assert.doesNotMatch(src,/snapshot\.details\[key\]=''/);
+  assert.match(src,/Remove the extra area/);
+  assert.match(src,/nearly done/i);
+});
+check('each kind of bill uses a suitable quote check and known costs',()=>{
+  const quote=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
+  const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+  for(const kind of ['insurance','mobile','internet','electricity','gas']){
+    assert.match(quote,new RegExp(kind));
+  }
+  assert.match(report,/kind="electricity"/);
+  assert.match(report,/kind="gas"/);
+  assert.match(report,/electricityBill\*\(refinements.details.electricityPeriod/);
+  assert.match(report,/gasMonthly\*12/);
+});
+check('savings records use per-bill labels, local dates, and do not change checklist ticks',()=>{
+  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+  const checklist=fs.readFileSync('app/report/[id]/PlanChecklist.tsx','utf8');
+  assert.match(tracker,/todayHere/);
+  assert.match(tracker,/label: options.find/);
+  assert.match(tracker,/entry\.label/);
+  assert.match(tracker,/key: itemKey/);
+  assert.match(checklist,/JSON\.stringify\(saved\.items\) === JSON\.stringify\(items\)/);
+});
+check('report revisions require a paid session and store history atomically',()=>{
+  const api=fs.readFileSync('app/api/report/revise/route.ts','utf8');
+  const sql=fs.readFileSync('supabase/migrations/20261110_phase1_report_revisions.sql','utf8');
+  assert.match(api,/await paidSession\(data\.sessionId\)/);
+  assert.match(api,/spendshift_update_report_revision/);
+  assert.match(sql,/FOR UPDATE/);
+  assert.match(sql,/revision_history/);
+  assert.match(sql,/REVOKE ALL/);
+  assert.match(sql,/service_role/);
+});
+check('free sample shows a calculation without claiming the customer savings',()=>{
+  const results=fs.readFileSync('app/results/page.tsx','utf8');
+  assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
+  assert.match(results,/See an example of what your plan looks like/);
+  assert.match(results,/areas\.slice\(3\)/);
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');
