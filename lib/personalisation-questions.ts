@@ -67,9 +67,9 @@ export function selectPersonalisationAreas(auditAnswers: string[]): Personalisat
     })
     .filter(x => x.score >= 2)
     .sort((a,b) => b.score - a.score);
-  const chosen = ranked.slice(0, 2);
-  if (ranked[2]?.score >= 3) chosen.push(ranked[2]);
-  return chosen.map(item => item.area);
+  // An eight-answer audit can reveal seven genuine review areas.
+  // Do not arbitrarily discard the fourth, fifth or later concern.
+  return ranked.map(item => item.area);
 }
 
 export function reasonForArea(area: PersonalisationArea, answers: string[]): string {
@@ -129,6 +129,19 @@ export const previewProfiles: Record<
       "Over a year ago",
       "Over a year ago",
       "Rarely",
+      "Lower my bills",
+    ],
+  },
+  "all-seven": {
+    label: "All 7 areas flagged",
+    answers: [
+      "Almost daily",
+      "10+",
+      "Never / not sure",
+      "Daily",
+      "I honestly don't know",
+      "I honestly don't know",
+      "Almost daily",
       "Lower my bills",
     ],
   },
