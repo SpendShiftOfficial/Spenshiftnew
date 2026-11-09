@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { supabaseAdmin } from "./supabase";
 import { analyseSavings } from "./savings-engine";
 import { emptyRefinements, validateRefinements } from "./report-refinements";
-import { makeReportMarkdown, optionalNarrative } from "./report-writing";
+import { makeReportMarkdown } from "./report-writing";
 import {
   auditAnswersFromSession,
   ensurePaidOrder,
@@ -56,8 +56,7 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
     const answers = auditAnswersFromSession(session);
     const refinements = claimed.refinements == null ? emptyRefinements() : validateRefinements(claimed.refinements);
     const analysis = analyseSavings(answers, refinements);
-    const narrative = await optionalNarrative(answers, refinements, analysis);
-    const report = makeReportMarkdown(answers, refinements, analysis, narrative);
+    const report = makeReportMarkdown(answers, refinements, analysis);
     const reportId = secureReportId();
 
     const { error: insertError } = await supabaseAdmin.from("reports").insert({
@@ -68,6 +67,7 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
       email: session.customer_details?.email || session.customer_email || null,
       refinements,
       savings_summary: {
+        version: 2,
         estimatedAnnualScenario: analysis.estimatedAnnualScenario,
         firstAction: analysis.opportunities[0]?.firstAction || "Review one current bill or recurring charge.",
         opportunities: analysis.opportunities,
