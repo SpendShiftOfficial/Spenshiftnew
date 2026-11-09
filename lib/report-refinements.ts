@@ -12,6 +12,7 @@ export type PersonalisationDetails = {
   internetMonthly: number | null;
   mobileMonthly: number | null;
   subscriptionsMonthly: number | null;
+  unusedSubscriptionMonthly: number | null;
   takeawayOrder: number | null;
   convenienceWeekly: number | null;
   unplannedArea: string;
@@ -90,6 +91,7 @@ export function emptyRefinements(): ReportRefinements {
       internetMonthly: null,
       mobileMonthly: null,
       subscriptionsMonthly: null,
+      unusedSubscriptionMonthly: null,
       takeawayOrder: null,
       convenienceWeekly: null,
       unplannedArea: "",
@@ -131,6 +133,13 @@ export function validateRefinements(input: unknown): ReportRefinements {
     policy.type || policy.premium !== null || policy.insurer || policy.coverDescription,
   );
 
+  const subscriptionsMonthly = money(details.subscriptionsMonthly, "Subscription total");
+  const unusedSubscriptionMonthly = money(details.unusedSubscriptionMonthly, "Unused subscription price");
+  if (unusedSubscriptionMonthly !== null && subscriptionsMonthly !== null &&
+      unusedSubscriptionMonthly > subscriptionsMonthly) {
+    throw new Error("An unused subscription cannot cost more than your monthly subscription total.");
+  }
+
   return {
     version: 1,
     additionalArea: selectedAdditionalArea,
@@ -141,7 +150,8 @@ export function validateRefinements(input: unknown): ReportRefinements {
       gasMonthly: money(details.gasMonthly, "Gas bill"),
       internetMonthly: money(details.internetMonthly, "Internet bill"),
       mobileMonthly: money(details.mobileMonthly, "Mobile bill"),
-      subscriptionsMonthly: money(details.subscriptionsMonthly, "Subscription total"),
+      subscriptionsMonthly,
+      unusedSubscriptionMonthly,
       takeawayOrder: money(details.takeawayOrder, "Takeaway order"),
       convenienceWeekly: money(details.convenienceWeekly, "Convenience spending"),
       unplannedArea: fixedChoice(details.unplannedArea, unplannedTypes, "unplanned purchases"),
