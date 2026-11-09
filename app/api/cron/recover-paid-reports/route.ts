@@ -18,15 +18,15 @@ export async function GET(req: Request) {
       .eq("status", "processing")
       .lt("processing_started_at", staleBefore);
 
-    // Recover paid orders when the customer closed their browser before
-    // choosing personalisation or generation.
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    // Give paid customers a full day to answer their short personalisation
+    // questions. Only then make the audit-only fallback for abandoned orders.
+    const fullDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { data: waiting, error } = await supabaseAdmin
       .from("report_orders")
       .select("stripe_session_id")
       .in("status", ["awaiting_details", "failed"])
       .lt("attempt_count", 4)
-      .lt("created_at", thirtyMinutesAgo)
+      .lt("created_at", fullDayAgo)
       .order("created_at", { ascending: true })
       .limit(4);
     if (error) throw error;
