@@ -77,7 +77,7 @@ function money(value: unknown, label: string): number | null {
 function countPerWeek(value: unknown, label: string): number | null {
   if (value === undefined || value === null || value === "") return null;
   const raw = String(value);
-  if (!/^(?:0|[1-9]\\d?)$/.test(raw)) throw new Error(label + " must be a whole number.");
+  if (!/^(?:0|[1-9][0-9]?)$/.test(raw)) throw new Error(label + " must be a whole number.");
   const n = Number(raw);
   if (n > 21) throw new Error(label + " must be 21 or less.");
   return n;
