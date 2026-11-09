@@ -1,6 +1,6 @@
 import type { PlanDraft } from "./plan-draft";
 import type { PersonalisationArea } from "./personalisation-questions";
-import { selectedDraftAreas } from "./plan-draft";
+import { selectPersonalisationAreas } from "./personalisation-questions";
 
 export type AuditConflict = { area: PersonalisationArea; message: string };
 
@@ -9,7 +9,10 @@ export type AuditConflict = { area: PersonalisationArea; message: string };
  * Leave uncertain / borderline frequency answers alone; flag hard contradictions.
  */
 export function findAuditConflict(d: PlanDraft): AuditConflict | null {
-  const areas = selectedDraftAreas(d);
+  const areas = selectPersonalisationAreas(d.answers);
+  if (d.additionalArea && !areas.includes(d.additionalArea as PersonalisationArea)) {
+    areas.push(d.additionalArea as PersonalisationArea);
+  }
   const { answers, details } = d;
   const weekly = details.takeawayOrdersPerWeek === ""
     ? null : Number(details.takeawayOrdersPerWeek);
