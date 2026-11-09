@@ -17,7 +17,7 @@ export async function optionalNarrative(
   refinements: ReportRefinements,
   savings: SavingsAnalysis,
 ): Promise<Narrative | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
+  if (!process.env.ANTHROPIC_API_KEY || (process.env.VERCEL_ENV === "preview" && process.env.PHASE1_TEST_AI !== "enabled")) return null;
   try {
     const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const response = await ai.messages.create({
