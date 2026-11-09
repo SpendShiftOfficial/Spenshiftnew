@@ -26,7 +26,7 @@ try{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
    await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
-   await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
+   await page.getByText('See an example of what your plan looks like',{exact:true}).click();assert.match(await page.locator('body').innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.match(await page.locator('body').innerText(),/\$40 less each week/);await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
   });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
@@ -53,9 +53,9 @@ try{
    await noOverflow(page);await page.screenshot({path:'test-artifacts/seven-area-plan-'+viewport.width+'.png',fullPage:true});
   });
   await test('checked savings are retained and not forecast totals '+viewport.width,async()=>{
-   await page.getByText('Add or update a checked result',{exact:true}).click();const form=page.locator('form').last();
-   await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra costs or fees not already included ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save checked result'}).click();
-   assert.match(await page.locator('body').innerText(),/reported \$15 less/);await page.reload({waitUntil:'networkidle'});await page.waitForTimeout(300);assert.match(await page.locator('body').innerText(),/reported \$15 less/);
+   await page.getByText('Add a checked result',{exact:true}).click();const form=page.locator('form').last();
+   await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra fees or costs not included above ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save this result'}).click();
+   assert.match(await page.locator('body').innerText(),/recorded \$15 less/);await page.reload({waitUntil:'networkidle'});await page.waitForTimeout(300);assert.match(await page.locator('body').innerText(),/recorded \$15 less/);
   });
   await context.close();
  }
