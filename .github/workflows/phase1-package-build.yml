@@ -13,7 +13,7 @@ concurrency:
 jobs:
   validate:
     if: github.repository == 'SpendShiftOfficial/Spenshiftnew' && github.ref == 'refs/heads/phase-1-personalisation-2026-11'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
@@ -68,7 +68,7 @@ jobs:
           retention-days: 2
   publish:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: write
