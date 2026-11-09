@@ -13,10 +13,10 @@ import {
 
 const steps = [
   { title: "Payment confirmed", text: "Your purchase has been verified.", icon: ShieldCheck },
-  { title: "Reviewing your answers", text: "Looking at the relevant spending areas.", icon: BarChart3 },
-  { title: "Checking the calculations", text: "Separating spending from potential savings.", icon: Sparkles },
-  { title: "Building your action plan", text: "Preparing useful steps and scripts.", icon: FileText },
-  { title: "Saving your report", text: "Preparing a private link for you.", icon: MessageSquareText },
+  { title: "Checking your answers", text: "Finding the best places to start.", icon: BarChart3 },
+  { title: "Checking your costs", text: "Making sure we do not guess your savings.", icon: Sparkles },
+  { title: "Making your plan", text: "Writing clear steps you can follow.", icon: FileText },
+  { title: "Saving your plan", text: "Making your private link.", icon: MessageSquareText },
 ];
 
 function SuccessContent() {
@@ -127,14 +127,14 @@ function SuccessContent() {
         <>
           <LoaderCircle size={36} className="spin" color="#059625" />
           <h1>Checking your payment</h1>
-          <p>Verifying your purchase securely.</p>
+          <p>Making sure your payment went through.</p>
         </>
       )}
       {mode === "choice" && (
         <>
           <CheckCircle2 size={48} color="#059625" />
-          <h1>Payment successful</h1>
-          <p>Your full SpendShift report is unlocked. Choose how you would like to continue.</p>
+          <h1>Payment complete</h1>
+          <p>Your savings plan is included. Choose how to start.</p>
           <div style={{ display: "grid", gap: 15, margin: "26px auto", maxWidth: 480 }}>
             <button
               type="button"
@@ -142,26 +142,26 @@ function SuccessContent() {
               style={{ minHeight: 58, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
               onClick={() => { trackEvent("personalisation_started", { source: "post_payment" }); router.push("/personalise?session_id=" + encodeURIComponent(sessionId!)); }}
             >
-              <Sparkles size={20} /> Make my report more accurate <ArrowRight size={18} />
+              <Sparkles size={20} /> Make my plan fit me <ArrowRight size={18} />
             </button>
-            <p style={{ margin: "-7px 0 5px", fontSize: 13 }}>Answer a few short, relevant questions. Completely optional.</p>
+            <p style={{ margin: "-7px 0 5px", fontSize: 13 }}>Answer a few short questions. All optional.</p>
             <button
               type="button"
               className="btn btnSecondary"
-              style={{ minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+              style={{ minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "#fff", color: "#14622b", border: "1px solid #a9d7b4" }}
               onClick={() => { trackEvent("personalisation_skipped", { source: "post_payment" }); router.replace("/success?session_id=" + encodeURIComponent(sessionId!) + "&generate=1"); }}
             >
-              <FileText size={19} /> Generate my report now
+              <FileText size={19} /> Make my plan now
             </button>
           </div>
-          <p className="mini">Either choice includes your full $39 purchase. We do not charge you again.</p>
+          <p className="mini">Both choices are included. You will not pay again.</p>
         </>
       )}
       {mode === "generating" && (
         <>
           <ShieldCheck size={42} color="#059625" />
-          <h1>Preparing your savings report</h1>
-          <p>We're checking your answers and making an action plan. This can take a little time.</p>
+          <h1>Making your savings plan</h1>
+          <p>We're using your answers to make clear next steps.</p>
           <div className="reportLoader"><span /></div>
           <div className="reportSteps" aria-live="polite">
             {steps.map((step, index) => {
@@ -178,14 +178,14 @@ function SuccessContent() {
               );
             })}
           </div>
-          <p className="mini">If you close this page, your payment is recorded. Your report link will be emailed when ready.</p>
+          <p className="mini">Keep this page open if you can. Your payment is saved if you need to come back.</p>
         </>
       )}
       {mode === "error" && (
         <>
-          <h1>We couldn't finish that step</h1>
+          <h1>We couldn't make your plan</h1>
           <p role="alert" style={{ color: "#8b2929" }}>{error}</p>
-          <p>Your payment has not been charged again. Please retry using the same link.</p>
+          <p>We have not charged you again. Try the same link.</p>
           <button type="button" className="btn" onClick={() => window.location.reload()}>
             Try again
           </button>
