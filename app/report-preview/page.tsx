@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 const examples = {
   "subscriptions-insurance": {
     label: "Subscriptions + insurance",
-    details: { subscriptionsMonthly: "120" },
+    details: { subscriptionsMonthly: "120", unusedSubscriptionChoice: "yes", unusedSubscriptionName: "Old video app", unusedSubscriptionMonthly: "15" },
     insurancePolicies: [
       { type: "Car", premium: "1800", paymentPeriod: "year" },
       { type: "Home or contents", premium: "240", paymentPeriod: "month" },
@@ -24,7 +24,7 @@ const examples = {
   },
   "takeaway-convenience": {
     label: "Takeaway + small buys",
-    details: { takeawayOrder: "30", convenienceWeekly: "35" },
+    details: { takeawayOrder: "30", takeawayOrdersPerWeek: "6", takeawaySwapPerWeek: "2", takeawayReplacementCost: "10", convenienceWeekly: "35", convenienceGoalWeekly: "25" },
     insurancePolicies: [],
   },
   "household-bills": {
@@ -34,6 +34,23 @@ const examples = {
       electricityBill: "425.50", electricityPeriod: "quarter",
     },
     insurancePolicies: [],
+  },
+  "all-seven": {
+    label: "All 7 areas — big test",
+    details: {
+      takeawayOrder: "120", takeawayOrdersPerWeek: "7",
+      takeawaySwapPerWeek: "3", takeawayReplacementCost: "40",
+      subscriptionsMonthly: "70", unusedSubscriptionChoice: "no",
+      convenienceWeekly: "100", convenienceGoalWeekly: "70",
+      internetMonthly: "85", mobileMonthly: "55",
+      state: "NSW", electricityBill: "520", electricityPeriod: "quarter", gasMonthly: "85",
+      unplannedArea: "Online shopping", shoppingTrigger: "Social media",
+    },
+    insurancePolicies: [
+      { type: "Car", premium: "1800", paymentPeriod: "year", renewal: "later" },
+      { type: "Home or contents", premium: "240", paymentPeriod: "month", renewal: "soon" },
+      { type: "Health", premium: "250", paymentPeriod: "month", renewal: "not_sure" },
+    ],
   },
   "few-opportunities": {
     label: "No clear savings areas",
