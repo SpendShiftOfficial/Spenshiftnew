@@ -55,21 +55,26 @@ function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string[] {
     ];
   }
   if (op.area === "takeaway") {
-    if (d.takeawaySwapPerWeek === 0) return ["Keep your meal routine for now.", "Check the full cost, including delivery, before your next order.", "Only change something if it fits your needs and costs less."];
-    if (d.takeawayOrdersPerWeek !== null && d.takeawaySwapPerWeek !== null &&
-        d.takeawaySwapPerWeek > 0 && d.takeawaySwapPerWeek <= d.takeawayOrdersPerWeek) {
-      const n = d.takeawaySwapPerWeek;
-      return [
-        "Mark " + n + " orders next week that you could replace with food from home.",
-        "Pick " + n + " easy " + (n === 1 ? "meal" : "meals") + " to make at home. Buy the food in one shop.",
-        "Keep the takeaway receipts and food-shop costs. Compare the price for the same people.",
-      ];
-    }
-    return [
-      "Look back over the last 7 days. Count your takeaway orders and the full price of each.",
-      "Choose how many orders you could replace each week and still enjoy your food.",
-      "Price a meal at home for the same people. Compare the two totals.",
+    if (d.takeawaySwapPerWeek === 0) return [
+      "Keep your takeaway routine for now. We haven't added a saving.",
+      "Check the full cost, including delivery, before your next order.",
+      "Only change what fits your needs and costs less.",
     ];
+    const n=d.takeawaySwapPerWeek;
+    if(n!==null&&n>0&&d.takeawayOrdersPerWeek!==null&&n<=d.takeawayOrdersPerWeek){
+      const reason=d.takeawayReason;
+      const second=reason==="busy"?"Pick meals you can make in about 15 minutes. Keep the ingredients ready."
+        :reason==="tired"?"Prepare a meal when you have more energy. Heat it up on a busy night."
+        :reason==="family"?"Pick meals that feed the same people as your takeaway orders. Compare the full costs."
+        :reason==="enjoy"?"Keep the takeaway nights you enjoy most. Replace the orders you enjoy less."
+        :reason==="other"?"Pick meals that fit your routine, not someone else's plan."
+        :"Choose easy meals you could make instead. Buy the ingredients together.";
+      return ["Pick "+n+" takeaway "+(n===1?"order":"orders")+" to replace next week.",
+        second,"Check receipts and food costs for the same people. Count only what you keep."];
+    }
+    return ["Count your takeaway orders in a normal week.",
+      "Pick a change that feels realistic for you.",
+      "Compare the full order cost with food you'd buy instead."];
   }
   if (op.area === "convenience") {
     if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
