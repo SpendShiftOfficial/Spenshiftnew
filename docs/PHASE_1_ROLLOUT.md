@@ -1,5 +1,28 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
+## Customer experience redesign — 9 November 2026
+
+- Free results no longer show pre-set dollar ranges, category dollar tiles, or unverified "money leak" values.
+- Free results use the same 0–4 ranking signals as optional paid questions, not invented annual savings. If no strong area appears, customers are told NOT to buy a report on those answers.
+- Checkout now says "Step-by-Step Savings Plan" with the existing A$39 price and the same Stripe product metadata identifier.
+- After payment, the customer sees clear options to add details or make a plan immediately.
+- The personalisation screen has shorter wording. "Want to check another bill?" is optional and appears only at the final review, not before the first question.
+- The main report now uses big, clear cards, customer-provided spending, three steps per area, optional copyable messages and a three-task checklist saved only in the customer's browser.
+- The report DOES NOT lead with an annual savings estimate. No yearly saving is inferred from insurance premiums, recent review dates, a subscription count, takeaway order frequency, or assumed shopping reductions.
+- The only current annual saving scenario is an exact price the customer voluntarily supplies for a specific unused subscription. It must still be cancelled before money is genuinely saved.
+- The new report renders directly from the saved structured calculation data. Existing saved structured reports display the new layout without regenerating. Legacy reports without the structured summary retain their old renderer.
+- Reports generated after this redesign store a shorter plain-language report string and v2 structured summary. There is no AI wording call in the new report generator.
+- Preview-only fictional examples are available at \`/report-preview\` on the Phase 1 branch. This route returns 404 in Production and never charges money.
+- Scripted checks cover the missing-dollar cases, three insurance premiums, no double counting, the short report, and no-opportunity cases.
+
+### Manual design review still required
+1. Open the Phase 1 preview's \`/results\` after a fresh eight-question audit. Confirm there are no dollar ranges or guaranteed-savings promises.
+2. Open \`/personalise\` on the preview and test the sample customer. Confirm the missed-bill option appears ONLY on the last screen.
+3. Open \`/report-preview\`. Test all four fictional profiles and mobile view, especially the three insurance policies and no-guarantee messaging.
+4. Confirm saved older test reports still open (no data migration).
+5. If we repeat test checkout, always use the Stripe sandbox. Do NOT use a real card.
+6. Separate technical pass/fail from a real customer value test: a readable report alone does not prove customers will value it at A$39.
+
 ## Vercel preview isolation — 9 November 2026
 
 - Vercel project: `business-solutions/spenshiftnew`, on Hobby.
