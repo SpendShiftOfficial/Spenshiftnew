@@ -14,7 +14,7 @@ language plpgsql
 security invoker
 set search_path = ''
 as $function$
-declare updated boolean;
+declare affected_rows integer;
 begin
   if p_expected_revision < 1 or p_expected_revision > 6 then return false; end if;
   update public.reports
@@ -26,8 +26,8 @@ begin
     and stripe_session_id is not null
     and coalesce((savings_summary ->> 'edit_revision')::integer, 1) = p_expected_revision
     and coalesce((savings_summary ->> 'version')::integer, 0) >= 3;
-  get diagnostics updated = row_count;
-  return updated;
+  get diagnostics affected_rows = row_count;
+  return affected_rows = 1;
 end;
 $function$;
 revoke all on function public.update_spendshift_report_cas(text,integer,jsonb,jsonb,text,jsonb)
