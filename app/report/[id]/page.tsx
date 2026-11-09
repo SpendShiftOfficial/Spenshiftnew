@@ -332,6 +332,7 @@ export default async function ReportPage({
           answers={data.answers}
           analysis={analysis}
           refinements={refinements}
+          revisionCount={typeof saved.revision_count === "number" ? saved.revision_count : 0}
         />
       </div>
     );
