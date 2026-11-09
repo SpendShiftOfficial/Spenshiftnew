@@ -180,6 +180,10 @@ try{
   await buyer.evaluate(d=>sessionStorage.setItem('spendshift_demo_plan',JSON.stringify(d)),customerDraft);
   await buyer.getByRole('button',{name:'Make my plan',exact:true}).click();
   await buyer.waitForURL('**/plan-preview');
+  const takeawayCard=buyer.locator('#area-takeaway');
+  if(!await takeawayCard.isVisible()){
+   await buyer.locator('details').filter({has:takeawayCard}).locator('summary').first().click();
+  }
   const report=await buyer.locator('body').innerText();
   assert.match(report,/Your 7 areas to check/);
   assert.match(report,/Insurance/);
