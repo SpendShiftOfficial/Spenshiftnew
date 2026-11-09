@@ -39,6 +39,7 @@ export default function SavingsTracker({
   const [fees, setFees] = useState("0");
   const [period, setPeriod] = useState<Entry["period"]>("month");
   const [date, setDate] = useState("");
+  const [localToday, setLocalToday] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -62,6 +63,7 @@ export default function SavingsTracker({
       setMessage("Your saved results could not be opened on this device.");
     }
     setLoaded(true);
+    setLocalToday(todayHere());
   }, [storageKey, options.length]);
 
   function store(next: Entry[]) {
@@ -182,7 +184,7 @@ export default function SavingsTracker({
             </label>
             <label>
               Date you checked
-              <input type="date" required max={todayHere()} value={date} onChange={e => setDate(e.target.value)} />
+              <input type="date" required max={localToday || undefined} value={date} onChange={e => setDate(e.target.value)} />
             </label>
             <label className={styles.confirmRow}>
               <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />
