@@ -6,6 +6,7 @@ on:
       - 'app/**'
       - 'lib/**'
       - 'scripts/check-phase1-browser.mjs'
+      - 'scripts/check-phase1.mjs'
       - '.github/workflows/phase1-customer-walkthrough.yml'
   workflow_dispatch:
 
