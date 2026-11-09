@@ -15,6 +15,8 @@ type Props = {
   answers: string[];
   analysis: SavingsAnalysis;
   refinements: ReportRefinements;
+  allowCorrections?: boolean;
+  revision?: number;
 };
 
 function money(amount: number): string {
@@ -359,7 +361,7 @@ function firstTask(op: SavingsOpportunity, r: ReportRefinements): string {
   return firstSteps(op,r)[0];
 }
 
-export default function SimpleSavingsReport({ reportId, answers, analysis, refinements }: Props) {
+export default function SimpleSavingsReport({ reportId, answers, analysis, refinements, allowCorrections = false, revision = 1 }: Props) {
   const ops = rankOpportunities(analysis.opportunities, answers, refinements);
   const first = ops.slice(0, 3);
   const more = ops.slice(3);
@@ -384,6 +386,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           <div className={styles.notice}>
             <strong>Based on your answers.</strong> What you pay now is not money saved. We only show possible savings when the numbers support them.
           </div>
+          {allowCorrections&&<a className={styles.editLink} href={"/report/"+encodeURIComponent(reportId)+"/edit"}>Fix an answer in my plan</a>}
         </header>
 
         {first.length > 0 && <section className={styles.areas} aria-label="Start here">
@@ -406,7 +409,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
         <section className={styles.lastCard}>
           <h2>Your 3 things to do first</h2>
           <p>Tick each one when you're done.</p>
-          <PlanChecklist reportId={reportId} items={tasks} />
+          <PlanChecklist reportId={reportId+"-version-"+revision} items={tasks} />
         </section>
 
         <SavingsTracker reportId={reportId} areas={ops.map(op=>({area:op.area,title:op.title}))} />
