@@ -235,8 +235,8 @@ function previousQuestion() {
           <h2>{qs[i].q}</h2>
 
           <p>
-            This helps us quickly spot simple money
-            leaks without needing bank access.
+            Your answers help us find bills and spending
+            worth checking. No bank login needed.
           </p>
 
           <div className="options">
