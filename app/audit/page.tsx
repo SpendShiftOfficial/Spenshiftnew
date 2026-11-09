@@ -25,7 +25,7 @@ import {
 
 const qs = [
   {
-    q: "How often do you order takeaway or food delivery?",
+    q: "How often do you buy takeaway food?",
     options: [
       "Never",
       "1–2 times/week",
@@ -35,12 +35,12 @@ const qs = [
     icon: Utensils,
   },
   {
-    q: "How many subscriptions do you currently pay for?",
+    q: "How many subscriptions do you pay for?",
     options: ["0–2", "3–5", "6–10", "10+", "Not sure"],
     icon: CreditCard,
   },
   {
-    q: "When did you last compare your insurance?",
+    q: "When did you last check your insurance price?",
     options: [
       "I don’t currently have insurance",
       "Within 6 months",
@@ -52,7 +52,7 @@ const qs = [
     icon: ShieldCheck,
   },
   {
-    q: "How often do you buy convenience items like coffee, drinks, snacks, or quick lunches?",
+    q: "How often do you buy coffee, snacks or lunch while out?",
     options: [
       "Rarely",
       "1–2 times/week",
@@ -62,7 +62,7 @@ const qs = [
     icon: Coffee,
   },
   {
-    q: "When did you last compare your internet or mobile plan?",
+    q: "When did you last check your phone or internet price?",
     options: [
       "Within 6 months",
       "6-12 months ago",
@@ -73,7 +73,7 @@ const qs = [
     icon: Smartphone,
   },
   {
-    q: "When did you last compare your electricity or gas plan?",
+    q: "When did you last check your power or gas price?",
     options: [
       "Within 6 months",
       "6-12 months ago",
@@ -84,7 +84,7 @@ const qs = [
     icon: RefreshCcw,
   },
   {
-    q: "How often do you spend money on things you didn’t originally plan to buy?",
+    q: "How often do you buy things you didn't plan to buy?",
     options: [
       "Rarely",
       "1–2 times/week",
@@ -94,7 +94,7 @@ const qs = [
     icon: ShoppingBag,
   },
   {
-    q: "What would help you MOST right now?",
+    q: "What would help you most right now?",
     options: [
       "Lower my bills",
       "Save more money",
@@ -306,12 +306,11 @@ function previousQuestion() {
 
             <div className="reveal-right">
               <b>
-                100% data-driven. 100% about you.
+                Your answers guide your plan.
               </b>
 
               <p className="mini">
-                We analyse your answers to estimate
-                your biggest saving opportunities.
+                We use your answers to find where you could start saving.
               </p>
             </div>
           </div>
