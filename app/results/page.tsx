@@ -98,12 +98,13 @@ export default function Results() {
               <span className={styles.eyebrow}><CheckCircle2 size={17} /> YOUR FREE RESULTS</span>
               <h1>We found {areas.length} {areas.length === 1 ? "place" : "places"} to check.</h1>
               <p className={styles.subhead}>
-                Your answers show where to start. We don't know how much you can save yet.
+                Your answers show where to start. These are checks, not proof you are overpaying. More details could change the order.
               </p>
             </section>
 
             <section className={styles.areas} aria-label="Places to check">
-              {areas.map((area, index) => (
+              {areas.length > 3 && <h2 className={styles.topLabel}>Start with these three checks</h2>}
+              {areas.slice(0,3).map((area,index)=>(
                 <article className={styles.areaCard} key={area}>
                   <span className={styles.index}>{index + 1}</span>
                   <div className={styles.areaCopy}>
@@ -113,6 +114,15 @@ export default function Results() {
                   <CheckCircle2 className={styles.areaIcon} size={23} aria-hidden="true" />
                 </article>
               ))}
+              {areas.length>3&&(
+                <div className={styles.otherAreas}>
+                  <h2>Also worth checking</h2>
+                  <ul>{areas.slice(3).map((area,index)=>(
+                    <li key={area}><strong>{index+4}. {areaNames[area]}</strong><span>{reasonForArea(area, answers)}</span></li>
+                  ))}</ul>
+                  <p>Your paid plan will cover all {areas.length} areas. Detailed answers may change which ones come first.</p>
+                </div>
+              )}
             </section>
 
             <section className={styles.purchase} id="unlock-full-report">
@@ -126,6 +136,21 @@ export default function Results() {
                 <p><CheckCircle2 size={20} /> Help checking bills and regular payments</p>
                 <p><CheckCircle2 size={20} /> A short list to follow at your own pace</p>
               </div>
+              <details className={styles.samplePlan}>
+                <summary>See an example of what your plan looks like</summary>
+                <div className={styles.sampleInside}>
+                  <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
+                  <h3>Takeaway food</h3>
+                  <p>A customer pays $30 per order. They replace 2 orders a week with meals costing $10 each for the same people.</p>
+                  <p className={styles.sampleSaving}><strong>$40 less each week</strong> if they follow that plan.</p>
+                  <ol>
+                    <li>Choose two nights for food at home.</li>
+                    <li>Get the food in one shop.</li>
+                    <li>Compare what both meals really cost.</li>
+                  </ol>
+                  <small>Your report will use your answers. We won't promise any saving before checking the numbers.</small>
+                </div>
+              </details>
               <div className={styles.price}>A$39 <span>one-time payment</span></div>
               <p className={styles.honesty}>We don't compare live prices for you or promise a set amount of savings. Your plan will help you find out.</p>
               <label className={styles.terms}>

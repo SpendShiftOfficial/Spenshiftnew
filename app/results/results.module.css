@@ -183,3 +183,24 @@
   .purchase { border-radius: 18px; }
   .payButton { font-size: 15px; }
 }
+
+/* A compact list keeps all flagged concerns visible without seven large cards. */
+.topLabel,.otherAreas h2{font-size:21px;line-height:1.3;font-weight:800;color:#20402b;margin:6px 0 1px}
+.otherAreas{border-radius:18px;background:#fff;border:1px solid #deebdf;padding:21px 23px}
+.otherAreas ul{list-style:none;margin:14px 0 0;padding:0}
+.otherAreas li{display:flex;flex-direction:column;gap:4px;padding:13px 0;border-top:1px solid #e5efe7}
+.otherAreas li strong{font-size:16px;color:#23442d}
+.otherAreas li span{font-size:14px;color:#617166;line-height:1.5}
+.otherAreas p{font-size:14px;color:#516456;line-height:1.55;margin:14px 0 0}
+.samplePlan{border:1px solid #d4e5d6;border-radius:16px;margin:24px 0;background:#f8fbf8;overflow:hidden}
+.samplePlan summary{font-size:16px;font-weight:800;color:#176432;cursor:pointer;padding:17px 19px;line-height:1.45}
+.samplePlan summary:focus-visible{outline:3px solid #a3ddad;outline-offset:-4px}
+.sampleInside{border-top:1px solid #dfeddf;padding:19px 20px}
+.exampleLabel{font-size:12px;color:#5a755f;font-weight:800;letter-spacing:.035em}
+.sampleInside h3{font-size:23px;font-weight:850;margin:12px 0 8px}
+.sampleInside p,.sampleInside li{font-size:15px;line-height:1.6;color:#34553e}
+.sampleSaving{background:#e8f7eb;border-radius:10px;padding:12px}
+.sampleSaving strong{font-size:20px;color:#196c32}
+.sampleInside ol{padding-left:21px;margin:15px 0}
+.sampleInside small{font-size:13px;line-height:1.5;color:#657a69}
+@media(max-width:600px){.otherAreas{padding:18px 16px}.sampleInside{padding:16px}}
