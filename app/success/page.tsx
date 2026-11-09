@@ -24,7 +24,7 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const generating = searchParams.get("generate") === "1";
-  const [mode, setMode] = useState<"checking" | "choice" | "generating" | "error">("checking");
+  const [mode, setMode] = useState<"checking" | "generating" | "error">("checking");
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState("");
 
@@ -81,7 +81,9 @@ function SuccessContent() {
           return;
         }
         if (!generating) {
-          setMode("choice");
+          // Personalisation is part of the paid plan, not an extra upsell.
+          // Each question still offers Skip or Not sure.
+          router.replace("/personalise?session_id=" + encodeURIComponent(sessionId!));
           return;
         }
         setActiveStep(0);
@@ -128,33 +130,6 @@ function SuccessContent() {
           <LoaderCircle size={36} className="spin" color="#059625" />
           <h1>Checking your payment</h1>
           <p>Making sure your payment went through.</p>
-        </>
-      )}
-      {mode === "choice" && (
-        <>
-          <CheckCircle2 size={48} color="#059625" />
-          <h1>Payment complete</h1>
-          <p>Your savings plan is included. Choose how to start.</p>
-          <div style={{ display: "grid", gap: 15, margin: "26px auto", maxWidth: 480 }}>
-            <button
-              type="button"
-              className="btn"
-              style={{ minHeight: 58, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
-              onClick={() => { trackEvent("personalisation_started", { source: "post_payment" }); router.push("/personalise?session_id=" + encodeURIComponent(sessionId!)); }}
-            >
-              <Sparkles size={20} /> Make my plan fit me <ArrowRight size={18} />
-            </button>
-            <p style={{ margin: "-7px 0 5px", fontSize: 13 }}>Answer a few short questions. All optional.</p>
-            <button
-              type="button"
-              className="btn btnSecondary"
-              style={{ minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "#fff", color: "#14622b", border: "1px solid #a9d7b4" }}
-              onClick={() => { trackEvent("personalisation_skipped", { source: "post_payment" }); router.replace("/success?session_id=" + encodeURIComponent(sessionId!) + "&generate=1"); }}
-            >
-              <FileText size={19} /> Make my plan now
-            </button>
-          </div>
-          <p className="mini">Both choices are included. You will not pay again.</p>
         </>
       )}
       {mode === "generating" && (
