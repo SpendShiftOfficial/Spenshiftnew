@@ -291,3 +291,113 @@
   .card, .lastCard { box-shadow: none; break-inside: avoid; }
   .helpDetails { display: none; }
 }
+
+
+/* All flagged areas remain in the plan. Only the first three are expanded. */
+.moreAreas { margin: 26px 0 0; }
+.moreAreas > h2 {
+  font-size: clamp(25px, 4vw, 32px);
+  font-weight: 850;
+  color: #173c26;
+  margin: 0 0 8px;
+}
+.moreAreas > p {
+  color: #536456;
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.moreList { display: grid; gap: 12px; }
+.moreItem {
+  background: #fff;
+  border: 1px solid #d9e9dc;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.moreItem > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 19px 20px;
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 800;
+  color: #21412c;
+  line-height: 1.35;
+}
+.moreItem > summary:hover { background: #f3faf5; }
+.moreItem > summary:focus-visible {
+  outline: 3px solid #a8dfb6;
+  outline-offset: -4px;
+}
+.moreItem[open] > summary {
+  background: #eff8f1;
+  border-bottom: 1px solid #d9e9dc;
+}
+.moreCue {
+  color: #0a7330;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.moreItem[open] .moreCue { color: #405f47; }
+.moreItem > .card {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+}
+.costExplanation {
+  color: #455d4b;
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 12px 2px 0;
+}
+.costExplanation strong { font-weight: 800; color: #1e5831; }
+.possible p {
+  color: #285538;
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 8px 0;
+}
+.possible small {
+  display: block;
+  color: #4d6954;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+.guide {
+  display: grid;
+  gap: 9px;
+  margin: 19px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.guide a {
+  color: #0b6e2b;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 800;
+  width: fit-content;
+}
+.guide span {
+  color: #526b57;
+  font-size: 14px;
+}
+.message blockquote {
+  padding: 13px 15px;
+  background: #f1f7f2;
+  color: #305538;
+  border-radius: 10px;
+  border-left: 3px solid #14833b;
+  margin: 0 0 13px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+@media (max-width: 600px) {
+  .moreItem > summary { padding: 17px 15px; font-size: 17px; }
+  .moreCue { font-size: 12px; }
+  .moreItem > .card { padding: 19px 15px; }
+}
