@@ -349,10 +349,18 @@ function AreaCard({ op, index, answers, refinements }: {
         <ol>{steps.map((step,i) => <li key={i}>{step}</li>)}</ol>
       </div>
       <UsefulHelp op={op} r={refinements} />
-      {op.area==='insurance'&&refinements.insurancePolicies.map((p,i)=><QuoteCheck key={i} label={p.type||'this policy'} currentAnnual={p.premium===null?null:insuranceAnnual(p)}/>)}
-      {op.area==='phone'&&refinements.details.mobileMonthly!==null&&<QuoteCheck label='your mobile plan' currentAnnual={refinements.details.mobileMonthly*12}/>}
-      {op.area==='phone'&&refinements.details.internetMonthly!==null&&<QuoteCheck label='your internet plan' currentAnnual={refinements.details.internetMonthly*12}/>}
-      {op.area==='energy'&&<QuoteCheck label='your energy plan' currentAnnual={null}/>}
+      {op.area==='insurance'&&refinements.insurancePolicies.map((p,i)=><QuoteCheck
+        key={i} kind="insurance" label={p.type||'this policy'}
+        currentAnnual={p.premium===null?null:insuranceAnnual(p)} />)}
+      {op.area==='phone'&&refinements.details.mobileMonthly!==null&&<QuoteCheck
+        kind="mobile" label="your mobile plan" currentAnnual={refinements.details.mobileMonthly*12}/>}
+      {op.area==='phone'&&refinements.details.internetMonthly!==null&&<QuoteCheck
+        kind="internet" label="your home internet plan" currentAnnual={refinements.details.internetMonthly*12}/>}
+      {op.area==='energy'&&refinements.details.electricityBill!==null&&<QuoteCheck
+        kind="electricity" label="your electricity plan"
+        currentAnnual={refinements.details.electricityBill*(refinements.details.electricityPeriod==='month'?12:4)}/>}
+      {op.area==='energy'&&refinements.details.gasMonthly!==null&&<QuoteCheck
+        kind="gas" label="your gas plan" currentAnnual={refinements.details.gasMonthly*12}/>}
 
     </article>
   );
