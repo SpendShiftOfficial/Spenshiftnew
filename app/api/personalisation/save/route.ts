@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not save personalisation.";
     console.error("Save personalisation failed:", message);
-    const clientError = /^(Invalid |You may include|.*must be |.*outside the allowed range|.*shorter than )/.test(message);
+    const clientError = /^(Invalid |You may include|You can.t swap|Your new weekly goal|An unused subscription|Choose Yes|.*must be |.*outside the allowed range|.*shorter than )/.test(message);
     return NextResponse.json(
       { error: clientError ? message : "Could not save your answers. Please try again." },
       { status: clientError ? 400 : 500 },
