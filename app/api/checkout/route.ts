@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     // Preview purchases must never accidentally use live Stripe credentials.
     const preview = process.env.VERCEL_ENV === "preview";
-    if (preview && (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
+    if (preview && (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || process.env.STRIPE_SECRET_KEY.includes("setup_required") || process.env.SUPABASE_URL !== "https://pcjgzbaigtsnevhcjqyd.supabase.co" || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
       return NextResponse.json(
         { error: "Preview checkout is disabled until test-mode Stripe, a staging database and the preview testing flag are configured." },
         { status: 403 },
