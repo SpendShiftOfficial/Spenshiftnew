@@ -37,7 +37,7 @@ export async function POST(req: Request) {
           price_data: {
             currency: "aud",
             product_data: {
-              name: "SpendShift Full Savings Report",
+              name: "SpendShift Step-by-Step Savings Plan",
             },
             unit_amount: 3900,
           },
