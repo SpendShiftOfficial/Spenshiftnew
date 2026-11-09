@@ -172,6 +172,11 @@ try{
     await buyer.locator('#shoppingTrigger').selectOption('Social media');
    }
    await buyer.getByRole('button',{name:'Next',exact:true}).click();
+   // Save happens asynchronously; never read a previous question as the next one.
+   await buyer.waitForFunction(previous=>{
+     const h=document.querySelector('section h2');
+     return Boolean(h && h.textContent?.trim()!==previous);
+   },heading,{timeout:16000});
   }
   assert.match(await buyer.locator('body').innerText(),/nearly done/i);
   assert.ok(customerWrites>=7);
