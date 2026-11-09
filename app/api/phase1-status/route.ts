@@ -68,9 +68,11 @@ export async function GET() {
       checkoutEnabled,
       emailTestingEnabled: process.env.PHASE1_TEST_EMAILS === "enabled",
       aiTestingEnabled: process.env.PHASE1_TEST_AI === "enabled",
-      nextAction: databaseConnectionPassed && stripeTestConnectionPassed
-        ? "Test credentials verified. Keep checkout disabled until test-webhook and checkout checks are complete."
-        : "One or more test credentials need attention. Do not enable checkout.",
+      nextAction: checkoutEnabled
+        ? "Sandbox checkout is enabled. Test using a Stripe test card only; never a real card."
+        : databaseConnectionPassed && stripeTestConnectionPassed
+          ? "Test credentials verified. Checkout remains disabled pending final configuration."
+          : "One or more test credentials need attention. Do not enable checkout.",
     },
     { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } },
   );
