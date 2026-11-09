@@ -1,6 +1,6 @@
 import type { ReportRefinements } from "./report-refinements";
 import type { PersonalisationArea } from "./personalisation-questions";
-import { areaNames, selectPersonalisationAreas } from "./personalisation-questions";
+import { areaNames, auditPriorityScore, selectPersonalisationAreas } from "./personalisation-questions";
 
 export type SavingsOpportunity = {
   area: PersonalisationArea;
@@ -154,6 +154,15 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       area, title: areaNames[area], auditAnswer: answers[indexes[area]] ?? "",
       annualSpend, scenarioSaving, assumption, firstAction, verification,
     };
+  });
+
+  // Put actions with customer-set, priced goals ahead of equally strong audit
+  // signals. A high bill alone is not proof of a large saving.
+  opportunities.sort((a,b) => {
+    const scoreA = auditPriorityScore(a.area, answers) + (a.scenarioSaving !== null ? 1 : 0);
+    const scoreB = auditPriorityScore(b.area, answers) + (b.scenarioSaving !== null ? 1 : 0);
+    if (scoreA !== scoreB) return scoreB - scoreA;
+    return (b.scenarioSaving ?? 0) - (a.scenarioSaving ?? 0);
   });
 
   const savings = opportunities.map(x => x.scenarioSaving)
