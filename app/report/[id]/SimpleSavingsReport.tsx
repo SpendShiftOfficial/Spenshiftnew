@@ -272,26 +272,58 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
       <span>For other services, open the company's account or billing page.</span>
     </p>
   );
-  if (area === "insurance" || area === "phone") return (
-    <>
-      <details className={styles.helpDetails}>
-        <summary>{area === "insurance" ? "Ask your insurer for a price to compare" : "Ask your phone company about a better plan"}</summary>
-        <div className={styles.message}>
-          <p>Send this to {area === "insurance" ? "your insurance company" : "your phone or internet company"}:</p>
-          <blockquote>{messages[area]}</blockquote>
-          <CopyMessage message={messages[area]} />
-        </div>
-      </details>
-      <p className={styles.guide}>
-        <a href={area === "insurance"
-          ? "https://moneysmart.gov.au/car-insurance/how-to-save-money-on-car-insurance"
-          : "https://www.acma.gov.au/switch-your-phone-or-internet-provider"}
-          target="_blank" rel="noopener noreferrer">
-          {area === "insurance" ? "Read the free MoneySmart insurance guide" : "Read the free phone switching guide"}
-        </a>
-      </p>
-    </>
-  );
+  if (area === "insurance" || area === "phone") {
+    const guides: Record<string, { label: string; url: string }> = {
+      "Car": {
+        label: "Check car insurance — MoneySmart",
+        url: "https://moneysmart.gov.au/car-insurance/how-to-save-money-on-car-insurance",
+      },
+      "Home or contents": {
+        label: "Check home and contents insurance — MoneySmart",
+        url: "https://moneysmart.gov.au/home-insurance/choosing-home-insurance",
+      },
+      "Health": {
+        label: "Compare health policies — Australian Government",
+        url: "https://www.privatehealth.gov.au/dynamic/search/",
+      },
+      "Life or income protection": {
+        label: "Read about life and income cover — MoneySmart",
+        url: "https://moneysmart.gov.au/how-life-insurance-works",
+      },
+      "Travel": {
+        label: "Check travel insurance — MoneySmart",
+        url: "https://moneysmart.gov.au/other-types-of-insurance/travel-insurance",
+      },
+    };
+    const types = [...new Set(r.insurancePolicies.map(p => p.type))];
+    const specificGuides = types.map(type => guides[type]).filter(
+      (entry): entry is { label: string; url: string } => Boolean(entry),
+    );
+    const generalGuide = {
+      label: "How to check insurance — MoneySmart",
+      url: "https://moneysmart.gov.au/supporting-first-nations-people-with-money-matters/how-to-choose-insurance",
+    };
+    return (
+      <>
+        <details className={styles.helpDetails}>
+          <summary>{area === "insurance" ? "Ask your insurer for a price to compare" : "Ask your phone company about a better plan"}</summary>
+          <div className={styles.message}>
+            <p>Send this to {area === "insurance" ? "your insurance company" : "your phone or internet company"}:</p>
+            <blockquote>{messages[area]}</blockquote>
+            <CopyMessage message={messages[area]} />
+          </div>
+        </details>
+        <p className={styles.guide}>
+          {(area === "phone"
+            ? [{ label: "Free phone and internet switching guide — ACMA", url: "https://www.acma.gov.au/switch-your-phone-or-internet-provider" }]
+            : specificGuides.length ? specificGuides : [generalGuide]).map(guide => (
+            <a key={guide.url} href={guide.url} target="_blank" rel="noopener noreferrer">{guide.label}</a>
+          ))}
+          <span>These are free guides. We have not compared quotes for you.</span>
+        </p>
+      </>
+    );
+  }
   return null;
 }
 
