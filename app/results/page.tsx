@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
 import Header from "@/components/Header";
 import { trackEvent } from "@/lib/gtag";
@@ -9,9 +9,11 @@ import { trackTikTok } from "@/lib/tiktok";
 import { trackMeta, trackMetaStandard } from "@/lib/meta";
 import { areaNames, reasonForArea, selectPersonalisationAreas } from "@/lib/personalisation-questions";
 import styles from "./results.module.css";
+import {TERMS_VERSION} from "@/lib/audit-schema";
 
 export default function Results() {
   const [answers, setAnswers] = useState<string[]>([]);
+  const checkoutAttempt=useRef({answers:"",id:""});
   const [loaded, setLoaded] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -19,7 +21,7 @@ export default function Results() {
 
   useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem("spendshift_answers") || "null");
+      const stored = JSON.parse(localStorage.getItem("spendshift_answers") || sessionStorage.getItem("spendshift_answers") || "null");
       if (Array.isArray(stored) && stored.length === 8 &&
           stored.every(answer => typeof answer === "string")) {
         setAnswers(stored);
@@ -28,12 +30,12 @@ export default function Results() {
       // Never invent answers when the browser has none.
     }
     setLoaded(true);
-    if (!sessionStorage.getItem("free_results_view_tracked")) {
-      trackEvent("free_results_view", { page_location: window.location.href });
+    try { if (!sessionStorage.getItem("free_results_view_tracked")) {
+      trackEvent("free_results_view", { source: "free_results" });
       trackTikTok("free_results_view");
       trackMeta("free_results_view");
       sessionStorage.setItem("free_results_view_tracked", "1");
-    }
+    } } catch {}
   }, []);
 
   const areas = useMemo(() => selectPersonalisationAreas(answers), [answers]);
@@ -46,7 +48,7 @@ export default function Results() {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers, acceptedTerms, termsVersion: TERMS_VERSION, checkoutRequestId: (()=>{const fingerprint=JSON.stringify(answers);if(checkoutAttempt.current.answers!==fingerprint||!checkoutAttempt.current.id)checkoutAttempt.current={answers:fingerprint,id:crypto.randomUUID()};return checkoutAttempt.current.id;})() }),
       });
       const data = await response.json();
       if (!response.ok || typeof data.url !== "string" ||
@@ -134,7 +136,7 @@ export default function Results() {
                 <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$39"} <ArrowRight size={19} />
               </button>
               {error && <p className={styles.error} role="alert">{error}</p>}
-              <p className={styles.footnote}>One payment. Extra questions after checkout are optional.</p>
+              <p className={styles.footnote}>One payment. Next, answer a few questions about your bills and spending. Skip any amount you do not know.</p>
             </section>
 
             <p className={styles.retake}>Want to change an answer? <Link href="/audit">Start again</Link></p>

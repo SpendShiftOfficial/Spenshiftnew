@@ -42,29 +42,10 @@ function SuccessContent() {
     }
     let cancelled = false;
 
-    function recordPurchase() {
-      const trackKey = "purchase_tracked_" + sessionId;
-      if (localStorage.getItem(trackKey)) return;
-      trackEvent("purchase", {
-        transaction_id: sessionId, value: 39, currency: "AUD",
-        items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: 39, quantity: 1 }],
-      });
-      trackTikTok("Purchase", {
-        contents: [{ content_id: "spendshift_full_report", content_name: "SpendShift Full Savings Report", quantity: 1, price: 39 }],
-        content_type: "product", value: 39, currency: "AUD",
-      });
-      trackMetaStandard("Purchase", { value: 39, currency: "AUD" });
-      localStorage.setItem(trackKey, "1");
-    }
-
+    // Private payment and report pages deliberately send no analytics.
+    function recordPurchase() {}
     function openReadyReport(reportId: string) {
-      if (cancelled) return;
-      const trackKey = "paid_report_ready_tracked_" + sessionId;
-      if (!localStorage.getItem(trackKey)) {
-        trackEvent("paid_report_ready", { transaction_id: sessionId, report_id: reportId, value: 39, currency: "AUD" });
-        localStorage.setItem(trackKey, "1");
-      }
-      router.replace("/report/" + encodeURIComponent(reportId));
+      if (!cancelled) window.location.replace("/report/" + encodeURIComponent(reportId));
     }
 
     async function checkAndProceed() {
@@ -112,7 +93,7 @@ function SuccessContent() {
           }
           if (current.status === "failed") throw new Error("Report generation was interrupted. Please retry.");
         }
-        if (!cancelled) throw new Error("Your report is still processing. Please check your email or retry later.");
+        if (!cancelled) throw new Error("Your plan is still being made. Keep your purchase link and open it again. Do not pay again.");
       } catch (caught) {
         if (cancelled) return;
         setError(caught instanceof Error ? caught.message : "Something went wrong.");

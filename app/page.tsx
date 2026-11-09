@@ -24,7 +24,7 @@ sameAs: [
 url: "https://www.spendshift.com.au/",
 logo: "https://www.spendshift.com.au/logo.png",
 description:
-"SpendShift helps Australians uncover hidden money leaks with a fast, AI-powered savings audit and personalised financial report.",
+"SpendShift helps Australians uncover hidden money leaks with a free money check and clear step-by-step savings plan.",
 areaServed: {
 "@type": "Country",
 name: "Australia",

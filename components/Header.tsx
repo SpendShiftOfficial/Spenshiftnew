@@ -44,7 +44,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
             }}
           >
             <ShieldCheck size={16} color="#059625" />
-            100% Secure & Private
+            No bank login needed
           </span>
         ) : (
           <>

@@ -23,6 +23,10 @@ export type PersonalisationDetails = {
   convenienceGoalWeekly: number | null;
   unplannedArea: string;
   shoppingTrigger: string;
+  hasGas: string;
+  phoneService: string;
+  takeawayAmountPeriod: "order" | "week";
+  convenienceOverlap: string;
 };
 
 export type InsuranceRefinement = {
@@ -122,6 +126,10 @@ export function emptyRefinements(): ReportRefinements {
       convenienceGoalWeekly: null,
       unplannedArea: "",
       shoppingTrigger: "",
+      hasGas: "",
+      phoneService: "",
+      takeawayAmountPeriod: "order",
+      convenienceOverlap: "",
     },
     insurancePolicies: [],
   };
@@ -207,6 +215,10 @@ export function validateRefinements(input: unknown): ReportRefinements {
       convenienceGoalWeekly,
       unplannedArea: fixedChoice(details.unplannedArea, unplannedTypes, "unplanned purchases"),
       shoppingTrigger: fixedChoice(details.shoppingTrigger, triggerChoices, "shopping trigger"),
+      hasGas: fixedChoice(details.hasGas, new Set(["", "yes", "no", "not_sure"]), "gas answer"),
+      phoneService: fixedChoice(details.phoneService, new Set(["", "mobile", "internet", "both", "neither", "not_sure"]), "phone bills"),
+      takeawayAmountPeriod: details.takeawayAmountPeriod === "week" ? "week" : "order",
+      convenienceOverlap: fixedChoice(details.convenienceOverlap, new Set(["", "yes", "no", "not_sure"]), "overlapping spending"),
     },
     insurancePolicies: policies,
   };

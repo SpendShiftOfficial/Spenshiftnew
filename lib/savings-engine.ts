@@ -1,4 +1,6 @@
 import type { ReportRefinements } from "./report-refinements";
+import {takeawayMath} from "./savings-math";
+import {rankOpportunities} from "./plan-priority";
 import type { PersonalisationArea } from "./personalisation-questions";
 import { areaNames, auditPriorityScore, selectPersonalisationAreas } from "./personalisation-questions";
 
@@ -41,7 +43,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
     areas.push(refinements.additionalArea);
   }
   const d = refinements.details;
-  const opportunities: SavingsOpportunity[] = areas.map(area => {
+  let opportunities: SavingsOpportunity[] = areas.map(area => {
     let annualSpend: number | null = null;
     let scenarioSaving: number | null = null;
     let assumption = "We need to check a real price before we can say what you might save.";
@@ -91,28 +93,17 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
         : "Choose one policy to check first.";
       verification = "Ask for two quotes with the same cover. Check the full price, what is covered, claim costs and fees.";
     } else if (area === "takeaway") {
-      if (d.takeawayOrder !== null && d.takeawayOrdersPerWeek !== null) {
-        annualSpend = cents(d.takeawayOrder * d.takeawayOrdersPerWeek * 52);
-      }
-      const swaps = d.takeawaySwapPerWeek;
-      const orders = d.takeawayOrdersPerWeek;
-      const homeCost = d.takeawayReplacementCost;
-      if (d.takeawayOrder !== null && orders !== null && swaps !== null &&
-          homeCost !== null && swaps > 0 && swaps <= orders && d.takeawayOrder > homeCost) {
-        scenarioSaving = cents((d.takeawayOrder - homeCost) * swaps * 52);
-        assumption = "Plan: swap " + swaps + " of your " + orders + " orders each week. Each swap could save $" +
-          cents(d.takeawayOrder - homeCost).toLocaleString("en-AU") +
-          " after paying $" + homeCost.toLocaleString("en-AU") + " for food at home.";
-        firstAction = "Plan " + swaps + " takeaway " + (swaps === 1 ? "swap" : "swaps") + " for next week.";
-      } else {
-        assumption = "Food at home costs money too. We need a full order price, how often you order and a home-meal cost before we can work out a fair saving.";
-        firstAction = "Count your takeaway orders this week and decide how many you could swap.";
-      }
-      verification = "Shop for food to feed the SAME people. Write down both totals and count only the difference.";
+      const math=takeawayMath(refinements);
+      annualSpend=math.weeklyCost===null?null:Math.round(math.weeklyCost*52*100)/100;
+      scenarioSaving=math.annualExample;
+      assumption=math.weeklySaving===null?'We need both meal costs and a realistic change before showing a saving.':'This is a weekly goal after paying for food at home. It is not money saved yet.';
+      firstAction=d.takeawaySwapPerWeek===0?'Keep your routine for now. Check delivery fees before the next order.':d.takeawaySwapPerWeek!==null?'Choose '+d.takeawaySwapPerWeek+' orders to replace next week.':'Count your orders in a normal week before choosing a change.';
+      verification='Compare both costs for the same people, including food, delivery and extra travel.';
     } else if (area === "convenience") {
       if (d.convenienceWeekly !== null) annualSpend = cents(d.convenienceWeekly * 52);
       if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
-          d.convenienceGoalWeekly < d.convenienceWeekly) {
+          d.convenienceGoalWeekly < d.convenienceWeekly &&
+          (!areas.includes("takeaway") || d.convenienceOverlap === "no")) {
         scenarioSaving = cents((d.convenienceWeekly - d.convenienceGoalWeekly) * 52);
         assumption = "You chose a weekly goal of $" +
           d.convenienceGoalWeekly.toLocaleString("en-AU") +
@@ -156,14 +147,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
     };
   });
 
-  // Put actions with customer-set, priced goals ahead of equally strong audit
-  // signals. A high bill alone is not proof of a large saving.
-  opportunities.sort((a,b) => {
-    const scoreA = auditPriorityScore(a.area, answers) + (a.scenarioSaving !== null ? 1 : 0);
-    const scoreB = auditPriorityScore(b.area, answers) + (b.scenarioSaving !== null ? 1 : 0);
-    if (scoreA !== scoreB) return scoreB - scoreA;
-    return (b.scenarioSaving ?? 0) - (a.scenarioSaving ?? 0);
-  });
+  opportunities = rankOpportunities(opportunities, answers, refinements);
 
   const savings = opportunities.map(x => x.scenarioSaving)
     .filter((x): x is number => x !== null && x > 0);

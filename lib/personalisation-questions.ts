@@ -88,8 +88,8 @@ export function reasonForArea(area: PersonalisationArea, answers: string[]): str
         : "You last checked your insurance " + answers[2].toLowerCase() + ".";
     case "takeaway": return "You buy takeaway " + answers[0].toLowerCase() + ".";
     case "convenience": return "You buy coffee, snacks or quick lunches " + answers[3].toLowerCase() + ".";
-    case "phone": return "You last checked your phone or internet price " + answers[4].toLowerCase() + ".";
-    case "energy": return "You last checked your power or gas price " + answers[5].toLowerCase() + ".";
+    case "phone": return answers[4]==="I honestly don't know"?"You're not sure when you last checked your phone or internet price.":"You last checked your phone or internet price " + answers[4].toLowerCase() + ".";
+    case "energy": return answers[5]==="I honestly don't know"?"You're not sure when you last checked your power or gas price.":"You last checked your power or gas price " + answers[5].toLowerCase() + ".";
     case "unplanned": return "You make unplanned buys " + answers[6].toLowerCase() + ".";
   }
 }

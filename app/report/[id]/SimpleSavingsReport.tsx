@@ -2,6 +2,10 @@ import type { SavingsAnalysis, SavingsOpportunity } from "@/lib/savings-engine";
 import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refinements";
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
+import SavingsTracker from "./SavingsTracker";
+import QuoteCheck from "./QuoteCheck";
+import {takeawayMath} from "@/lib/savings-math";
+import {goalIntro,priorityReason,rankOpportunities} from "@/lib/plan-priority";
 import CopyMessage from "./CopyMessage";
 import styles from "./simple-report.module.css";
 
@@ -50,11 +54,12 @@ function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string[] {
     ];
   }
   if (op.area === "takeaway") {
+    if (d.takeawaySwapPerWeek === 0) return ["Keep your meal routine for now.", "Check the full cost, including delivery, before your next order.", "Only change something if it fits your needs and costs less."];
     if (d.takeawayOrdersPerWeek !== null && d.takeawaySwapPerWeek !== null &&
         d.takeawaySwapPerWeek > 0 && d.takeawaySwapPerWeek <= d.takeawayOrdersPerWeek) {
       const n = d.takeawaySwapPerWeek;
       return [
-        "Pick " + n + " " + (n === 1 ? "day" : "days") + " next week when you'd usually order takeaway.",
+        "Mark " + n + " orders next week that you could replace with food from home.",
         "Pick " + n + " easy " + (n === 1 ? "meal" : "meals") + " to make at home. Buy the food in one shop.",
         "Keep the takeaway receipts and food-shop costs. Compare the price for the same people.",
       ];
@@ -158,31 +163,15 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
       )}
     </>
   );
-  if (op.area === "takeaway") return (
-    <>
-      {d.takeawayOrder !== null && <div className={styles.costLine}>
-        <strong>{money(d.takeawayOrder)} <small>/ order</small></strong>
-        <span>Your usual takeaway order</span>
-      </div>}
-      {d.takeawayOrder !== null && d.takeawayOrdersPerWeek !== null && (
-        <p className={styles.costExplanation}>
-          {d.takeawayOrdersPerWeek} orders a week costs about <strong>{money(d.takeawayOrder * d.takeawayOrdersPerWeek)}/week</strong> at that price.
-        </p>
-      )}
-      {op.scenarioSaving !== null && d.takeawaySwapPerWeek !== null &&
-       d.takeawayReplacementCost !== null && d.takeawayOrder !== null && (
-        <div className={styles.possible}>
-          <strong>Your plan: {money((d.takeawayOrder - d.takeawayReplacementCost) * d.takeawaySwapPerWeek)} less per week</strong>
-          <p>Swap {d.takeawaySwapPerWeek} orders each week. Food at home costs {money(d.takeawayReplacementCost)} for the same people.</p>
-          <p>If you keep this up for 52 weeks, you could save up to <b>{money(op.scenarioSaving)} a year</b>.</p>
-          <small>This is a goal, not money saved yet. Extra costs can lower the amount.</small>
-        </div>
-      )}
-      {d.takeawaySwapPerWeek !== null && op.scenarioSaving === null && (
-        <p className={styles.costExplanation}>You want to replace {d.takeawaySwapPerWeek} orders each week. Add the full cost of meals at home to work out a fair saving.</p>
-      )}
-    </>
-  );
+  if (op.area === "takeaway") {
+    const m=takeawayMath(r);
+    return <>
+      {d.takeawayOrder!==null&&<div className={styles.costLine}><strong>{money(d.takeawayOrder)} <small>/ {d.takeawayAmountPeriod==='week'?'week':'order'}</small></strong><span>Your usual takeaway spending</span></div>}
+      {m.weeklyCost!==null&&<p className={styles.costExplanation}>About {money(m.weeklyCost)} each week for {d.takeawayOrdersPerWeek??'your usual'} orders.</p>}
+      {m.weeklySaving!==null&&<div className={styles.possible}><strong>Your goal: {money(m.weeklySaving)} less a week</strong><p>Replace {d.takeawaySwapPerWeek} orders. Each meal at home costs {money(d.takeawayReplacementCost??0)} for the same people.</p><p>Your new weekly food cost for these meals would be about {money((m.weeklyCost??0)-m.weeklySaving)}.</p><details><summary>See the yearly example</summary><p>Keeping this change for 52 weeks could save {money(m.annualExample??0)}. Holidays, prices and extra costs may change the result.</p></details><small>This is a goal, not money saved yet.</small></div>}
+      {m.weeklySaving===null&&<p className={styles.smallNote}>{d.takeawaySwapPerWeek===0?'You chose not to replace any orders. We have not added a saving.':d.takeawayReplacementCost!==null&&m.orderCost!==null&&d.takeawayReplacementCost>=m.orderCost?'Your home meal costs as much or more than the order. There is no saving from that swap.':'Check both costs for the same people before counting a saving.'}</p>}
+    </>;
+  }
   if (op.area === "convenience") return (
     <>
       {d.convenienceWeekly !== null && <div className={styles.costLine}>
@@ -193,7 +182,7 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
         d.convenienceWeekly !== null && (
         <div className={styles.possible}>
           <strong>Your goal: {money(d.convenienceGoalWeekly)} a week</strong>
-          <p>That's {money(d.convenienceWeekly - d.convenienceGoalWeekly)} less each week, or up to {money(op.scenarioSaving)} a year if you keep to it.</p>
+          <p>That is {money(d.convenienceWeekly - d.convenienceGoalWeekly)} less each week.</p><details><summary>See the yearly example</summary><p>That could be {money(op.scenarioSaving)} over 52 weeks if you keep to your goal.</p></details>
           <small>This is a goal, not money saved yet. Don't count takeaway here too.</small>
         </div>
       )}
@@ -343,12 +332,18 @@ function AreaCard({ op, index, answers, refinements }: {
           <p>{reasonForArea(op.area, answers)}</p>
         </div>
       </div>
+      <p className={styles.smallNote}>{priorityReason(op, answers, refinements)}</p>
       <AreaNumbers op={op} refinements={refinements} />
       <div className={styles.steps}>
         <h3>What to do</h3>
         <ol>{steps.map((step,i) => <li key={i}>{step}</li>)}</ol>
       </div>
       <UsefulHelp op={op} r={refinements} />
+      {op.area==='insurance'&&refinements.insurancePolicies.map((p,i)=><QuoteCheck key={i} label={p.type||'this policy'} currentAnnual={p.premium===null?null:insuranceAnnual(p)}/>)}
+      {op.area==='phone'&&refinements.details.mobileMonthly!==null&&<QuoteCheck label='your mobile plan' currentAnnual={refinements.details.mobileMonthly*12}/>}
+      {op.area==='phone'&&refinements.details.internetMonthly!==null&&<QuoteCheck label='your internet plan' currentAnnual={refinements.details.internetMonthly*12}/>}
+      {op.area==='energy'&&<QuoteCheck label='your energy plan' currentAnnual={null}/>}
+
     </article>
   );
 }
@@ -358,7 +353,7 @@ function firstTask(op: SavingsOpportunity, r: ReportRefinements): string {
 }
 
 export default function SimpleSavingsReport({ reportId, answers, analysis, refinements }: Props) {
-  const ops = analysis.opportunities;
+  const ops = rankOpportunities(analysis.opportunities, answers, refinements);
   const first = ops.slice(0, 3);
   const more = ops.slice(3);
   const tasks = first.length
@@ -378,6 +373,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
               (Math.min(3,ops.length) === 1 ? " area." : " areas.") +
               " You can do the rest when you're ready."
             : "Your answers did not show a clear problem. We won't make one up."}</p>
+          <p>{goalIntro(answers[7])}</p>
           <div className={styles.notice}>
             <strong>Numbers you can trust.</strong> What you pay now is not money saved. We only show possible savings when you gave us the costs to work them out.
           </div>
@@ -406,6 +402,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           <PlanChecklist reportId={reportId} items={tasks} />
         </section>
 
+        <SavingsTracker reportId={reportId} areas={ops.map(op=>({area:op.area,title:op.title}))} />
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>

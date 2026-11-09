@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import {validateAuditAnswers} from "./audit-schema";
 import { Resend } from "resend";
 import { supabaseAdmin } from "./supabase";
 
@@ -12,6 +13,7 @@ export type PaidOrder = {
   created_at: string;
   processing_started_at: string | null;
   attempt_count: number;
+  updated_at: string;
 };
 
 const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.spendshift.com.au").replace(/\/$/, "");
@@ -22,7 +24,7 @@ export function getStripe() {
   // Paid preview tests must be deliberately enabled with test-mode Stripe and
   // a staging database. Otherwise the preview cannot read/create paid orders.
   if (process.env.VERCEL_ENV === "preview" &&
-      (!key.startsWith("sk_test_") || key.includes("setup_required") || process.env.SUPABASE_URL !== "https://pcjgzbaigtsnevhcjqyd.supabase.co" || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
+      (!key.startsWith("sk_test_") || key.includes("setup_required") || process.env.SUPABASE_URL !== "https://pcjgzbaigtsnevhcjqyd.supabase.co")) {
     throw new Error("Preview payment testing is disabled until staging is configured.");
   }
   return new Stripe(key);
@@ -38,14 +40,14 @@ export function auditAnswersFromSession(session: Stripe.Checkout.Session): strin
   if (!Array.isArray(answers) || answers.length !== 8 || answers.some(a => typeof a !== "string" || a.length > 180)) {
     throw new Error("Payment metadata is missing the eight audit answers.");
   }
-  return answers as string[];
+  return validateAuditAnswers(answers);
 }
 
 function isCorrectReportPurchase(session: Stripe.Checkout.Session): boolean {
   return session.mode === "payment" &&
     session.currency?.toLowerCase() === "aud" &&
     session.amount_total === 3900 &&
-    (!session.metadata?.product || session.metadata.product === "spendshift_full_report");
+    session.metadata?.product === "spendshift_full_report";
 }
 
 export async function paidSession(sessionId: string): Promise<Stripe.Checkout.Session> {
@@ -82,7 +84,7 @@ export async function ensurePaidOrder(session: Stripe.Checkout.Session): Promise
 export async function readPaidOrder(sessionId: string): Promise<PaidOrder | null> {
   const { data, error } = await supabaseAdmin
     .from("report_orders")
-    .select("stripe_session_id,status,answers,refinements,report_id,customer_email,created_at,processing_started_at,attempt_count")
+    .select("stripe_session_id,status,answers,refinements,report_id,customer_email,created_at,processing_started_at,attempt_count,updated_at")
     .eq("stripe_session_id", sessionId)
     .maybeSingle();
   if (error) throw new Error("Could not load the payment record.");
@@ -137,7 +139,7 @@ export async function sendOrderConfirmationOnce(order: PaidOrder): Promise<void>
     await sendEmail(
       order.customer_email,
       "Your SpendShift payment is confirmed — finish your savings report",
-      "Your $39 payment is confirmed. Your report is reserved. You can answer a few optional questions to make it more useful, or generate it immediately.<br><br>" +
+      "Your $39 payment is confirmed. Your report is reserved. Next, answer short questions about the areas in your plan. You can skip any amount you do not know. Your progress is saved as you go.<br><br>" +
       '<a style="background:#059625;color:#fff;padding:13px 22px;border-radius:24px;text-decoration:none;display:inline-block" href="' + htmlSafe(url) + '">Continue to your report</a><br><br>' +
       "Keep this link private because it provides access to your purchase.",
     );
@@ -157,7 +159,7 @@ export async function sendReadyEmailOnce(order: PaidOrder, reportId: string): Pr
       "Your SpendShift savings report is ready",
       "Your personalised SpendShift savings report is ready. Review the relevant opportunities and practical next steps.<br><br>" +
       '<a style="background:#059625;color:#fff;padding:13px 22px;border-radius:24px;text-decoration:none;display:inline-block" href="' + htmlSafe(url) + '">Open my report</a><br><br>' +
-      "Please keep this private report link secure. Estimates are illustrative and actual results vary.",
+      "Keep this link private. It opens your plan without a password. Possible savings are not money saved yet.",
     );
   } catch (e) {
     await supabaseAdmin.from("report_orders").update({ report_sent_at: null }).eq("stripe_session_id", order.stripe_session_id);

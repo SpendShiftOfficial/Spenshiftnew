@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import {validateAuditAnswers} from "@/lib/audit-schema";
 import { auditAnswersFromSession, ensurePaidOrder, paidSession, readExistingReportId } from "@/lib/paid-orders";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,8 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         paid: true,
-        answers: auditAnswersFromSession(session),
+        answers: validateAuditAnswers(order.answers),
+        revision: order.updated_at,
         status: existingReportId ? "ready" : order.status,
         reportId: existingReportId,
         refinements: order.refinements || null,

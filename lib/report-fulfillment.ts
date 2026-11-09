@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import {validateAuditAnswers} from "./audit-schema";
 import { supabaseAdmin } from "./supabase";
 import { analyseSavings } from "./savings-engine";
 import { emptyRefinements, validateRefinements } from "./report-refinements";
@@ -36,13 +37,17 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
     return { status: "ready", reportId: existing };
   }
 
+  if ((order.refinements as any)?.draft && !(order.refinements as any)?.completed) {
+    throw new Error("Please finish or skip the questions before making your plan.");
+  }
+
   // Atomic conditional update: concurrent clicks or webhook retries do not generate twice.
   const { data: claimed, error: claimError } = await supabaseAdmin
     .from("report_orders")
     .update({ status: "processing", processing_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), last_error: null, attempt_count: (order.attempt_count || 0) + 1 })
     .eq("stripe_session_id", sessionId)
     .in("status", ["awaiting_details", "failed"])
-    .select("stripe_session_id,refinements")
+    .select("stripe_session_id,answers,refinements")
     .maybeSingle();
 
   if (claimError) throw new Error("Could not reserve report generation.");
@@ -53,7 +58,7 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
   }
 
   try {
-    const answers = auditAnswersFromSession(session);
+    const answers = validateAuditAnswers(claimed.answers);
     const refinements = claimed.refinements == null ? emptyRefinements() : validateRefinements(claimed.refinements);
     const analysis = analyseSavings(answers, refinements);
     const report = makeReportMarkdown(answers, refinements, analysis);
@@ -67,7 +72,7 @@ export async function generatePaidReport(sessionId: string): Promise<ReportGener
       email: session.customer_details?.email || session.customer_email || null,
       refinements,
       savings_summary: {
-        version: 2,
+        version: 3,
         estimatedAnnualScenario: analysis.estimatedAnnualScenario,
         firstAction: analysis.opportunities[0]?.firstAction || "Review one current bill or recurring charge.",
         opportunities: analysis.opportunities,

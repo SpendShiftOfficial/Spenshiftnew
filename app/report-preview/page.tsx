@@ -24,7 +24,7 @@ const examples = {
   },
   "takeaway-convenience": {
     label: "Takeaway + small buys",
-    details: { takeawayOrder: "30", takeawayOrdersPerWeek: "6", takeawaySwapPerWeek: "2", takeawayReplacementCost: "10", convenienceWeekly: "35", convenienceGoalWeekly: "25" },
+    details: { takeawayOrder: "30", takeawayOrdersPerWeek: "6", takeawaySwapPerWeek: "2", takeawayReplacementCost: "10", convenienceWeekly: "35", convenienceGoalWeekly: "25", convenienceOverlap: "no" },
     insurancePolicies: [],
   },
   "household-bills": {
@@ -41,7 +41,7 @@ const examples = {
       takeawayOrder: "120", takeawayOrdersPerWeek: "7",
       takeawaySwapPerWeek: "3", takeawayReplacementCost: "40",
       subscriptionsMonthly: "70", unusedSubscriptionChoice: "no",
-      convenienceWeekly: "100", convenienceGoalWeekly: "70",
+      convenienceWeekly: "100", convenienceGoalWeekly: "70", convenienceOverlap: "no",
       internetMonthly: "85", mobileMonthly: "55",
       state: "NSW", electricityBill: "520", electricityPeriod: "quarter", gasMonthly: "85",
       unplannedArea: "Online shopping", shoppingTrigger: "Social media",
