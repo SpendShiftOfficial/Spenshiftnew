@@ -22,7 +22,7 @@ export function getStripe() {
   // Paid preview tests must be deliberately enabled with test-mode Stripe and
   // a staging database. Otherwise the preview cannot read/create paid orders.
   if (process.env.VERCEL_ENV === "preview" &&
-      (!key.startsWith("sk_test_") || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
+      (!key.startsWith("sk_test_") || key.includes("setup_required") || process.env.SUPABASE_URL !== "https://pcjgzbaigtsnevhcjqyd.supabase.co" || process.env.SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS !== "true")) {
     throw new Error("Preview payment testing is disabled until staging is configured.");
   }
   return new Stripe(key);
@@ -130,7 +130,7 @@ async function claimEmailColumn(sessionId: string, column: "confirmation_sent_at
 }
 
 export async function sendOrderConfirmationOnce(order: PaidOrder): Promise<void> {
-  if (!order.customer_email || !process.env.RESEND_API_KEY) return;
+  if (!order.customer_email || !process.env.RESEND_API_KEY || (process.env.VERCEL_ENV === "preview" && process.env.PHASE1_TEST_EMAILS !== "enabled")) return;
   if (!(await claimEmailColumn(order.stripe_session_id, "confirmation_sent_at"))) return;
   try {
     const url = site + "/success?session_id=" + encodeURIComponent(order.stripe_session_id);
@@ -148,7 +148,7 @@ export async function sendOrderConfirmationOnce(order: PaidOrder): Promise<void>
 }
 
 export async function sendReadyEmailOnce(order: PaidOrder, reportId: string): Promise<void> {
-  if (!order.customer_email || !process.env.RESEND_API_KEY) return;
+  if (!order.customer_email || !process.env.RESEND_API_KEY || (process.env.VERCEL_ENV === "preview" && process.env.PHASE1_TEST_EMAILS !== "enabled")) return;
   if (!(await claimEmailColumn(order.stripe_session_id, "report_sent_at"))) return;
   try {
     const url = site + "/report/" + encodeURIComponent(reportId);
