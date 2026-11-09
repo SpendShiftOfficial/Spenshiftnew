@@ -75,6 +75,123 @@ try{
  });
  await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.locator('#audit-edit-7').selectOption('Reduce stress');await page.waitForTimeout(1300);assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);});
  await context.close();
+
+ // One fully unattended, first-time customer walkthrough. The payment screen
+ // and provider API replies are SIMULATED. No card, real payment or email is used.
+ const buyerContext=await browser.newContext({viewport:{width:375,height:812}});
+ const buyer=await buyerContext.newPage();
+ buyer.setDefaultTimeout(12000);buyer.setDefaultNavigationTimeout(16000);
+ const customerSession='cs_test_firsttimecustomerfixture20261110';
+ const finalReportId='rpt_firsttimecustomerfixture20261110';
+ let customerRevision='2026-11-10T00:00:00.000Z';
+ let customerDraft=null;
+ let customerWrites=0;
+ let customerCheckout=0;
+ await buyer.route('**/api/checkout',async route=>{
+  customerCheckout++;
+  const request=route.request().postDataJSON();
+  assert.equal(request.answers.length,8);
+  assert.equal(request.acceptedTerms,true);
+  await route.fulfill({json:{url:'https://checkout.stripe.com/c/pay/phase1_test_customer'}});
+ });
+ await buyer.route('https://checkout.stripe.com/**',route=>route.fulfill({
+  status:200,contentType:'text/html',
+  body:'<!doctype html><html lang="en"><title>Simulated test checkout</title><body><h1>Test checkout only — no card charged</h1><button onclick="location.href=\''+base+'/success?session_id='+customerSession+'\'">Complete test payment</button></body></html>',
+ }));
+ await buyer.route('**/api/payment-status?**',route=>route.fulfill({
+  json:{paid:true,answers:customerDraft?.answers||high,status:'awaiting_details',reportId:null,
+   refinements:customerDraft?{version:1,draft:customerDraft}:null,revision:customerRevision},
+ }));
+ await buyer.route('**/api/personalisation/draft',async route=>{
+  const payload=route.request().postDataJSON();
+  if(payload.revision!==customerRevision){
+   await route.fulfill({status:409,json:{error:'This plan changed in another tab. Reload before editing.'}});
+   return;
+  }
+  customerDraft=payload.draft;
+  customerWrites++;
+  customerRevision=new Date(Date.UTC(2026,10,10,0,0,customerWrites)).toISOString();
+  await route.fulfill({json:{saved:true,revision:customerRevision}});
+ });
+ await buyer.route('**/api/create-report',route=>route.fulfill({json:{status:'ready',reportId:finalReportId}}));
+ await buyer.route('**/report/'+finalReportId,route=>route.fulfill({
+  status:302,headers:{location:base+'/plan-preview'},
+ }));
+ await test('uncoached first-time customer: audit to simulated upgrade to personalised report',async()=>{
+  await go(buyer,'/audit');
+  for(let i=0;i<high.length;i++){
+   await buyer.getByRole('button',{name:high[i],exact:true}).click();
+   await buyer.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
+  }
+  await buyer.waitForURL('**/results');
+  const freeText=await buyer.locator('body').innerText();
+  assert.match(freeText,/We found 7 places to check/);
+  assert.match(freeText,/Also worth checking/);
+  assert.doesNotMatch(freeText,/1,300|3,200/);
+  await buyer.locator('input[type=checkbox]').check();
+  await buyer.getByRole('button',{name:/Get my savings plan/}).click();
+  await buyer.waitForURL('https://checkout.stripe.com/**');
+  assert.match(await buyer.locator('body').innerText(),/Test checkout only/);
+  await buyer.getByRole('button',{name:'Complete test payment'}).click();
+  await buyer.waitForURL('**/personalise?**');
+  for(let i=0;i<7;i++){
+   const heading=await buyer.locator('section h2').first().innerText();
+   if(heading==='Takeaway food'){
+    await buyer.locator('#takeawayOrder').fill('120');
+    await buyer.locator('#takeawayAmountPeriod').selectOption('week');
+    await buyer.locator('#takeawayOrdersPerWeek').fill('6');
+    await buyer.locator('#takeawaySwapPerWeek').fill('2');
+    await buyer.locator('#takeawayReason').selectOption('busy');
+    await buyer.locator('#takeawayReplacementCost').fill('10');
+   }
+   if(heading==='Subscriptions'){
+    await buyer.locator('#subscriptionsMonthly').fill('70');
+    await buyer.locator('#unusedSubscriptionChoice').selectOption('no');
+   }
+   if(heading==='Insurance'){
+    await buyer.locator('#policy-type-0').selectOption('Car');
+    await buyer.locator('#policy-cost-0').fill('1800');
+    await buyer.locator('#policy-renewal-0').selectOption('soon');
+   }
+   if(heading==='Small everyday buys'){
+    await buyer.locator('#convenienceWeekly').fill('100');
+    await buyer.locator('#convenienceOverlap').selectOption('no');
+    await buyer.locator('#convenienceGoalWeekly').fill('70');
+   }
+   if(heading==='Phone and internet'){
+    await buyer.locator('#phoneService').selectOption('mobile');
+    await buyer.locator('#mobileMonthly').fill('55');
+   }
+   if(heading==='Power and gas'){
+    await buyer.locator('#state').selectOption('NSW');
+    await buyer.locator('#electricityBill').fill('520');
+    await buyer.locator('#hasGas').selectOption('no');
+   }
+   if(heading==='Unplanned shopping'){
+    await buyer.locator('#unplannedArea').selectOption('Online shopping');
+    await buyer.locator('#shoppingTrigger').selectOption('Social media');
+   }
+   await buyer.getByRole('button',{name:'Next',exact:true}).click();
+  }
+  assert.match(await buyer.locator('body').innerText(),/nearly done/i);
+  assert.ok(customerWrites>=7);
+  // The same calculation and report renderer used by the real product now
+  // receive the exact draft from this simulated paid journey.
+  await buyer.evaluate(d=>sessionStorage.setItem('spendshift_demo_plan',JSON.stringify(d)),customerDraft);
+  await buyer.getByRole('button',{name:'Make my plan',exact:true}).click();
+  await buyer.waitForURL('**/plan-preview');
+  const report=await buyer.locator('body').innerText();
+  assert.match(report,/Your 7 areas to check/);
+  assert.match(report,/Insurance/);
+  assert.match(report,/about \$120 each week/i);
+  assert.match(report,/not much time|quickly|busy nights/i);
+  assert.match(report,/\$20 less a week/);
+  assert.match(report,/Savings you've recorded/);
+  assert.equal(customerCheckout,1);
+  await noOverflow(buyer);
+  await buyer.screenshot({path:'test-artifacts/first-time-customer-full-journey.png',fullPage:true});
+ });
+ await buyerContext.close();
  console.log('Browser checks: '+tests+' groups passed. Provider payment/draft replies were mocked; no real Stripe payment or email was sent.');
  fs.writeFileSync('test-artifacts/browser-summary.json',JSON.stringify({groupsPassed:tests,desktopWidth:1280,mobileWidth:375,providerMode:'mocked',realStripePaymentTested:false,emailDeliveryTested:false},null,2));
 }catch(error){fs.writeFileSync('test-artifacts/server-log.txt',logs);console.error(error);process.exitCode=1;}finally{await browser?.close().catch(()=>{});server.kill('SIGTERM');process.exit(process.exitCode || 0);}
