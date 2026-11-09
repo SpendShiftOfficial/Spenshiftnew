@@ -4,6 +4,7 @@ import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
 import SavingsTracker from "./SavingsTracker";
 import QuoteCheck from "./QuoteCheck";
+import InsuranceQuotePicker from "./InsuranceQuotePicker";
 import {takeawayMath} from "@/lib/savings-math";
 import {goalIntro,priorityReason,rankOpportunities} from "@/lib/plan-priority";
 import CopyMessage from "./CopyMessage";
@@ -256,8 +257,8 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
   }
   if (area === "subscriptions") return (
     <p className={styles.guide}>
-      <a href="https://support.apple.com/en-au/118428" target="_blank" rel="noopener noreferrer">Find or cancel an Apple subscription</a>
-      <a href="https://support.google.com/googleplay/answer/7018481?hl=en" target="_blank" rel="noopener noreferrer">Find or cancel a Google Play subscription</a>
+      <a href="https://support.apple.com/en-au/118428" target="_blank" rel="noopener noreferrer">Check your Apple subscriptions</a>
+      <a href="https://support.google.com/googleplay/answer/7018481?hl=en" target="_blank" rel="noopener noreferrer">Check your Google Play subscriptions</a>
       <span>For other services, open the company's account or billing page.</span>
     </p>
   );
@@ -332,17 +333,18 @@ function AreaCard({ op, index, answers, refinements }: {
           <p>{reasonForArea(op.area, answers)}</p>
         </div>
       </div>
-      <p className={styles.smallNote}>{priorityReason(op, answers, refinements)}</p>
+      {op.area==="insurance"&&refinements.insurancePolicies.some(p=>p.renewal==="soon")&&<p className={styles.smallNote}>{priorityReason(op, answers, refinements)}</p>}
       <AreaNumbers op={op} refinements={refinements} />
       <div className={styles.steps}>
         <h3>What to do</h3>
         <ol>{steps.map((step,i) => <li key={i}>{step}</li>)}</ol>
       </div>
       <UsefulHelp op={op} r={refinements} />
-      {op.area==='insurance'&&refinements.insurancePolicies.map((p,i)=><QuoteCheck key={i} label={p.type||'this policy'} currentAnnual={p.premium===null?null:insuranceAnnual(p)}/>)}
-      {op.area==='phone'&&refinements.details.mobileMonthly!==null&&<QuoteCheck label='your mobile plan' currentAnnual={refinements.details.mobileMonthly*12}/>}
-      {op.area==='phone'&&refinements.details.internetMonthly!==null&&<QuoteCheck label='your internet plan' currentAnnual={refinements.details.internetMonthly*12}/>}
-      {op.area==='energy'&&<QuoteCheck label='your energy plan' currentAnnual={null}/>}
+      {op.area==='insurance'&&<InsuranceQuotePicker policies={[...refinements.insurancePolicies].sort((a,b)=>(a.renewal==='soon'?0:1)-(b.renewal==='soon'?0:1))}/>}
+      {op.area==='phone'&&refinements.details.mobileMonthly!==null&&<QuoteCheck kind='mobile' label='your mobile plan' currentAnnual={refinements.details.mobileMonthly*12}/>}
+      {op.area==='phone'&&refinements.details.internetMonthly!==null&&<QuoteCheck kind='internet' label='your internet plan' currentAnnual={refinements.details.internetMonthly*12}/>}
+      {op.area==='energy'&&refinements.details.electricityBill!==null&&<QuoteCheck kind='electricity' label='your power bill' currentAnnual={refinements.details.electricityBill*(refinements.details.electricityPeriod==='month'?12:4)} currentIsEstimate/>}
+      {op.area==='energy'&&refinements.details.gasMonthly!==null&&<QuoteCheck kind='gas' label='your gas bill' currentAnnual={refinements.details.gasMonthly*12} currentIsEstimate/>}
 
     </article>
   );
@@ -369,13 +371,13 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
             ? "Your " + ops.length + " " + (ops.length === 1 ? "area" : "areas") + " to check"
             : "Your simple money plan"}</h1>
           <p>{ops.length
-            ? "We checked all your answers. Start with the first " + Math.min(3,ops.length) +
+            ? "We used the answers you gave us. Start with the first " + Math.min(3,ops.length) +
               (Math.min(3,ops.length) === 1 ? " area." : " areas.") +
               " You can do the rest when you're ready."
             : "Your answers did not show a clear problem. We won't make one up."}</p>
           <p>{goalIntro(answers[7])}</p>
           <div className={styles.notice}>
-            <strong>Numbers you can trust.</strong> What you pay now is not money saved. We only show possible savings when you gave us the costs to work them out.
+            <strong>Based on your answers.</strong> What you pay now is not money saved. We only show possible savings when the numbers support them.
           </div>
         </header>
 
