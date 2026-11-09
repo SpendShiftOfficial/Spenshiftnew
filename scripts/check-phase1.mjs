@@ -85,6 +85,7 @@ const improved=validateRefinements({
 });
 const all=analyseSavings(allHigh,improved);
 assert.equal(all.opportunities.length,7);
+assert.deepEqual(all.opportunities.slice(0,2).map(x=>x.area), ["takeaway","convenience"], "Priced customer goals should be first when audit priority is equally high.");
 assert.equal(all.opportunities.find(x=>x.area==="takeaway")?.annualSpend,43680);
 assert.equal(all.opportunities.find(x=>x.area==="takeaway")?.scenarioSaving,12480,
   "Net takeaway goal subtracts food-at-home costs for same people.");
