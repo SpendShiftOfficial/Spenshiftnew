@@ -93,7 +93,7 @@ const habits = analyseSavings(highHabits, validateRefinements({
   details: { takeawayOrder: "30", convenienceWeekly: "35" },
 }));
 assert.deepEqual(habits.opportunities.map(x => x.area), ["takeaway", "convenience"]);
-assert.equal(habits.opportunities.find(x => x.area === "takeaway")?.annualSpend, 10140);
+assert.equal(habits.opportunities.find(x => x.area === "takeaway")?.annualSpend, null, "Do not assume exact weekly order counts from a range.");
 assert.equal(habits.opportunities.find(x => x.area === "convenience")?.annualSpend, 1820);
 assert.equal(habits.estimatedAnnualScenario, null, "Food costs and repeated spending are NOT net savings.");
 
