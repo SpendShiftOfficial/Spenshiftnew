@@ -154,12 +154,14 @@ export async function sendReadyEmailOnce(order: PaidOrder, reportId: string): Pr
   if (!(await claimEmailColumn(order.stripe_session_id, "report_sent_at"))) return;
   try {
     const url = site + "/report/" + encodeURIComponent(reportId);
+    const editUrl = site + "/personalise?session_id=" + encodeURIComponent(order.stripe_session_id) + "&revise=1";
     await sendEmail(
       order.customer_email,
       "Your SpendShift savings report is ready",
       "Your personalised SpendShift savings report is ready. Review the relevant opportunities and practical next steps.<br><br>" +
       '<a style="background:#059625;color:#fff;padding:13px 22px;border-radius:24px;text-decoration:none;display:inline-block" href="' + htmlSafe(url) + '">Open my report</a><br><br>' +
-      "Keep this link private. It opens your plan without a password. Possible savings are not money saved yet.",
+      '<a style="color:#087332;text-decoration:underline" href="' + htmlSafe(editUrl) + '">Fix an answer in my plan</a><br><br>' +
+      "Keep these private links safe. They give access to your plan. Possible savings are not money saved yet.",
     );
   } catch (e) {
     await supabaseAdmin.from("report_orders").update({ report_sent_at: null }).eq("stripe_session_id", order.stripe_session_id);
