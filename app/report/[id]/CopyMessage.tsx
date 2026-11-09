@@ -15,7 +15,7 @@ export default function CopyMessage({ message }: { message: string }) {
   }
   return (
     <button type="button" className={styles.copyButton} onClick={copy}>
-      {copied ? "Copied" : "Copy message"}
+      {copied ? "Copied — paste into a message" : "Copy this message"}
     </button>
   );
 }
