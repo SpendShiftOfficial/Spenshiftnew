@@ -264,6 +264,39 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
     ? 100
     : Math.round((Math.min(step, visibleSections.length) / visibleSections.length) * 100);
 
+  // Show a clear, short error before moving on. Never force a customer
+  // to guess numbers just to finish their paid plan.
+  const sectionError = (() => {
+    if (review || !current) return "";
+    const n = (key: DetailKey) => details[key] === "" ? null : Number(details[key]);
+    if (current.id === "subscriptions" &&
+      details.unusedSubscriptionChoice === "yes" &&
+      n("unusedSubscriptionMonthly") !== null && n("subscriptionsMonthly") !== null &&
+      n("unusedSubscriptionMonthly")! > n("subscriptionsMonthly")!) {
+      return "One subscription cannot cost more than your full monthly total.";
+    }
+    if (current.id === "takeaway") {
+      for (const key of ["takeawayOrdersPerWeek", "takeawaySwapPerWeek"] as DetailKey[]) {
+        const raw = details[key];
+        if (raw !== "" && (!Number.isInteger(Number(raw)) ||
+            Number(raw) < 0 || Number(raw) > 21)) {
+          return "Use a whole number from 0 to 21.";
+        }
+      }
+      const weekly = n("takeawayOrdersPerWeek");
+      const swaps = n("takeawaySwapPerWeek");
+      if (weekly !== null && swaps !== null && swaps > weekly) {
+        return "You cannot swap more orders than you buy.";
+      }
+    }
+    if (current.id === "convenience" &&
+      n("convenienceGoalWeekly") !== null && n("convenienceWeekly") !== null &&
+      n("convenienceGoalWeekly")! > n("convenienceWeekly")!) {
+      return "Your new weekly goal should be lower than what you spend now.";
+    }
+    return "";
+  })();
+
   function update(key: DetailKey, value: string) {
     setDetails((previous) => ({ ...previous, [key]: value }));
   }
@@ -762,10 +795,12 @@ export default function PersonaliseClient({ allowDemo, hasPaidSession }: { allow
                     <ArrowLeft size={18} /> Back
                   </button>
                 ) : <span />}
-                <button className={styles.primary} type="button" onClick={() => setStep((index) => Math.min(index + 1, visibleSections.length))}>
+                <button className={styles.primary} type="button" disabled={Boolean(sectionError)}
+                  onClick={() => setStep((index) => Math.min(index + 1, visibleSections.length))}>
                   {step === visibleSections.length - 1 ? "Check my answers" : "Next"} <ArrowRight size={18} />
                 </button>
               </div>
+              {sectionError && <p className={styles.submitError} role="alert">{sectionError}</p>}
               <button className={styles.skip} type="button" onClick={skipSection}>
                 Skip this question
               </button>
