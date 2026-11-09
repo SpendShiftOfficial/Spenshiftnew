@@ -28,6 +28,23 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  function checkCurrent(){try{const test=cleanDraft(draft);const others=areas.filter(a=>a!==area);for(const a of others)for(const key of sectionKeys[a])test.details[key]='';if(area!=='insurance')test.insurancePolicies=[];prepareDraft(test);return '';}catch(e){return e instanceof Error?e.message:'Please check these amounts.';}}
  async function next(){if(moving||submitting)return;setError('');const snapshot=cleanDraft(draft);const issue=checkCurrent();if(issue){setError(issue);return;}snapshot.step=Math.min(snapshot.step+1,areas.length);setMoving(true);try{await persist(snapshot);setDraft(snapshot);}catch(e){setError(e instanceof Error?e.message:'Your answers were not saved.');}finally{setMoving(false);}}
  async function finish(){setError('');let snapshot:PlanDraft;try{snapshot=cleanDraft(draft);prepareDraft(snapshot);}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');return;}setSubmitting(true);try{await persist(snapshot,true);if(sessionId){router.push('/success?session_id='+encodeURIComponent(sessionId)+'&generate=1');}else{sessionStorage.setItem('spendshift_demo_plan',JSON.stringify(snapshot));router.push('/plan-preview');}}catch(e){setError(e instanceof Error?e.message:'Please try again.');setSubmitting(false);}}
+ function missingDetail(a:PersonalisationArea):string {
+   if(a==='subscriptions')return d.unusedSubscriptionChoice==='yes'&&!d.unusedSubscriptionMonthly
+     ? 'Add the unused subscription price to see a possible saving.'
+     : !d.unusedSubscriptionChoice ? 'Not sure which subscriptions you use? We can still show how to check.' : '';
+   if(a==='takeaway')return !d.takeawayOrder||!d.takeawayOrdersPerWeek||!d.takeawaySwapPerWeek||!d.takeawayReplacementCost
+     ? 'Add your orders and home-meal cost for a more useful takeaway target.' : '';
+   if(a==='convenience')return !d.convenienceWeekly||!d.convenienceGoalWeekly
+     ? 'Add your weekly spending and goal for a clear target.' : '';
+   if(a==='phone')return d.phoneService==='both'||d.phoneService==='mobile'||d.phoneService==='internet'
+     ? (!d.mobileMonthly&&!d.internetMonthly?'Add a bill amount so we know your starting price.':'')
+     : 'Not sure what you pay? We can still show the steps to find it.';
+   if(a==='energy')return !d.electricityBill&&!d.gasMonthly
+     ? 'Add a bill amount to make the comparison easier.' : '';
+   if(a==='insurance')return !draft.insurancePolicies.some(p=>p.type&&p.premium)
+     ? 'Add a policy type and cost to show your current spending.' : '';
+   return !d.shoppingTrigger?'Tell us what leads to an extra buy for more useful steps.':'';
+ }
  function reviewFacts(a:PersonalisationArea):[string,string][]{
    const money=(v:string,unit:string)=>v!==''?'$'+Number(v).toLocaleString('en-AU',{maximumFractionDigits:2})+' '+unit:'Not provided';
    if(a==='subscriptions')return [['Total',money(d.subscriptionsMonthly,'a month')],['Unused service?',d.unusedSubscriptionChoice==='no'?'No — I use them all':d.unusedSubscriptionChoice==='yes'?'Yes':'Not sure'],...(d.unusedSubscriptionChoice==='yes'?[['Service',d.unusedSubscriptionName||'Not named'],['Price',money(d.unusedSubscriptionMonthly,'a month')]] as [string,string][]:[])];
@@ -50,7 +67,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
   <details className={styles.optionalDetails}><summary>Check or change my first answers</summary><div className={styles.optionalInner}>{auditQuestions.map((q,i)=><div className={styles.field} key={q.q}><label htmlFor={'audit-edit-'+i}>{q.q}</label><select id={'audit-edit-'+i} value={draft.answers[i]} onChange={e=>setDraft(p=>({...p,step:0,answers:p.answers.map((a,j)=>i===j?e.target.value:a)}))}>{q.options.map(a=><option key={a}>{a}</option>)}</select></div>)}</div></details>
   <div className={styles.progressTop}><strong>{review?'Check your answers':'Area '+(draft.step+1)+' of '+areas.length}</strong></div><div className={styles.track} role='progressbar' aria-label='Your progress' aria-valuenow={review?100:Math.round(draft.step/areas.length*100)} aria-valuemin={0} aria-valuemax={100}><div style={{width:(review?100:draft.step/areas.length*100)+'%'}}/></div>
   <section className={styles.panel}>
-   {review?<><h2>Your answers</h2><p>Check each area before we make your plan.</p>{areas.map((a,i)=><div className={styles.reviewExtra} key={a}><strong>{areaNames[a]}</strong><dl>{reviewFacts(a).map(([label,value],n)=><div key={n}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><button className={styles.extraLink} type='button' onClick={()=>setDraft(p=>({...p,step:i}))}>Check or edit {areaNames[a].toLowerCase()}</button></div>)}
+   {review?<><h2>You're nearly done</h2><p>We can make your plan with what you shared. Adding a missing amount may make it more useful. You can still skip anything you don't know.</p>{areas.map((a,i)=><div className={styles.reviewExtra} key={a}><strong>{areaNames[a]}</strong>{missingDetail(a)&&<p className={styles.reviewHint}>{missingDetail(a)}</p>}<dl>{reviewFacts(a).map(([label,value],n)=><div key={n}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><button className={styles.extraLink} type='button' onClick={()=>setDraft(p=>({...p,step:i}))}>Check or edit {areaNames[a].toLowerCase()}</button></div>)}
     {draft.additionalArea&&<button type='button' className={styles.extraLink} onClick={()=>{setShowExtra(false);setDraft(p=>({...p,additionalArea:'',step:selectedDraftAreas({...p,additionalArea:''}).length}));}}>Remove the extra area</button>}
     {areas.length<7&&!draft.additionalArea&&<><button className={styles.extraLink} type='button' onClick={()=>setShowExtra(!showExtra)}>Want to check another bill?</button>{showExtra&&<select aria-label='Extra area' defaultValue='' onChange={e=>setDraft(p=>({...p,additionalArea:e.target.value,step:areas.length}))}><option value=''>Choose an area</option>{Object.entries(areaNames).filter(([key])=>!areas.includes(key as PersonalisationArea)).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>}</>}
     <div className={styles.actions}><button className={styles.primary} type='button' disabled={submitting} onClick={finish}>{submitting?'Making your plan…':'Make my plan'}</button></div></>:
