@@ -328,22 +328,27 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
   return null;
 }
 
-function AreaCard({ op, index, answers, refinements }: {
+function AreaCard({ op, index, answers, refinements, nested = false }: {
   op: SavingsOpportunity;
   index: number;
   answers: string[];
   refinements: ReportRefinements;
+  nested?: boolean;
 }) {
   const steps = firstSteps(op, refinements);
   return (
     <article className={styles.card} id={"area-" + op.area}>
-      <div className={styles.cardTitle}>
-        <span className={styles.number}>{index + 1}</span>
-        <div>
-          <h2>{op.title}</h2>
-          <p>{reasonForArea(op.area, answers)}</p>
+      {nested ? (
+        <p className={styles.smallNote}>{reasonForArea(op.area, answers)}</p>
+      ) : (
+        <div className={styles.cardTitle}>
+          <span className={styles.number}>{index + 1}</span>
+          <div>
+            <h2>{op.title}</h2>
+            <p>{reasonForArea(op.area, answers)}</p>
+          </div>
         </div>
-      </div>
+      )}
       <p className={styles.smallNote}>{priorityReason(op, answers, refinements)}</p>
       <AreaNumbers op={op} refinements={refinements} />
       <div className={styles.steps}>
@@ -430,7 +435,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
             {more.map((op,i) => (
               <details className={styles.moreItem} key={op.area}>
                 <summary><span>{i + 4}. {op.title}</span><span className={styles.moreCue}>Show steps</span></summary>
-                <AreaCard op={op} index={i+3} answers={answers} refinements={refinements} />
+                <AreaCard op={op} index={i+3} answers={answers} refinements={refinements} nested />
               </details>
             ))}
           </div>
