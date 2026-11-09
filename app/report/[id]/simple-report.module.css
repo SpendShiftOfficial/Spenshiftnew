@@ -403,3 +403,11 @@
 }
 
 .trackerForm{display:grid;gap:15px;padding:18px}.trackerForm label{display:grid;gap:7px;font-size:16px;font-weight:650;color:#264631}.trackerForm input:not([type=checkbox]),.trackerForm select{width:100%;max-width:100%;min-height:48px;padding:10px 12px;border:1px solid #bed3c2;border-radius:10px;font:inherit;font-size:16px;background:white}.trackerForm .confirmRow{display:flex;align-items:flex-start;font-size:14px;font-weight:500;line-height:1.55}.confirmRow input{flex:0 0 22px;width:22px;height:22px;margin-top:2px}.resultRow{border:1px solid #d5e5d8;border-radius:12px;padding:18px;margin:14px 0}.resultRow button{background:none;border:1px solid #bdd1c2;border-radius:8px;padding:8px 14px;color:#175d2d;margin-right:10px;font:inherit}.possible details{margin:12px 0;font-size:14px}.possible summary{cursor:pointer;font-weight:700}.trackerForm input:focus-visible,.trackerForm select:focus-visible{outline:3px solid #9acfaa;outline-offset:2px}
+
+/* Keep quote comparison short even when a customer has many insurance policies. */
+.insurancePicker{display:grid;gap:10px;margin-top:22px;border-top:1px solid #dfebe1;padding-top:22px}
+.insurancePicker>label{color:#24462d;font-size:16px;font-weight:750}
+.insurancePicker>select{font:inherit;font-size:16px;min-height:50px;padding:11px 13px;border:1px solid #c4d9c8;border-radius:12px;background:#fff;color:#183c26}
+.insurancePicker>select:focus-visible{outline:3px solid #9acfaa;outline-offset:2px}
+.insurancePicker .helpDetails{margin-top:5px}
+.resultRow p{font-size:15px;line-height:1.55;color:#465e4c}
