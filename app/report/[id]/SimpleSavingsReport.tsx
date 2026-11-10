@@ -420,7 +420,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
             : "Your answers did not show a clear problem. We won't make one up."}</p>
           <p>{goalIntro(answers[7])}</p>
           <div className={styles.notice}>
-            <strong>Numbers you can trust.</strong> What you pay now is not money saved. We only show possible savings when you gave us the costs to work them out.
+            <strong>How we use your numbers.</strong> A bill is a cost, not a saving. We show a possible saving only when your answers give us enough information to calculate it.
           </div>
         </header>
 
