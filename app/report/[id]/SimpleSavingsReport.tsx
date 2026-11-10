@@ -424,6 +424,12 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           </div>
         </header>
 
+        <section className={styles.lastCard}>
+          <h2>Your 3 things to do first</h2>
+          <p>Tick each one when you're done.</p>
+          <PlanChecklist reportId={reportId} items={tasks} />
+        </section>
+
         {first.length > 0 && <section className={styles.areas} aria-label="Start here">
           {first.map((op,i) => <AreaCard key={op.area} op={op} index={i} answers={answers} refinements={refinements} />)}
         </section>}
@@ -440,12 +446,6 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
             ))}
           </div>
         </section>}
-
-        <section className={styles.lastCard}>
-          <h2>Your 3 things to do first</h2>
-          <p>Tick each one when you're done.</p>
-          <PlanChecklist reportId={reportId} items={tasks} />
-        </section>
 
         <SavingsTracker reportId={reportId} options={trackerOptions} />
         {!reportId.startsWith("demo-") && <ReportEditLink reportId={reportId} revisionCount={revisionCount} />}
