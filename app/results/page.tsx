@@ -161,7 +161,7 @@ export default function Results() {
                 <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$39"} <ArrowRight size={19} />
               </button>
               {error && <p className={styles.error} role="alert">{error}</p>}
-              <p className={styles.footnote}>One payment. Next, answer a few questions about your bills and spending. Skip any amount you do not know.</p>
+              <p className={styles.footnote}>One payment. Next, you can add details for the areas we found. Skip any amount you do not know.</p>
             </section>
 
             <p className={styles.retake}>Want to change an answer? <Link href="/audit">Start again</Link></p>
