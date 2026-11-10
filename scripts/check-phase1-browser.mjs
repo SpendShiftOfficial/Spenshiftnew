@@ -7,7 +7,7 @@ const base='http://127.0.0.1:3000';
 const server=spawn('npm',['run','start','--','--hostname','127.0.0.1'],{stdio:['ignore','pipe','pipe'],env:{...process.env,PORT:'3000'}});
 let logs='';for(const stream of [server.stdout,server.stderr])stream.on('data',x=>{logs+=x.toString();if(logs.length>120000)logs=logs.slice(-120000);});
 fs.mkdirSync('test-artifacts',{recursive:true});
-const high=['Almost daily','10+','Never / not sure','Daily',"I honestly don't know","I honestly don't know",'Almost daily','Lower my bills'];
+const high=['Almost daily','10+','Never','Daily',"I honestly don't know","I honestly don't know",'Almost daily','Lower my bills'];
 const getAnswers=()=>high.slice();
 let tests=0;let browser;
 async function test(name,fn){await fn();tests++;console.log('PASS '+name);}
