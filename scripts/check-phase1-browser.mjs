@@ -69,6 +69,45 @@ try{
    assert.ok(a&&b&&b.y-(a.y+a.height)>=14,'Saved results note must sit below its button without overlap');
    await noOverflow(page);
   });
+  await test('multiple unused subscriptions reach the same complete report '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
+   assert.equal(await page.locator('section h2').first().innerText(),'Subscriptions');
+   await page.locator('#subscriptionsMonthly').fill('80');
+   await page.locator('#unusedSubscriptionChoice').selectOption('yes');
+   await page.locator('#unusedSubscriptionName').fill('Stan');
+   await page.locator('#unusedSubscriptionMonthly').fill('20');
+   await page.getByRole('button',{name:'Add another unused subscription'}).click();
+   await page.locator('#unused-name-0').fill('Netflix');
+   await page.locator('#unused-monthly-0').fill('15');
+   await next(page);await next(page);
+   const review=await page.locator('body').innerText();
+   assert.match(review,/Stan/);assert.match(review,/Netflix/);
+   await page.getByRole('button',{name:'Make my plan',exact:true}).click();
+   await page.waitForURL('**/plan-preview');
+   const subscriptions=page.locator('#area-subscriptions');
+   if(!await subscriptions.isVisible())await page.locator('details').filter({has:subscriptions}).locator('summary').first().click();
+   const result=await subscriptions.innerText();
+   assert.match(result,/Possible yearly saving: \$420/);
+   assert.match(result,/Stan/);assert.match(result,/Netflix/);
+   assert.match(result,/haven't saved this money yet/);
+   await noOverflow(page);
+  });
+  await test('unused subscriptions disappear when the customer says all are used '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
+   await page.locator('#unusedSubscriptionChoice').selectOption('yes');
+   await page.locator('#unusedSubscriptionName').fill('Stan');
+   await page.locator('#unusedSubscriptionMonthly').fill('20');
+   await page.getByRole('button',{name:'Add another unused subscription'}).click();
+   await page.locator('#unused-name-0').fill('Netflix');
+   await page.locator('#unused-monthly-0').fill('15');
+   await page.locator('#unusedSubscriptionChoice').selectOption('no');
+   assert.equal(await page.locator('#unused-name-0').count(),0);
+   await page.locator('#unusedSubscriptionChoice').selectOption('yes');
+   assert.equal(await page.locator('#unusedSubscriptionName').inputValue(),'');
+   assert.equal(await page.locator('#unusedSubscriptionMonthly').inputValue(),'');
+   assert.equal(await page.locator('#unused-name-0').count(),0);
+   await noOverflow(page);
+  });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){

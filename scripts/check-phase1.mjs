@@ -285,4 +285,56 @@ check('questionnaire asks the time period before the bill amount',()=>{
  assert.doesNotMatch(ui,/takeaway you already listed/);
 });
 
+check('multiple named unused subscriptions produce one conditional yearly amount',()=>{
+ const r=validateRefinements({details:{subscriptionsMonthly:'80',unusedSubscriptionChoice:'yes',unusedSubscriptionName:'Stan',unusedSubscriptionMonthly:'20'},additionalUnusedSubscriptions:[{name:'Netflix',monthly:'15'}]});
+ assert.equal(r.unusedSubscriptions.length,2);
+ const a=analyseSavings(sample,r);
+ const subs=a.opportunities.find(o=>o.area==='subscriptions');
+ assert.equal(subs.scenarioSaving,420);
+ assert.equal(subs.annualSpend,960);
+ assert.match(subs.assumption,/not money saved yet/);
+ const text=makeReportMarkdown(sample,r,a);
+ assert.ok(text.includes('Stan')&&text.includes('Netflix'));
+ assert.ok(text.includes('Possible')||text.includes('could save'));
+ const again=validateRefinements(r);
+ assert.equal(again.unusedSubscriptions.length,2);
+ assert.equal(analyseSavings(sample,again).opportunities.find(o=>o.area==='subscriptions').scenarioSaving,420);
+});
+check('incomplete additional subscriptions cannot be counted as savings',()=>{
+ const r=validateRefinements({details:{subscriptionsMonthly:'80',unusedSubscriptionChoice:'yes',unusedSubscriptionName:'Stan',unusedSubscriptionMonthly:'20'},additionalUnusedSubscriptions:[{name:'Netflix',monthly:''},{name:'',monthly:'12'}]});
+ const sub=analyseSavings(sample,r).opportunities.find(o=>o.area==='subscriptions');
+ assert.equal(sub.scenarioSaving,240);
+ assert.match(sub.assumption,/not included/);
+ assert.equal(r.unusedSubscriptions.length,3);
+});
+check('duplicate names and totals exceeding the real subscription bill are rejected',()=>{
+ const base={subscriptionsMonthly:'30',unusedSubscriptionChoice:'yes',unusedSubscriptionName:'Stan',unusedSubscriptionMonthly:'20'};
+ assert.throws(()=>validateRefinements({details:base,additionalUnusedSubscriptions:[{name:' stan ',monthly:'5'}]}),/only once/);
+ assert.throws(()=>validateRefinements({details:base,additionalUnusedSubscriptions:[{name:'Netflix',monthly:'15'}]}),/cannot cost more/);
+ assert.throws(()=>validateRefinements({details:{...base,unusedSubscriptionChoice:'no'},additionalUnusedSubscriptions:[{name:'Netflix',monthly:'15'}]}));
+ assert.throws(()=>validateRefinements({details:{...base,subscriptionsMonthly:'100'},additionalUnusedSubscriptions:Array.from({length:6},(_,i)=>({name:'Extra'+i,monthly:'1'}))}),/six/);
+});
+check('multiple entries in paid drafts survive save restore and revisions',()=>{
+ const d=blankDraft(sample);d.details.subscriptionsMonthly='80';d.details.unusedSubscriptionChoice='yes';d.details.unusedSubscriptionName='Stan';d.details.unusedSubscriptionMonthly='20';
+ d.additionalUnusedSubscriptions=[{name:'Netflix',monthly:'15'}];
+ const saved=cleanDraft(d);assert.deepEqual(saved.additionalUnusedSubscriptions,d.additionalUnusedSubscriptions);
+ assert.deepEqual(restoreDraft(sample,{version:1,draft:saved}).additionalUnusedSubscriptions,d.additionalUnusedSubscriptions);
+ const normal=prepareDraft(saved);
+ assert.deepEqual(normal.unusedSubscriptions.map(s=>s.name),['Stan','Netflix']);
+ const restored=restoreDraft(sample,normal);
+ assert.deepEqual(restored.additionalUnusedSubscriptions,d.additionalUnusedSubscriptions);
+ assert.equal(prepareDraft(restored).unusedSubscriptions.length,2);
+ restored.details.unusedSubscriptionChoice='no';
+ assert.equal(prepareDraft(restored).unusedSubscriptions.length,0);
+ const noArea=blankDraft(sample);noArea.details.unusedSubscriptionChoice='no';noArea.additionalUnusedSubscriptions=[{name:'Netflix',monthly:'15'}];
+ assert.equal(prepareDraft(noArea).unusedSubscriptions.length,0);
+});
+check('source offers relevant bill-finding help without adding more compulsory questions',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.ok(ui.includes('What do coffee, snacks and quick buys cost you each week?'));
+ for(const hint of ['bank transactions','email receipts','provider app','renewal email','rough estimate']) assert.match(ui,new RegExp(hint,'i'));
+ assert.ok(ui.includes('Add another unused subscription'));
+ assert.ok(ui.includes('Remove unused subscription'));
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');
