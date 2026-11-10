@@ -21,6 +21,14 @@
 - Adjusted paid onboarding and calculation copy to explain what customers provide and what has not been verified.
 - Regression checks added for savings edge cases. All existing production release gates below remain open until explicitly verified.
 
+## 10 November final five corrections — preview only
+- Hidden phone and internet amounts are discarded when the paid answer changes to `Not sure`, `Neither`, or a single service; both the browser and server sanitise these values while preserving older reports without this choice.
+- Paid plan finalisation now requires at least one relevant area. If changes to the eight answers remove all suggested areas, the customer is clearly asked to select a topic instead of receiving an empty paid report.
+- One shared action-step module produces exactly three meaningful first actions in both the rendered report and saved text, including single-area reports.
+- Stored takeaway text now preserves whether the customer entered a weekly total or per-order price.
+- Electricity quote comparisons label annualisation from a single monthly/quarterly bill as a rough estimate, explain seasonal variation, and only remove the approximation warning after the customer confirms checking 12 months of bills.
+- Added regression and desktop/mobile browser checks. Launch price remains A$39 in code pending separately agreed A$29 implementation. Production remains unchanged.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.

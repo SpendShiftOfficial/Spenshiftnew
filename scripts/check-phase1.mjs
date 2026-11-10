@@ -68,6 +68,52 @@ check('adaptive fields discard hidden values',()=>{const d=blankDraft(high);d.de
 check('draft restoration covers new and old purchases',()=>{const d=blankDraft(high);d.details.takeawayOrder='120';d.step=4;assert.deepEqual(restoreDraft(high,{version:1,draft:d}),d);const restored=restoreDraft(sample,{version:1,details:{subscriptionsMonthly:70,unusedSubscriptionMonthly:15}});assert.equal(restored.details.unusedSubscriptionChoice,'yes');assert.equal(restored.details.unusedSubscriptionMonthly,'15');});
 check('all seven report areas remain in plain-text output',()=>{const a=analyseSavings(high,validateRefinements({details:meal.details,insurancePolicies:policies}));const text=makeReportMarkdown(high,validateRefinements({details:meal.details,insurancePolicies:policies}),a);for(const op of a.opportunities)assert.ok(text.includes(op.title));assert.match(text,/not money saved yet|not checked live prices|do not count bills as money saved/i);});
 check('initial report gives actions before the long area cards',()=>{const text=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');assert.ok(text.indexOf('<h2>Your 3 things to do first</h2>')<text.indexOf('{first.length > 0 && <section'));});
+check('hidden phone bills cannot survive an unsure or neither answer',()=>{
+ for(const choice of ['not_sure','neither']){
+  const d=blankDraft(high);d.details.phoneService=choice;d.details.mobileMonthly='55';d.details.internetMonthly='90';
+  const result=prepareDraft(d);assert.equal(result.details.mobileMonthly,null);assert.equal(result.details.internetMonthly,null);
+  const direct=validateRefinements({details:{phoneService:choice,mobileMonthly:'55',internetMonthly:'90'}});
+  assert.equal(direct.details.mobileMonthly,null);assert.equal(direct.details.internetMonthly,null);
+ }
+ const d=blankDraft(high);d.details.phoneService='mobile';d.details.mobileMonthly='40';d.details.internetMonthly='70';
+ const result=prepareDraft(d);assert.equal(result.details.mobileMonthly,40);assert.equal(result.details.internetMonthly,null);
+ const legacy=validateRefinements({details:{mobileMonthly:'40',internetMonthly:'70'}});
+ assert.equal(legacy.details.mobileMonthly,40);assert.equal(legacy.details.internetMonthly,70);
+});
+check('a paid plan requires at least one area after changing audit answers',()=>{
+ const none=previewProfiles['few-opportunities'].answers;
+ assert.throws(()=>prepareDraft(blankDraft(none)),/Choose at least one area/);
+ const d=blankDraft(none);d.additionalArea='phone';
+ assert.equal(prepareDraft(d).additionalArea,'phone');
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(ui,/Choose one area to check/);assert.match(ui,/disabled={submitting\|\|areas.length===0}/);
+});
+check('three report actions are drawn from the same category steps in text and UI',()=>{
+ const {checklistTasks,firstSteps}=loadTs('lib/report-steps');
+ const one=analyseSavings(previewProfiles['household-bills'].answers,emptyRefinements()).opportunities.slice(0,1);
+ const oneTasks=checklistTasks(one,emptyRefinements());assert.equal(oneTasks.length,3);assert.deepEqual(oneTasks,firstSteps(one[0],emptyRefinements()));
+ const refs=validateRefinements({details:{subscriptionsMonthly:'70',unusedSubscriptionChoice:'no'},insurancePolicies:policies});
+ const analysis=analyseSavings(high,refs);const tasks=checklistTasks(analysis.opportunities,refs);
+ assert.equal(tasks.length,3);assert.equal(new Set(tasks).size,3);
+ const doc=makeReportMarkdown(high,refs,analysis);
+ for(const task of tasks)assert.ok(doc.includes('- '+task));
+ const ui=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');assert.match(ui,/checklistTasks\(first, refinements\)/);
+});
+check('takeaway stored text labels weekly and per-order costs correctly',()=>{
+ const a=previewProfiles['takeaway-convenience'].answers;
+ const weekly=validateRefinements({details:{takeawayAmountPeriod:'week',takeawayOrder:'120',takeawayOrdersPerWeek:'6'}});
+ const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway spending: \\$120 for a whole week/);
+ assert.doesNotMatch(weeklyText,/Your usual takeaway order: \\$120/);
+ const order=validateRefinements({details:{takeawayAmountPeriod:'order',takeawayOrder:'30',takeawayOrdersPerWeek:'6'}});
+ const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway spending: \\$30 for one order/);
+});
+check('electricity quote marks one-bill annualisation as an estimate',()=>{
+ const src=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
+ assert.match(src,/Electricity use changes across seasons/);assert.match(src,/12 months of electricity bills/);
+ assert.match(src,/Rough estimate: the new quote could be/);assert.match(src,/annualCostVerified/);
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');assert.match(report,/electricityBillPeriod={refinements.details.electricityPeriod}/);
+});
+
 check('checked results subtract fees and preserve losses',()=>{assert.equal(checkedDifference(100,70,5),25);assert.equal(checkedDifference(70,100,5),-35);assert.equal(checkedDifference(0,0,0),0);assert.throws(()=>checkedDifference(10,Infinity,0));assert.throws(()=>checkedDifference(10,-1,0));});
 check('equal quote and tracker results never say lower',()=>{assert.match(fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8'),/Both prices are the same/);assert.match(fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8'),/no change in cost/);});
 check('quote comparison is first-year only',()=>{assert.equal(quoteDifference(1200,80,'month',20),220);assert.equal(quoteDifference(1200,1300,'year',0),-100);});
@@ -107,7 +153,7 @@ check('unused takeaway barrier is validated and used in personal steps',()=>{
   const d=validateRefinements({details:{takeawayReason:'busy'}});
   assert.equal(d.details.takeawayReason,'busy');
   assert.throws(()=>validateRefinements({details:{takeawayReason:'never_cook_again'}}),/Invalid/);
-  const src=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+  const src=fs.readFileSync('lib/report-steps.ts','utf8');
   assert.match(src,/d.takeawayReason === "busy"/);
   assert.match(src,/d.takeawayReason === "tired"/);
   assert.match(src,/d.takeawayReason === "enjoy"/);

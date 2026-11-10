@@ -40,7 +40,7 @@ try{
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
     if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');await page.locator('#convenienceOverlap').selectOption('no');await page.locator('#convenienceGoalWeekly').fill('70');}
     if(heading==='Insurance'){await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-cost-0').fill('1800');await page.locator('#policy-renewal-0').selectOption('soon');}
-    if(heading==='Phone and internet'){await page.locator('#phoneService').selectOption('mobile');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
+    if(heading==='Phone and internet'){await page.locator('#phoneService').selectOption('both');await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('#phoneService').selectOption('not_sure');assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('#phoneService').selectOption('mobile');assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
     if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('no');assert.equal(await page.locator('#gasMonthly').count(),0);}
     if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
     await noOverflow(page);await next(page);
@@ -56,6 +56,32 @@ try{
    await page.getByText('Add a checked result',{exact:true}).click();const form=page.locator('form').last();
    await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra fees or costs not included above ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save this result'}).click();
    assert.match(await page.locator('body').innerText(),/recorded \$15 less/);await page.reload({waitUntil:'networkidle'});await page.waitForTimeout(300);assert.match(await page.locator('body').innerText(),/recorded \$15 less/);
+  });
+  await test('electricity price comparison labels one bill as a rough estimate '+viewport.width,async()=>{
+   await go(page,'/report-preview?customer=household-bills');
+   const section=page.locator('details').filter({has:page.getByText('Compare a price for your electricity plan',{exact:true})});
+   await section.locator('summary').click();
+   assert.match(await section.innerText(),/Electricity use changes across seasons/);
+   await section.getByLabel('Price from the new quote ($)').fill('1200');
+   await section.getByLabel('I compared the same electricity usage, supply charges and fees.').check();
+   assert.match(await section.innerText(),/Rough estimate: the new quote could be/);
+   await section.getByLabel('I checked this yearly cost against 12 months of electricity bills.').check();
+   assert.doesNotMatch(await section.innerText(),/Rough estimate: the new quote could be/);
+  });
+  await test('no-opportunity paid draft must choose one area before generating '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('few-opportunities');
+   assert.match(await page.locator('body').innerText(),/Choose one area to check/);
+   assert.equal(await page.getByRole('button',{name:'Make my plan'}).isDisabled(),true);
+   await page.locator('#required-area').selectOption('phone');
+   await page.locator('#phoneService').selectOption('mobile');
+   await page.locator('#mobileMonthly').fill('40');
+   await next(page);
+   await page.getByRole('button',{name:'Make my plan'}).click();
+   await page.waitForURL('**/plan-preview');
+   assert.match(await page.locator('h1').last().innerText(),/1 area to check/);
+   const tasks=page.locator('section').filter({has:page.getByRole('heading',{name:'Your 3 things to do first'})});
+   assert.equal(await tasks.locator('input[type=checkbox]').count(),3);
+   await noOverflow(page);
   });
   await context.close();
  }

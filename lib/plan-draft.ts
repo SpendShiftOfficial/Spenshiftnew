@@ -32,11 +32,14 @@ export function selectedDraftAreas(d:PlanDraft):PersonalisationArea[]{const area
 export function prepareDraft(d:PlanDraft){
  const conflict=findAuditConflict(d);
  if(conflict) throw new Error(conflict.message);
- const areas=selectedDraftAreas(d);const details:Record<string,string>={};
+ const areas=selectedDraftAreas(d);
+ if(areas.length===0)throw new Error('Choose at least one area to check before making your plan.');
+ const details:Record<string,string>={};
  for(const area of areas)for(const key of sectionKeys[area])details[key]=d.details[key]||'';
  if(details.hasGas==='no'||details.hasGas==='not_sure')details.gasMonthly='';
- if(details.phoneService==='neither'){details.mobileMonthly='';details.internetMonthly='';}
- if(details.phoneService==='mobile')details.internetMonthly='';if(details.phoneService==='internet')details.mobileMonthly='';
+ if(!['both','mobile','internet'].includes(details.phoneService)){details.mobileMonthly='';details.internetMonthly='';}
+ if(details.phoneService==='mobile')details.internetMonthly='';
+ if(details.phoneService==='internet')details.mobileMonthly='';
  if(details.unusedSubscriptionChoice!=='yes'){details.unusedSubscriptionMonthly='';details.unusedSubscriptionName='';}
  return validateRefinements({version:1,additionalArea:d.additionalArea||null,details,insurancePolicies:areas.includes('insurance')?d.insurancePolicies:[]});
 }

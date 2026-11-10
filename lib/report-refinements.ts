@@ -195,6 +195,10 @@ export function validateRefinements(input: unknown): ReportRefinements {
     throw new Error("Your new weekly goal must be no higher than what you spend now.");
   }
 
+  // An explicit bill choice overrides any old amounts that are now hidden.
+  // A blank choice is preserved for older saved reports that did not ask this question.
+  const phoneService = fixedChoice(details.phoneService, new Set(['', 'mobile', 'internet', 'both', 'neither', 'not_sure']), 'phone bills');
+
   return {
     version: 1,
     additionalArea: selectedAdditionalArea,
@@ -203,8 +207,8 @@ export function validateRefinements(input: unknown): ReportRefinements {
       electricityBill: money(details.electricityBill, "Electricity bill"),
       electricityPeriod: details.electricityPeriod === "month" ? "month" : "quarter",
       gasMonthly: money(details.gasMonthly, "Gas bill"),
-      internetMonthly: money(details.internetMonthly, "Internet bill"),
-      mobileMonthly: money(details.mobileMonthly, "Mobile bill"),
+      internetMonthly: ['mobile','neither','not_sure'].includes(phoneService) ? null : money(details.internetMonthly, "Internet bill"),
+      mobileMonthly: ['internet','neither','not_sure'].includes(phoneService) ? null : money(details.mobileMonthly, "Mobile bill"),
       subscriptionsMonthly,
       unusedSubscriptionMonthly,
       unusedSubscriptionChoice: effectiveUnusedChoice,
@@ -218,7 +222,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
       unplannedArea: fixedChoice(details.unplannedArea, unplannedTypes, "unplanned purchases"),
       shoppingTrigger: fixedChoice(details.shoppingTrigger, triggerChoices, "shopping trigger"),
       hasGas: fixedChoice(details.hasGas, new Set(["", "yes", "no", "not_sure"]), "gas answer"),
-      phoneService: fixedChoice(details.phoneService, new Set(["", "mobile", "internet", "both", "neither", "not_sure"]), "phone bills"),
+      phoneService,
       takeawayAmountPeriod: details.takeawayAmountPeriod === "week" ? "week" : "order",
       takeawayReason: fixedChoice(details.takeawayReason, new Set(["", "busy", "tired", "enjoy", "family", "other"]), "takeaway reason"),
       convenienceOverlap: fixedChoice(details.convenienceOverlap, new Set(["", "yes", "no", "not_sure"]), "overlapping spending"),

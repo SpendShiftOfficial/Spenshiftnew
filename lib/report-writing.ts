@@ -1,6 +1,7 @@
 import type { ReportRefinements } from "./report-refinements";
 import type { SavingsAnalysis } from "./savings-engine";
 import { reasonForArea } from "./personalisation-questions";
+import {checklistTasks} from "./report-steps";
 
 function money(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { maximumFractionDigits: 2 });
@@ -35,7 +36,7 @@ export function makeReportMarkdown(
           (p.renewal === "soon" ? " (Renews soon)" : ""));
       }
     } else if (op.area === "takeaway") {
-      if (d.takeawayOrder !== null) lines.push("Your usual takeaway order: " + money(d.takeawayOrder) + ".");
+      if (d.takeawayOrder !== null) lines.push("Your usual takeaway spending: " + money(d.takeawayOrder) + (d.takeawayAmountPeriod === "week" ? " for a whole week." : " for one order."));
       if (d.takeawayOrdersPerWeek !== null) lines.push("You buy " + d.takeawayOrdersPerWeek + " orders each week.");
       if (d.takeawaySwapPerWeek !== null) lines.push("Your goal is to replace " + d.takeawaySwapPerWeek + " orders a week.");
       if (d.takeawayReplacementCost !== null) lines.push("Food from home for the same people: " + money(d.takeawayReplacementCost) + ".");
@@ -61,8 +62,7 @@ export function makeReportMarkdown(
   });
 
   lines.push("## Start here",
-    ...ops.slice(0,2).map(op => "- " + op.firstAction),
-    "- Check what you actually spent after making a change.",
+    ...checklistTasks(ops, refinements).map(step => "- " + step),
     "## Important",
     "Only count money you keep, after any costs or fees. Do not count the same money twice.",
     "This plan gives general money tips, not personal financial advice.",
