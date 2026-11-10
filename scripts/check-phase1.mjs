@@ -174,7 +174,7 @@ check('each kind of bill uses a suitable quote check and known costs',()=>{
   assert.match(report,/kind="electricity"/);
   assert.match(report,/kind="gas"/);
   assert.match(report,/electricityBill\*\(refinements.details.electricityPeriod/);
-  assert.match(report,/gasMonthly\*12/);
+  assert.ok(report.includes('annualisePayment(refinements.details.gasMonthly, refinements.details.gasPeriod)'));
 });
 check('savings records use per-bill labels, local dates, and do not change checklist ticks',()=>{
   const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
@@ -244,15 +244,15 @@ check('mixed insurance payments are annualised and retained in saved report',()=
  assert.equal(insurance.scenarioSaving,null);
  assert.equal(a.opportunities[0].area,'insurance');
  const markdown=makeReportMarkdown(high,r,a);
- assert.match(markdown,/Car: \\$70 per fortnight/);
- assert.match(markdown,/CTP \\/ Green Slip: \\$250 per 3 months/);
- assert.match(markdown,/Combined yearly insurance cost: \\$7,980/);
+ assert.match(markdown,/Car: \$70 per fortnight/);
+ assert.match(markdown,/CTP \/ Green Slip: \$250 per 3 months/);
+ assert.match(markdown,/Combined yearly insurance cost: \$7,980/);
 });
 check('partial premiums do not create a misleading complete insurance total',()=>{
  const r=validateRefinements({insurancePolicies:[{type:'Car',premium:'70',paymentPeriod:'fortnight'},{type:'Health',premium:'',paymentPeriod:'month'}]});
  const a=analyseSavings(high,r);assert.equal(a.opportunities.find(o=>o.area==='insurance').annualSpend,null);
  const markdown=makeReportMarkdown(high,r,a);
- assert.match(markdown,/Yearly cost for policies with prices: \\$1,820/);
+ assert.match(markdown,/Yearly cost for policies with prices: \$1,820/);
  assert.doesNotMatch(markdown,/Combined yearly insurance cost/);
 });
 check('legacy billing data stays monthly for gas, yearly for missing insurance periods',()=>{
@@ -270,9 +270,9 @@ check('quarterly gas bills affect yearly cost and all written report labels',()=
  const energy=analyseSavings(high,r).opportunities.find(o=>o.area==='energy');
  assert.equal(energy.annualSpend,2800);
  const markdown=makeReportMarkdown(high,r,analyseSavings(high,r));
- assert.match(markdown,/Gas bill: \\$300 per 3 months/);
+ assert.match(markdown,/Gas bill: \$300 per 3 months/);
  const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
- assert.match(report,/annualisePayment\\(refinements\\.details\\.gasMonthly, refinements\\.details\\.gasPeriod\\)/);
+ assert.match(report,/annualisePayment\(refinements\.details\.gasMonthly, refinements\.details\.gasPeriod\)/);
 });
 check('questionnaire asks the time period before the bill amount',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
