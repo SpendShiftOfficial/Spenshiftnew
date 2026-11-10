@@ -54,7 +54,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       if (d.subscriptionsMonthly !== null) annualSpend = cents(d.subscriptionsMonthly * 12);
       const unused = d.unusedSubscriptionChoice === "yes";
       const label = d.unusedSubscriptionName ? d.unusedSubscriptionName : "the service";
-      if (unused && d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0 &&
+      if (unused && d.unusedSubscriptionName.trim() !== "" && d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0 &&
           (d.subscriptionsMonthly === null || d.unusedSubscriptionMonthly <= d.subscriptionsMonthly)) {
         scenarioSaving = cents(d.unusedSubscriptionMonthly * 12);
         assumption = "If you cancel " + label + " at $" +
@@ -68,9 +68,13 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
         firstAction = "List your subscriptions and check whether any have a cheaper plan.";
         verification = "Compare the same service and features. Only change when it still suits you.";
       } else if (d.unusedSubscriptionChoice === "yes") {
-        assumption = "You found an unused service, but we don't know its price.";
-        firstAction = "Find the unused service's monthly charge.";
-        verification = "Check its price and cancel it if you no longer need it.";
+        assumption = d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0
+          ? "You gave a price, but not the name of the unused subscription. We won't count a saving until we know which charge you mean."
+          : "You found an unused subscription, but we don't know its monthly price.";
+        firstAction = d.unusedSubscriptionName
+          ? "Check the monthly charge for " + label + "."
+          : "Find the unused service and write down its monthly charge.";
+        verification = "Only count the saving after a specific unused service is cancelled and its charge stops.";
       } else {
         assumption = "We don't know if any subscriptions are unused. We can't call your total bill a saving.";
         firstAction = "Check your bank app for subscriptions you've forgotten about.";
@@ -110,9 +114,13 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
           ". This is a goal, not money already saved. It only counts if you stay within it.";
         firstAction = "Set aside $" + d.convenienceGoalWeekly.toLocaleString("en-AU") +
           " for small buys next week.";
+      } else if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
+                 d.convenienceGoalWeekly === d.convenienceWeekly) {
+        assumption = "Your weekly goal is the same as what you spend now, so it does not show a reduction.";
+        firstAction = "If you want to cut back, choose a lower weekly limit you could keep to.";
       } else {
-        assumption = "We know what you spend, but not what you'd like to cut back.";
-        firstAction = "Pick a weekly limit for coffees, snacks and quick buys.";
+        assumption = "We cannot yet calculate a reliable reduction in small buys.";
+        firstAction = "Pick a weekly limit for coffees, snacks and quick buys. Keep takeaway costs separate.";
       }
       verification = "Check your spending at the end of the week. Don't count takeaway twice.";
     } else if (area === "phone") {
