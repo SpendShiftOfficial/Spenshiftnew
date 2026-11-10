@@ -50,6 +50,13 @@
 - The questions now give short, practical prompts to check bank transactions, billing emails and provider apps when amounts are not known. Small everyday buys asks what it costs **you** each week.
 - Existing report structure, official links and pricing remain unchanged.
 
+## 10 November final wording and report-tracker clarity — preview only
+- Replaced the unclear takeaway period question with a concrete choice between a usual order and a whole week's total, keeping the time period before the amount.
+- Kept home-meal cost optional because it is necessary to estimate net takeaway savings rather than falsely counting all takeaway spending as saved. The question now explains what to estimate and the consequence of skipping it; saved report maths remain unchanged.
+- Explained that insurance payment frequency and renewal timing are different; renewal still informs prioritisation, while payment frequency drives yearly spending.
+- Renamed optional insurance cover details to distinguish coverage (for example comprehensive car) from the broader insurance category, and fixed the optional fields' desktop/mobile alignment.
+- Reframed the existing local savings tracker as a tool for **after** taking action, with a worked cancellation example and simpler before-and-after language. No additional account, syncing, payment, or pricing features were added.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.

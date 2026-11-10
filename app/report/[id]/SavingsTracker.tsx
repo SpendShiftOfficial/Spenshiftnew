@@ -139,8 +139,10 @@ export default function SavingsTracker({
 
   return (
     <section className={styles.lastCard}>
-      <h2>Savings you've recorded</h2>
-      <p>Use a bill or statement to check a change you've made. These are your own figures.</p>
+      <h2>Track money you've actually saved (optional)</h2>
+      <p><strong>This is for later.</strong> After you cancel a subscription, switch a bill or spend less on something, come back and compare what you paid before and after. We'll work out the difference using your figures.</p>
+      <p className={styles.trackerExample}>Example: If you cancel a $20-a-month subscription, your cost goes from $20 to $0 a month. That's $20 less a month, once the charge really stops.</p>
+      {loaded && entries.length===0 && <p className={styles.checkNote}>Nothing recorded yet? That's normal. You can skip this section until you've made a change.</p>}
       {loaded && entries.map(entry => {
         const difference = checkedDifference(entry.before, entry.after, entry.fees);
         return (
@@ -157,7 +159,7 @@ export default function SavingsTracker({
       })}
       {options.length > 0 && (
         <details className={styles.helpDetails} open={Boolean(editId) || undefined}>
-          <summary>{editId ? "Edit a recorded result" : "Add a checked result"}</summary>
+          <summary>{editId ? "Edit a saved cost change" : "I've made a change — compare my costs"}</summary>
           <form className={styles.trackerForm} onSubmit={submit}>
             <label>
               Which bill or spending area?
@@ -166,7 +168,7 @@ export default function SavingsTracker({
               </select>
             </label>
             <label>
-              Both amounts cover the same
+              Both amounts cover the same time period
               <select value={period} onChange={e => setPeriod(e.target.value as Entry["period"])}>
                 <option value="week">Week</option>
                 <option value="month">Month</option>
@@ -204,8 +206,7 @@ export default function SavingsTracker({
         </details>
       )}
       <p className={styles.checkNote}>
-        Saved only in this browser, not on other devices. Each entry is a separate change.
-        We do not add weekly, monthly and yearly amounts together.
+        Your entries are saved only in this browser, not on other devices. We keep weekly, monthly and yearly changes separate so they aren't added together by mistake.
       </p>
       <p role="status" aria-live="polite">{message}</p>
     </section>

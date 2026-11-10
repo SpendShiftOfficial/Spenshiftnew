@@ -452,3 +452,14 @@
   font-size: 14px;
   line-height: 1.55;
 }
+
+/* Make the optional real-savings tracker understandable at first glance. */
+.trackerExample {
+  padding: 13px 16px;
+  border-radius: 11px;
+  background: #f4f8f5;
+  border: 1px solid #e0ebe2;
+  color: #385440;
+  font-size: 15px;
+  line-height: 1.55;
+}
