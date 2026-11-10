@@ -4841,3 +4841,26 @@ line-height: 1.05 !important;
 text-align: left !important;
 }
 }
+
+/* Private purchase, questionnaire and report pages must show their brand immediately. */
+.topbar.topbar-simple {
+  height: 78px;
+}
+.topbar-simple .container {
+  gap: 14px;
+}
+.topbar-simple .logo {
+  flex-shrink: 0;
+}
+.topbar-simple .logo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.topbar-simple .mini {
+  white-space: nowrap;
+}
+@media (max-width: 390px) {
+  .topbar-simple .container { gap: 8px; padding-inline: 14px; }
+  .topbar-simple .mini { font-size: 12px; }
+}

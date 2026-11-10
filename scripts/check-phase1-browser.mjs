@@ -32,6 +32,43 @@ try{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
    const paused=await page.request.post(base+'/api/checkout',{data:{answers:high,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}});assert.equal(paused.status(),403);
   });
+  await test('mobile money fields, progress spacing and visible logo '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
+   const logo=page.locator('header.topbar .logo');
+   await logo.waitFor({state:'visible'});
+   const opacity=await logo.evaluate(node=>Number(getComputedStyle(node).opacity));
+   assert.ok(opacity>=0.99,'The SpendShift logo must not be hidden by entrance animations');
+   const hint=page.getByText('No bank login needed',{exact:true});
+   const logoRect=await logo.boundingBox(),hintRect=await hint.boundingBox();
+   assert.ok(logoRect&&hintRect&&logoRect.x+logoRect.width+6<hintRect.x,'Logo and privacy hint must not overlap');
+   const auditDetails=page.locator('details').filter({has:page.getByText('Check or change my first answers',{exact:true})}).first();
+   const areaLabel=page.getByText('Area 1 of 7',{exact:true});
+   const auditBox=await auditDetails.boundingBox(),areaBox=await areaLabel.boundingBox();
+   assert.ok(auditBox&&areaBox&&areaBox.y-(auditBox.y+auditBox.height)>=16,'Progress label needs separation from the audit editor');
+   async function assertCurrencySpacing(selector){
+    const metrics=await page.locator(selector).evaluate(input=>{
+     const icon=input.previousElementSibling;
+     const left=input.getBoundingClientRect().left;
+     return {paddingLeft:parseFloat(getComputedStyle(input).paddingLeft),prefixGap:left+parseFloat(getComputedStyle(input).paddingLeft)-icon.getBoundingClientRect().right};
+    });
+    assert.ok(metrics.paddingLeft>=44 && metrics.prefixGap>=12,selector+' must not overlap its dollar prefix');
+   }
+   await assertCurrencySpacing('#takeawayOrder');
+   await page.locator('#takeawayOrder').fill('32.50');
+   await assertCurrencySpacing('#takeawayOrder');
+   await next(page);
+   await page.locator('#subscriptionsMonthly').waitFor();
+   await assertCurrencySpacing('#subscriptionsMonthly');
+   await noOverflow(page);
+  });
+  await test('savings tracker help has breathing room '+viewport.width,async()=>{
+   await go(page,'/report-preview?customer=all-seven');
+   const details=page.locator('details').filter({has:page.getByText('Add a checked result',{exact:true})}).first();
+   const note=page.getByText(/Saved only in this browser, not on other devices/);
+   const a=await details.boundingBox(),b=await note.boundingBox();
+   assert.ok(a&&b&&b.y-(a.y+a.height)>=14,'Saved results note must sit below its button without overlap');
+   await noOverflow(page);
+  });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){

@@ -202,4 +202,17 @@ check('free sample shows a calculation without claiming the customer savings',()
   assert.match(results,/areas\.slice\(3\)/);
 });
 
+check('mobile input and private layout fixes have appropriate CSS specificity',()=>{
+ const form=fs.readFileSync('app/personalise/personalise.module.css','utf8');
+ const report=fs.readFileSync('app/report/[id]/simple-report.module.css','utf8');
+ const header=fs.readFileSync('components/Header.tsx','utf8');
+ const styles=fs.readFileSync('app/globals.css','utf8');
+ assert.match(form,/\.field \.moneyInput input\\s*\\{\\s*padding-left: 48px/);
+ assert.match(form,/\.optionalDetails \\+ \.progressTop/);
+ assert.match(report,/\.lastCard > \.helpDetails \\+ \.checkNote/);
+ assert.doesNotMatch(report,/margin: -7px 0 18px/);
+ assert.match(header,/simple \\? "logo" : "logo reveal-left"/);
+ assert.match(styles,/\.topbar\\.topbar-simple/);
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');

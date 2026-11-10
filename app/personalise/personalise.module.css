@@ -93,12 +93,12 @@
 }
 .fields {
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .field label {
   font-size: 14px;
@@ -135,13 +135,16 @@
 }
 .moneyInput span {
   position: absolute;
-  left: 15px;
+  left: 16px;
   font-size: 17px;
   font-weight: 650;
   color: #425b4a;
+  pointer-events: none;
 }
-.moneyInput input {
-  padding-left: 33px;
+/* Higher specificity than the later generic .field input rules. */
+.field .moneyInput input {
+  padding-left: 48px;
+  padding-right: 14px;
 }
 .actions {
   display: flex;
@@ -448,3 +451,11 @@
 .fields{border:0;padding:0}.field input{min-width:0;max-width:100%;min-height:48px;padding:10px 12px;font:inherit;font-size:16px}.reviewExtra dl{display:grid;gap:8px;margin:12px 0}.reviewExtra dl>div{display:flex;justify-content:space-between;gap:16px}.reviewExtra dt{color:#53665a}.reviewExtra dd{font-weight:750;margin:0;text-align:right}
 
 .journeyFieldset{border:0;padding:0;margin:0;min-width:0}.journeyFieldset:disabled{opacity:.78}.field input[type=text],.field input[type=number]{border:1px solid #c5d8ca;border-radius:10px;background:white}.reviewExtra dt,.reviewExtra dd{overflow-wrap:anywhere}
+
+/* Leave breathing room between the optional audit editor and area progress. */
+.optionalDetails + .progressTop {
+  margin-top: 24px;
+}
+@media (max-width: 570px) {
+  .actions { gap: 15px; }
+}

@@ -13,7 +13,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <header className="topbar" style={{ position: "relative" }}>
+    <header className={simple ? "topbar topbar-simple" : "topbar"} style={{ position: "relative" }}>
       <div
         className="container"
         style={{
@@ -24,12 +24,12 @@ export default function Header({ simple = false }: { simple?: boolean }) {
         }}
       >
         {/* Brand Logo */}
-        <Link href="/" className="logo reveal-left">
+        <Link href="/" className={simple ? "logo" : "logo reveal-left"}>
           <Image
             src="/logo.png"
             alt="SpendShift"
-            width={200}
-            height={60}
+            width={simple ? 150 : 200}
+            height={simple ? 45 : 60}
             priority
           />
         </Link>

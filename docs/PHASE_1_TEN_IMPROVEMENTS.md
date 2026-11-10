@@ -29,6 +29,13 @@
 - Electricity quote comparisons label annualisation from a single monthly/quarterly bill as a rough estimate, explain seasonal variation, and only remove the approximation warning after the customer confirms checking 12 months of bills.
 - Added regression and desktop/mobile browser checks. Launch price remains A$39 in code pending separately agreed A$29 implementation. Production remains unchanged.
 
+## 10 November iPhone review polish — preview only
+- Fixed money-entry prefixes overlapping placeholder text and entered values (the generic input rule was overriding the money field's left padding).
+- Added spacing between the expandable free-answer editor and questionnaire progress, and improved field spacing.
+- Fixed savings tracker notes sitting against the disclosure border by removing negative paragraph margins.
+- Kept the SpendShift logo visible on private pages (no dependence on public-page reveal animation) and tightened the simple header for phone layouts.
+- Added desktop/mobile browser assertions for prefix clearance, visible branding, progress spacing and tracker note separation. No pricing, payment or report logic changed.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.
