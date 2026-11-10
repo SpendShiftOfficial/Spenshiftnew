@@ -146,7 +146,7 @@ export default function SavingsTracker({
         return (
           <article className={styles.resultRow} key={entry.id}>
             <strong>{entry.label || options.find(item => item.key === entry.key)?.title || "Bill"}</strong>
-            <p>You recorded {money(difference)} {difference >= 0 ? "less" : "more"} for this {entry.period}, after fees, on {entry.date}.</p>
+            <p>{difference === 0 ? "You recorded no change in cost" : "You recorded " + money(difference) + (difference > 0 ? " less" : " more")} for this {entry.period}, after fees, on {entry.date}.</p>
             {options.some(option => option.key === entry.key) &&
               <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
             {!options.some(option => option.key === entry.key) &&
