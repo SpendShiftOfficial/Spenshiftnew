@@ -337,4 +337,21 @@ check('source offers relevant bill-finding help without adding more compulsory q
  assert.ok(ui.includes('Remove unused subscription'));
 });
 
+check('plain-language questions distinguish costs, renewal and optional cover',()=>{
+ const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+ const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
+ assert.ok(form.includes('Which takeaway cost can you estimate more easily?'));
+ assert.ok(form.includes('If you made one of those meals at home'));
+ assert.ok(form.includes('Without it, we won\\\'t guess a saving'));
+ assert.ok(form.includes('When is this policy due for renewal?'));
+ assert.ok(form.includes('It is different from how often you pay'));
+ assert.ok(form.includes('Any extra cover details? (optional)'));
+ assert.ok(css.includes('.optionalInner label input'));
+ assert.ok(tracker.includes('This is for later.'));
+ assert.ok(tracker.includes('compare what you paid before and after'));
+ assert.ok(tracker.includes('Nothing recorded yet?'));
+ assert.ok(tracker.includes('Saved only in this browser')||tracker.includes('saved only in this browser'));
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');

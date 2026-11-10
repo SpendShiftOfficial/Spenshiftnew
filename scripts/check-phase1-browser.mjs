@@ -63,7 +63,11 @@ try{
   });
   await test('savings tracker help has breathing room '+viewport.width,async()=>{
    await go(page,'/report-preview?customer=all-seven');
-   const details=page.locator('details').filter({has:page.getByText('Add a checked result',{exact:true})}).first();
+   const details=page.locator('details').filter({has:page.getByText("I've made a change — compare my costs",{exact:true})}).first();
+   assert.equal(await details.getAttribute('open'),null);
+   assert.match(await page.locator('body').innerText(),/This is for later/);
+   assert.match(await page.locator('body').innerText(),/Nothing recorded yet/);
+   assert.match(await page.locator('body').innerText(),/If you cancel a \$20-a-month subscription/);
    const note=page.getByText(/Saved only in this browser, not on other devices/);
    const a=await details.boundingBox(),b=await note.boundingBox();
    assert.ok(a&&b&&b.y-(a.y+a.height)>=14,'Saved results note must sit below its button without overlap');
@@ -108,6 +112,42 @@ try{
    assert.equal(await page.locator('#unused-name-0').count(),0);
    await noOverflow(page);
   });
+  await test('takeaway wording supports skipping unknown home meal cost '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
+   assert.match(await page.locator('section').first().innerText(),/Which takeaway cost can you estimate more easily/);
+   assert.match(await page.locator('section').first().innerText(),/Choose one, then enter the dollar amount below/);
+   await page.locator('#takeawayAmountPeriod').selectOption('order');
+   await page.locator('#takeawayOrder').fill('30');
+   await page.locator('#takeawayOrdersPerWeek').fill('2');
+   await page.locator('#takeawaySwapPerWeek').fill('1');
+   assert.match(await page.locator('section').first().innerText(),/If you made one of those meals at home/);
+   assert.match(await page.locator('section').first().innerText(),/Without it, we won't guess a saving/);
+   assert.equal(await page.locator('#takeawayReplacementCost').inputValue(),'');
+   await next(page);await next(page);
+   assert.match(await page.locator('body').innerText(),/You can leave it blank/);
+   await page.getByRole('button',{name:'Make my plan',exact:true}).click();
+   await page.waitForURL('**/plan-preview');
+   const takeaway=page.locator('#area-takeaway');
+   if(!await takeaway.isVisible())await page.locator('details').filter({has:takeaway}).locator('summary').first().click();
+   const report=await takeaway.innerText();
+   assert.match(report,/Check both costs for the same people before counting a saving/);
+   assert.doesNotMatch(report,/Your goal:.*less a week/);
+   await noOverflow(page);
+  });
+  await test('insurance renewal and optional cover details have clear meanings '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
+   await next(page);
+   const screen=page.locator('section').first();
+   assert.match(await screen.innerText(),/When is this policy due for renewal/);
+   assert.match(await screen.innerText(),/It is different from how often you pay/);
+   await page.getByText('Add insurer and cover details (optional)',{exact:true}).click();
+   const cover=page.getByPlaceholder('e.g. comprehensive car cover');
+   await cover.waitFor({state:'visible'});
+   assert.match(await screen.innerText(),/The insurance type above is the category/);
+   const dimensions=await cover.evaluate(el=>({field:el.getBoundingClientRect().width,parent:el.parentElement.getBoundingClientRect().width}));
+   assert.ok(dimensions.field>=dimensions.parent-3,'Optional cover input should fill its field');
+   await noOverflow(page);
+  });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){
@@ -131,7 +171,7 @@ try{
    await noOverflow(page);await page.screenshot({path:'test-artifacts/seven-area-plan-'+viewport.width+'.png',fullPage:true});
   });
   await test('checked savings are retained and not forecast totals '+viewport.width,async()=>{
-   await page.getByText('Add a checked result',{exact:true}).click();const form=page.locator('form').last();
+   await page.getByText("I've made a change — compare my costs",{exact:true}).click();const form=page.locator('form').last();
    await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra fees or costs not included above ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save this result'}).click();
    assert.match(await page.locator('body').innerText(),/recorded \$15 less/);await page.reload({waitUntil:'networkidle'});await page.waitForTimeout(300);assert.match(await page.locator('body').innerText(),/recorded \$15 less/);
   });
