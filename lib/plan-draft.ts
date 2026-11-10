@@ -11,12 +11,13 @@ export const sectionKeys:Record<PersonalisationArea,string[]>={
  insurance:[],unplanned:['unplannedArea','shoppingTrigger'],
 };
 export type RawPolicy={type:string;premium:string;paymentPeriod:string;insurer:string;coverDescription:string;renewal:string};
-export type PlanDraft={version:1;answers:string[];details:Record<string,string>;insurancePolicies:RawPolicy[];additionalArea:string;step:number};
+export type RawUnusedSubscription={name:string;monthly:string};
+export type PlanDraft={version:1;answers:string[];details:Record<string,string>;insurancePolicies:RawPolicy[];additionalUnusedSubscriptions:RawUnusedSubscription[];additionalArea:string;step:number};
 export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'year',insurer:'',coverDescription:'',renewal:''});
 export function blankDraft(answers:string[]):PlanDraft{
  const details:Record<string,string>={};Object.keys(emptyRefinements().details).forEach(key=>details[key]='');
  details.electricityPeriod='quarter';details.takeawayAmountPeriod='order';details.gasPeriod='month';
- return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalArea:'',step:0};
+ return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalUnusedSubscriptions:[],additionalArea:'',step:0};
 }
 function obj(input:unknown):Record<string,unknown>{if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Please check your saved answers.');return input as Record<string,unknown>;}
 export function cleanDraft(input:unknown):PlanDraft{
@@ -24,6 +25,14 @@ export function cleanDraft(input:unknown):PlanDraft{
  for(const key of Object.keys(out.details)){const value=raw[key];if(value===null||value===undefined)continue;if(typeof value!=='string'||value.length>160)throw new Error('Please shorten that answer.');out.details[key]=value.replace(/[\u0000-\u001f<>]/g,'');}
  const policies=d.insurancePolicies??[];if(!Array.isArray(policies)||policies.length>6)throw new Error('Use up to six insurance policies.');
  out.insurancePolicies=policies.map(value=>{const p=obj(value);const result=emptyPolicy();for(const key of Object.keys(result) as (keyof RawPolicy)[]){if(p[key]===null||p[key]===undefined)continue;if(typeof p[key]!=='string'||(p[key] as string).length>160)throw new Error('Please shorten that policy detail.');result[key]=(p[key] as string).replace(/[\u0000-\u001f<>]/g,'');}return result;});
+ const extras=d.additionalUnusedSubscriptions??[];
+ if(!Array.isArray(extras)||extras.length>5)throw new Error('Add up to six unused subscriptions.');
+ out.additionalUnusedSubscriptions=extras.map(value=>{
+  const item=obj(value),name=item.name??'',monthly=item.monthly??'';
+  if(typeof name!=='string'||typeof monthly!=='string'||name.length>160||monthly.length>160)
+    throw new Error('Please check the unused subscription details.');
+  return {name:name.replace(/[\u0000-\u001f<>]/g,''),monthly:monthly.replace(/[\u0000-\u001f<>]/g,'')};
+ });
  const area=d.additionalArea||'';if(typeof area!=='string'||(area&&!Object.hasOwn(sectionKeys,area)))throw new Error('Please choose a listed spending area.');out.additionalArea=area;
  if(typeof d.step!=='number'||!Number.isInteger(d.step)||d.step<0||d.step>8)throw new Error('Please reopen your plan.');out.step=d.step;
  return out;
@@ -41,7 +50,9 @@ export function prepareDraft(d:PlanDraft){
  if(details.phoneService==='mobile')details.internetMonthly='';
  if(details.phoneService==='internet')details.mobileMonthly='';
  if(details.unusedSubscriptionChoice!=='yes'){details.unusedSubscriptionMonthly='';details.unusedSubscriptionName='';}
- return validateRefinements({version:1,additionalArea:d.additionalArea||null,details,insurancePolicies:areas.includes('insurance')?d.insurancePolicies:[]});
+ return validateRefinements({version:1,additionalArea:d.additionalArea||null,details,
+  additionalUnusedSubscriptions:areas.includes('subscriptions')&&details.unusedSubscriptionChoice==='yes'?d.additionalUnusedSubscriptions:[],
+  insurancePolicies:areas.includes('insurance')?d.insurancePolicies:[]});
 }
 export function restoreDraft(answers:string[],saved:unknown):PlanDraft{
  if(!saved||typeof saved!=='object')return blankDraft(answers);
@@ -52,5 +63,18 @@ export function restoreDraft(answers:string[],saved:unknown):PlanDraft{
  if(d.details.gasMonthly&&!d.details.hasGas)d.details.hasGas='yes';
  if(d.details.unusedSubscriptionMonthly&&!d.details.unusedSubscriptionChoice)d.details.unusedSubscriptionChoice='yes';
  if(Array.isArray(value.insurancePolicies))d.insurancePolicies=value.insurancePolicies.map((p:any)=>({type:p.type||'',premium:p.premium==null?'':String(p.premium),paymentPeriod:p.paymentPeriod||'year',insurer:p.insurer||'',coverDescription:p.coverDescription||'',renewal:p.renewal||''}));
+ if(Array.isArray(value.unusedSubscriptions)&&value.unusedSubscriptions.length){
+  const saved=value.unusedSubscriptions.filter((p:any)=>p&&typeof p==='object');
+  const first=saved[0] as any;
+  if(!d.details.unusedSubscriptionName&&!d.details.unusedSubscriptionMonthly&&first){
+   d.details.unusedSubscriptionName=typeof first.name==='string'?first.name:'';
+   d.details.unusedSubscriptionMonthly=first.monthly==null?'':String(first.monthly);
+  }
+  d.additionalUnusedSubscriptions=saved.slice(1,6).map((p:any)=>({
+   name:typeof p.name==='string'?p.name:'',
+   monthly:p.monthly==null?'':String(p.monthly),
+  }));
+  if(!d.details.unusedSubscriptionChoice)d.details.unusedSubscriptionChoice='yes';
+ }
  d.additionalArea=typeof value.additionalArea==='string'?value.additionalArea:'';return d;
 }

@@ -13,11 +13,19 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
       "Check if the same service has a cheaper plan that still meets your needs.",
       "Change only if the total price is lower. Check next month's bill.",
     ];
-    if (d.unusedSubscriptionChoice === "yes") return [
-      "Find the charge for " + (d.unusedSubscriptionName || "the unused service") + " in your bank app.",
-      "Open that service's account page and check how to cancel it.",
-      "Cancel only if you don't use it. Save the email and check your next bill.",
-    ];
+    if (d.unusedSubscriptionChoice === "yes") {
+      const priced=r.unusedSubscriptions.filter(s=>s.name&&s.monthly!==null&&s.monthly>0);
+      if(priced.length>1)return [
+        "Find each unused service's charge in your bank app or email receipts.",
+        "Open each service's account page and check how to cancel it.",
+        "Cancel only services you don't use. Save confirmations and check the charges stop.",
+      ];
+      return [
+        "Find the charge for " + (priced[0]?.name || d.unusedSubscriptionName || "the unused service") + " in your bank app.",
+        "Open that service's account page and check how to cancel it.",
+        "Cancel only if you don't use it. Save the email and check your next bill.",
+      ];
+    }
     return [
       "Open your bank app and look at the last two months.",
       "Write down each app, streaming bill, and membership you pay for.",

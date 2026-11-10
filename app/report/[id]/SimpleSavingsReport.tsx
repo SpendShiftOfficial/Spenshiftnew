@@ -46,21 +46,28 @@ const messages = {
 
 function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinements: ReportRefinements }) {
   const d = r.details;
-  if (op.area === "subscriptions") return (
-    <>
-      {d.subscriptionsMonthly !== null && <div className={styles.costLine}>
+  if (op.area === "subscriptions") {
+    const priced=r.unusedSubscriptions.filter(s=>s.name&&s.monthly!==null&&s.monthly>0);
+    const incomplete=r.unusedSubscriptions.length>priced.length;
+    return <>
+      {d.subscriptionsMonthly!==null&&<div className={styles.costLine}>
         <strong>{money(d.subscriptionsMonthly)} <small>/ month</small></strong>
         <span>What you pay for subscriptions now</span>
       </div>}
-      {op.scenarioSaving !== null && d.unusedSubscriptionChoice === "yes" && (
+      {op.scenarioSaving!==null&&d.unusedSubscriptionChoice==="yes"&&
         <div className={styles.possible}>
           <strong>Possible yearly saving: {money(op.scenarioSaving)}</strong>
-          <p>If you cancel {d.unusedSubscriptionName || "the unused service"} at {money(d.unusedSubscriptionMonthly ?? 0)}/month and do not replace it.</p>
-          <small>You haven't saved this money yet.</small>
-        </div>
-      )}
-    </>
-  );
+          {priced.length===1
+            ? <p>If you cancel {priced[0].name} at {money(priced[0].monthly??0)}/month and do not replace it.</p>
+            : <>
+                <p>If you cancel these unused services and do not replace them:</p>
+                {priced.map(s=><p key={s.name}>{s.name}: {money(s.monthly??0)} / month</p>)}
+              </>}
+          {incomplete&&<p>Services without a name or monthly price are not included in this possible saving.</p>}
+          <small>You haven't saved this money yet. Check that each charge stops.</small>
+        </div>}
+    </>;
+  }
   if (op.area === "takeaway") {
     const m=takeawayMath(r);
     return <>

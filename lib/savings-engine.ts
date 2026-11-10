@@ -52,34 +52,34 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
     let verification = "Compare the real prices before making a change.";
 
     if (area === "subscriptions") {
-      if (d.subscriptionsMonthly !== null) annualSpend = cents(d.subscriptionsMonthly * 12);
-      const unused = d.unusedSubscriptionChoice === "yes";
-      const label = d.unusedSubscriptionName ? d.unusedSubscriptionName : "the service";
-      if (unused && d.unusedSubscriptionName.trim() !== "" && d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0 &&
-          (d.subscriptionsMonthly === null || d.unusedSubscriptionMonthly <= d.subscriptionsMonthly)) {
-        scenarioSaving = cents(d.unusedSubscriptionMonthly * 12);
-        assumption = "If you cancel " + label + " at $" +
-          d.unusedSubscriptionMonthly.toLocaleString("en-AU") +
-          " a month, you may keep $" + scenarioSaving.toLocaleString("en-AU") +
-          " a year. This is not a saving until it is cancelled.";
-        firstAction = "Check how to cancel " + label + ".";
-        verification = "Cancel it only if you don't need it. Check your next statement for the missing charge.";
-      } else if (d.unusedSubscriptionChoice === "no") {
-        assumption = "You said you use all your subscriptions. We won't tell you to cancel one.";
-        firstAction = "List your subscriptions and check whether any have a cheaper plan.";
-        verification = "Compare the same service and features. Only change when it still suits you.";
-      } else if (d.unusedSubscriptionChoice === "yes") {
-        assumption = d.unusedSubscriptionMonthly !== null && d.unusedSubscriptionMonthly > 0
-          ? "You gave a price, but not the name of the unused subscription. We won't count a saving until we know which charge you mean."
-          : "You found an unused subscription, but we don't know its monthly price.";
-        firstAction = d.unusedSubscriptionName
-          ? "Check the monthly charge for " + label + "."
-          : "Find the unused service and write down its monthly charge.";
-        verification = "Only count the saving after a specific unused service is cancelled and its charge stops.";
-      } else {
-        assumption = "We don't know if any subscriptions are unused. We can't call your total bill a saving.";
-        firstAction = "Check your bank app for subscriptions you've forgotten about.";
-        verification = "If every service is useful, check for cheaper plans instead of cancelling.";
+      if(d.subscriptionsMonthly!==null)annualSpend=cents(d.subscriptionsMonthly*12);
+      const services=refinements.unusedSubscriptions;
+      const priced=services.filter(s=>s.name.trim()&&s.monthly!==null&&s.monthly>0);
+      const incomplete=services.length>priced.length;
+      if(d.unusedSubscriptionChoice==="yes"&&priced.length){
+        const monthly=cents(priced.reduce((sum,s)=>sum+(s.monthly??0),0));
+        scenarioSaving=cents(monthly*12);
+        assumption="If you cancel "+priced.map(s=>s.name).join(", ")+
+          " and do not replace them, you could keep $"+monthly.toLocaleString("en-AU")+
+          " per month, or $"+scenarioSaving.toLocaleString("en-AU")+
+          " per year. This is not money saved yet."+
+          (incomplete?" Other services without a name or price are not included.":"");
+        firstAction=priced.length===1?"Check how to cancel "+priced[0].name+".":"Check how to cancel your listed unused subscriptions.";
+        verification="Cancel only services you no longer need. Check your next statements to confirm each charge has stopped.";
+      }else if(d.unusedSubscriptionChoice==="no"){
+        assumption="You said you use all your subscriptions. We won't tell you to cancel one.";
+        firstAction="List your subscriptions and check whether any have a cheaper plan.";
+        verification="Compare the same service and features. Only change when it still suits you.";
+      }else if(d.unusedSubscriptionChoice==="yes"){
+        assumption=services.some(s=>!s.name&&s.monthly!==null)
+          ?"You gave a price, but not the name of an unused subscription. We won't count a saving until we know which charge you mean."
+          :"You found unused subscriptions, but we need a name and monthly price before estimating a saving.";
+        firstAction="Check your bank app or receipts for each unused service and its monthly charge.";
+        verification="Only count savings after specific unused services are cancelled and their charges stop.";
+      }else{
+        assumption="We don't know if any subscriptions are unused. We can't call your total bill a saving.";
+        firstAction="Check your bank app for subscriptions you've forgotten about.";
+        verification="If every service is useful, check for cheaper plans instead of cancelling.";
       }
     } else if (area === "insurance") {
       const policies = refinements.insurancePolicies;

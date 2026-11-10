@@ -26,10 +26,17 @@ export function makeReportMarkdown(
 
   ops.forEach((op,index) => {
     lines.push("## " + (index+1) + ". " + op.title, reasonForArea(op.area, answers));
-    if (op.area === "subscriptions" && d.subscriptionsMonthly !== null) {
-      lines.push("You pay " + money(d.subscriptionsMonthly) + " each month.");
-      if (d.unusedSubscriptionChoice === "no") lines.push("You said you use all your subscriptions. We won't tell you to cancel one.");
-      if (d.unusedSubscriptionChoice === "not_sure") lines.push("You are not sure if any services are unused.");
+    if (op.area === "subscriptions") {
+      if(d.subscriptionsMonthly!==null)lines.push("You pay "+money(d.subscriptionsMonthly)+" each month.");
+      if(d.unusedSubscriptionChoice==="no")lines.push("You said you use all your subscriptions. We won't tell you to cancel one.");
+      if(d.unusedSubscriptionChoice==="not_sure")lines.push("You are not sure if any services are unused.");
+      if(d.unusedSubscriptionChoice==="yes"){
+        for(const item of refinements.unusedSubscriptions)lines.push(
+          "Unused service: "+(item.name||"Name not provided")+" — "+
+          (item.monthly===null?"Monthly price not provided":money(item.monthly)+" per month")+"."
+        );
+        lines.push("A possible saving requires cancelling each listed service and checking the charges stop.");
+      }
     } else if (op.area === "insurance") {
       for(const p of refinements.insurancePolicies) {
         lines.push((p.type || "Insurance") + ": " +

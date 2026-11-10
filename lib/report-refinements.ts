@@ -42,11 +42,14 @@ export type InsuranceRefinement = {
   renewal: "" | "soon" | "later" | "not_sure";
 };
 
+export type UnusedSubscription = { name: string; monthly: number | null };
+
 export type ReportRefinements = {
   version: 1;
   additionalArea: PersonalisationArea | null;
   details: PersonalisationDetails;
   insurancePolicies: InsuranceRefinement[];
+  unusedSubscriptions: UnusedSubscription[];
 };
 
 const areas: PersonalisationArea[] = [
@@ -138,6 +141,7 @@ export function emptyRefinements(): ReportRefinements {
       convenienceOverlap: "",
     },
     insurancePolicies: [],
+    unusedSubscriptions: [],
   };
 }
 
@@ -180,15 +184,35 @@ export function validateRefinements(input: unknown): ReportRefinements {
 
   const subscriptionsMonthly = money(details.subscriptionsMonthly, "Subscription total");
   const unusedSubscriptionMonthly = money(details.unusedSubscriptionMonthly, "Unused subscription price");
+  const unusedSubscriptionName = optionalText(details.unusedSubscriptionName, 60, "Subscription name");
   const unusedSubscriptionChoice = fixedChoice(details.unusedSubscriptionChoice, unusedChoices, "unused subscription answer") as PersonalisationDetails["unusedSubscriptionChoice"];
-  const effectiveUnusedChoice = unusedSubscriptionChoice || (unusedSubscriptionMonthly !== null ? "yes" : "");
-  if (effectiveUnusedChoice !== "yes" && unusedSubscriptionMonthly !== null) {
-    throw new Error("Choose Yes before entering an unused subscription price.");
+  // A new questionnaire supplies additionalUnusedSubscriptions; stored reports
+  // contain the full unusedSubscriptions list. Do not count a legacy first entry twice.
+  const extra = raw.additionalUnusedSubscriptions ?? [];
+  const stored = raw.unusedSubscriptions;
+  if (!Array.isArray(extra) || extra.length > 5) throw new Error("Add up to six unused subscriptions.");
+  if (stored !== undefined && (!Array.isArray(stored) || stored.length > 6)) throw new Error("Add up to six unused subscriptions.");
+  const rawEntries: unknown[] = Array.isArray(stored) && stored.length
+    ? stored
+    : [...(unusedSubscriptionName || unusedSubscriptionMonthly !== null
+      ? [{name:unusedSubscriptionName,monthly:unusedSubscriptionMonthly}] : []), ...extra];
+  const unusedSubscriptions: UnusedSubscription[] = rawEntries.map((entry,index)=>{
+    const item=record(entry);
+    return {name:optionalText(item.name,60,"Unused service "+(index+1)),
+      monthly:money(item.monthly,"Unused subscription price "+(index+1))};
+  }).filter(item=>item.name || item.monthly !== null);
+  const effectiveUnusedChoice = unusedSubscriptionChoice || (unusedSubscriptions.length ? "yes" : "");
+  if(effectiveUnusedChoice !== "yes" && unusedSubscriptions.length)throw new Error("Choose Yes before listing unused subscriptions.");
+  const names=new Set<string>();
+  for(const item of unusedSubscriptions) {
+    if(!item.name)continue;
+    const name=item.name.toLocaleLowerCase("en-AU");
+    if(names.has(name))throw new Error("List each unused service only once.");
+    names.add(name);
   }
-  if (unusedSubscriptionMonthly !== null && subscriptionsMonthly !== null &&
-      unusedSubscriptionMonthly > subscriptionsMonthly) {
-    throw new Error("An unused subscription cannot cost more than your monthly subscription total.");
-  }
+  const unusedMonthlyTotal=Math.round(unusedSubscriptions.reduce((sum,item)=>sum+(item.monthly??0),0)*100)/100;
+  if(subscriptionsMonthly !== null && unusedMonthlyTotal>subscriptionsMonthly)
+    throw new Error("Unused subscriptions cannot cost more than your monthly subscription total.");
   const takeawayOrdersPerWeek = countPerWeek(details.takeawayOrdersPerWeek, "Takeaway orders");
   const takeawaySwapPerWeek = countPerWeek(details.takeawaySwapPerWeek, "Meals to swap");
   if (takeawayOrdersPerWeek !== null && takeawaySwapPerWeek !== null &&
@@ -223,7 +247,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
       subscriptionsMonthly,
       unusedSubscriptionMonthly,
       unusedSubscriptionChoice: effectiveUnusedChoice,
-      unusedSubscriptionName: optionalText(details.unusedSubscriptionName, 60, "Subscription name"),
+      unusedSubscriptionName,
       takeawayOrder: money(details.takeawayOrder, "Takeaway order"),
       takeawayOrdersPerWeek,
       takeawaySwapPerWeek,
@@ -239,5 +263,6 @@ export function validateRefinements(input: unknown): ReportRefinements {
       convenienceOverlap: fixedChoice(details.convenienceOverlap, new Set(["", "yes", "no", "not_sure"]), "overlapping spending"),
     },
     insurancePolicies: policies,
+    unusedSubscriptions: effectiveUnusedChoice === "yes" ? unusedSubscriptions : [],
   };
 }
