@@ -95,7 +95,7 @@ export default function QuoteCheck({ label, currentAnnual, kind }: Props) {
         </label>
         {difference !== null && (
           <p role="status">
-            <strong>The new price is {currency(difference)} {difference >= 0 ? "lower" : "higher"} in the first year.</strong>
+            <strong>{difference === 0 ? "Both prices are the same in the first year." : "The new price is " + currency(difference) + (difference > 0 ? " lower" : " higher") + " in the first year."}</strong>
             {" "}This is a price comparison, not money you have already saved.
           </p>
         )}
