@@ -20,6 +20,9 @@ export function rankOpportunities(ops:SavingsOpportunity[],answers:string[],r:Re
   if(goal==='Stop money disappearing so fast'&&['unplanned','takeaway','convenience','subscriptions'].includes(op.area))goalFit=12;
   if(goal==='Reduce stress'&&['subscriptions','convenience'].includes(op.area))goalFit=12;
   if(goal==='Feel more financially in control'&&['phone','energy','insurance','subscriptions'].includes(op.area))goalFit=8;
+  // Using every subscription is a weaker saving signal than a bill due for review.
+  // Keep it in the plan, but don't place it ahead of clearer bill checks.
+  if(op.area==='subscriptions'&&r.details.unusedSubscriptionChoice==='no')goalFit=Math.min(goalFit,4);
   const actionable=op.scenarioSaving!==null?4:0;
   return (urgent?100:0)+goalFit+actionable+auditPriorityScore(op.area,answers);
  };
