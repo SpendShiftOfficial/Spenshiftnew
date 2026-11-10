@@ -102,10 +102,10 @@ check('three report actions are drawn from the same category steps in text and U
 check('takeaway stored text labels weekly and per-order costs correctly',()=>{
  const a=previewProfiles['takeaway-convenience'].answers;
  const weekly=validateRefinements({details:{takeawayAmountPeriod:'week',takeawayOrder:'120',takeawayOrdersPerWeek:'6'}});
- const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway spending: \\$120 for a whole week/);
- assert.doesNotMatch(weeklyText,/Your usual takeaway order: \\$120/);
+ const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway spending: \$120 for a whole week/);
+ assert.doesNotMatch(weeklyText,/Your usual takeaway order: \$120/);
  const order=validateRefinements({details:{takeawayAmountPeriod:'order',takeawayOrder:'30',takeawayOrdersPerWeek:'6'}});
- const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway spending: \\$30 for one order/);
+ const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway spending: \$30 for one order/);
 });
 check('electricity quote marks one-bill annualisation as an estimate',()=>{
  const src=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
