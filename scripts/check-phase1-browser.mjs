@@ -339,7 +339,7 @@ try{
   assert.match(report,/about \$120 each week/i);
   assert.match(report,/not much time|quickly|busy nights/i);
   assert.match(report,/\$20 less a week/);
-  assert.match(report,/Savings you've recorded/);
+  assert.match(report,/Track money you've actually saved/);
   assert.equal(customerCheckout,1);
   await noOverflow(buyer);
   await buyer.screenshot({path:'test-artifacts/first-time-customer-full-journey.png',fullPage:true});
