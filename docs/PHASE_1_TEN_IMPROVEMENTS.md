@@ -39,7 +39,7 @@
 ## 10 November insurance and question-order finalisation — preview only
 - Insurance now begins with a clear question; customers add each separate policy. Payment frequency precedes cost and supports weekly, fortnightly, monthly, quarterly, half-yearly and yearly payments.
 - The questionnaire shows a running yearly insurance total using all entered premiums; missing prices are explicitly excluded rather than silently counted as zero. The same annualisation is used in ranking, report display, quote comparisons and saved text.
-- Takaway frequency is selected before cost; electricity bill period is selected before cost; and gas bill frequency is selected before its amount. Gas uses the existing stored amount key plus a frequency, defaulting to monthly for legacy saved answers.
+- Takeaway cost period is selected before cost; electricity bill period is selected before cost; and gas bill frequency is selected before its amount. Gas uses the existing stored amount key plus a frequency, defaulting to monthly for legacy saved answers.
 - The overlapping-small-buys question no longer assumes the customer has already reached the takeaway detail screen.
 - Added CTP / Green Slip as an insurance type without changing the report structure.
 - This remains preview-only. Agreed A$29 pricing is still held for a separate release.

@@ -216,4 +216,73 @@ check('mobile input and private layout fixes have appropriate CSS specificity',(
  assert.ok(styles.includes('.topbar.topbar-simple'));
 });
 
+check('insurance and gas support every approved payment frequency',()=>{
+ const {annualisePayment,periodLabel,isPaymentPeriod,paymentPeriodOptions}=loadTs('lib/payment-periods');
+ const payments={week:52,fortnight:26,month:12,quarter:4,half_year:2,year:1};
+ assert.equal(paymentPeriodOptions.length,6);
+ for(const [period,expected] of Object.entries(payments)){
+  assert.equal(isPaymentPeriod(period),true);
+  assert.equal(annualisePayment(100,period),expected*100);
+  assert.ok(periodLabel(period));
+ }
+ assert.equal(isPaymentPeriod('daily'),false);
+ assert.equal(annualisePayment(50.45,'fortnight'),1311.7);
+});
+check('mixed insurance payments are annualised and retained in saved report',()=>{
+ const policies=[
+  {type:'Car',premium:'70',paymentPeriod:'fortnight',renewal:'soon'},
+  {type:'CTP / Green Slip',premium:'250',paymentPeriod:'quarter',renewal:'later'},
+  {type:'Health',premium:'30',paymentPeriod:'week',renewal:''},
+  {type:'Home or contents',premium:'1200',paymentPeriod:'year',renewal:''},
+  {type:'Pet',premium:'100',paymentPeriod:'month',renewal:''},
+  {type:'Travel',premium:'600',paymentPeriod:'half_year',renewal:''},
+ ];
+ const r=validateRefinements({insurancePolicies:policies});
+ const a=analyseSavings(high,r);
+ const insurance=a.opportunities.find(o=>o.area==='insurance');
+ assert.equal(insurance.annualSpend,7980);
+ assert.equal(insurance.scenarioSaving,null);
+ assert.equal(a.opportunities[0].area,'insurance');
+ const markdown=makeReportMarkdown(high,r,a);
+ assert.match(markdown,/Car: \\$70 per fortnight/);
+ assert.match(markdown,/CTP \\/ Green Slip: \\$250 per 3 months/);
+ assert.match(markdown,/Combined yearly insurance cost: \\$7,980/);
+});
+check('partial premiums do not create a misleading complete insurance total',()=>{
+ const r=validateRefinements({insurancePolicies:[{type:'Car',premium:'70',paymentPeriod:'fortnight'},{type:'Health',premium:'',paymentPeriod:'month'}]});
+ const a=analyseSavings(high,r);assert.equal(a.opportunities.find(o=>o.area==='insurance').annualSpend,null);
+ const markdown=makeReportMarkdown(high,r,a);
+ assert.match(markdown,/Yearly cost for policies with prices: \\$1,820/);
+ assert.doesNotMatch(markdown,/Combined yearly insurance cost/);
+});
+check('legacy billing data stays monthly for gas, yearly for missing insurance periods',()=>{
+ const legacy=validateRefinements({details:{gasMonthly:'85'},insurancePolicies:[{type:'Car',premium:'1800'}]});
+ assert.equal(legacy.details.gasPeriod,'month');assert.equal(legacy.insurancePolicies[0].paymentPeriod,'year');
+ assert.equal(analyseSavings(high,legacy).opportunities.find(o=>o.area==='energy').annualSpend,1020);
+ const oldDraft=blankDraft(high);oldDraft.details.gasMonthly='85';oldDraft.details.hasGas='yes';
+ const restored=restoreDraft(high,{version:1,draft:oldDraft});
+ assert.equal(restored.details.gasPeriod,'month');
+ assert.throws(()=>validateRefinements({details:{gasPeriod:'daily'}}),/gas payment frequency/);
+ assert.throws(()=>validateRefinements({insurancePolicies:[{type:'Car',premium:'50',paymentPeriod:'daily'}]}),/insurance payment frequency/);
+});
+check('quarterly gas bills affect yearly cost and all written report labels',()=>{
+ const r=validateRefinements({details:{hasGas:'yes',gasPeriod:'quarter',gasMonthly:'300',electricityBill:'400',electricityPeriod:'quarter'}});
+ const energy=analyseSavings(high,r).opportunities.find(o=>o.area==='energy');
+ assert.equal(energy.annualSpend,2800);
+ const markdown=makeReportMarkdown(high,r,analyseSavings(high,r));
+ assert.match(markdown,/Gas bill: \\$300 per 3 months/);
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.match(report,/annualisePayment\\(refinements\\.details\\.gasMonthly, refinements\\.details\\.gasPeriod\\)/);
+});
+check('questionnaire asks the time period before the bill amount',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.ok(ui.indexOf("choice('takeawayAmountPeriod'")<ui.indexOf("amount('takeawayOrder'"));
+ assert.ok(ui.indexOf("choice('electricityPeriod'")<ui.indexOf("amount('electricityBill'"));
+ assert.ok(ui.indexOf("choice('gasPeriod'")<ui.indexOf("amount('gasMonthly'"));
+ assert.ok(ui.indexOf("htmlFor={'policy-period-'+i}")<ui.indexOf("htmlFor={'policy-cost-'+i}"));
+ assert.match(ui,/Which insurance policies do you pay for/);
+ assert.match(ui,/Does this amount also include takeaway food/);
+ assert.doesNotMatch(ui,/takeaway you already listed/);
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');

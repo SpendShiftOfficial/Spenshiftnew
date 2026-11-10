@@ -13,7 +13,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  const revision=useRef('');const lastSaved=useRef('');const queue=useRef<Promise<void>>(Promise.resolve());const latest=useRef(draft);latest.current=draft;
  const signature=JSON.stringify(draft);const areas=selectedDraftAreas(draft);const review=draft.step>=areas.length;const area=areas[draft.step];const d=draft.details;
  const listedPolicies=draft.insurancePolicies.filter(p=>p.type||p.premium||p.insurer||p.coverDescription);
- const pricedPolicies=listedPolicies.filter(p=>p.premium.trim()!==''&&/^(?:0|[1-9]\\d{0,5})(?:\\.\\d{1,2})?$/.test(p.premium)&&isPaymentPeriod(p.paymentPeriod));
+ const pricedPolicies=listedPolicies.filter(p=>p.premium.trim()!==''&&/^(?:0|[1-9]\d{0,5})(?:\.\d{1,2})?$/.test(p.premium)&&isPaymentPeriod(p.paymentPeriod));
  const combinedInsuranceAnnual=pricedPolicies.reduce((total,p)=>total+annualisePayment(Number(p.premium),p.paymentPeriod as import('@/lib/payment-periods').PaymentPeriod),0);
  useEffect(()=>{let active=true;const id=new URLSearchParams(location.search).get('session_id')||'';setSessionId(id);
   if(!id){if(!allowDemo){setError('Open the private link from your purchase.');return;}try{const a=validateAuditAnswers(JSON.parse(localStorage.getItem('spendshift_answers')||'null'));setDraft(blankDraft(a));}catch{}setReady(true);return;}
