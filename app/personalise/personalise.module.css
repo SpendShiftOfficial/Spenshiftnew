@@ -487,3 +487,8 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* Optional extra unused services use the existing card styling and spacing. */
+.unusedCard { display: grid; gap: 16px; padding: 17px; border: 1px solid #dae7dc; border-radius: 14px; background: #f8faf7; }
+.unusedCard > strong { color: #23432b; font-size: 16px; }
+.unusedCard .extraLink { justify-self: start; }

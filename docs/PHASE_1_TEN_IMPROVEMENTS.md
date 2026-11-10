@@ -44,6 +44,12 @@
 - Added CTP / Green Slip as an insurance type without changing the report structure.
 - This remains preview-only. Agreed A$29 pricing is still held for a separate release.
 
+## 10 November customer clarity and multiple unused subscriptions — preview only
+- Customers can enter up to six distinct unused subscriptions, including up to five optional extra entries. A report names each and totals only services with both a name and positive monthly price as conditional, not confirmed, savings.
+- The server rejects duplicate names and subscription prices exceeding a stated monthly subscription total. Incomplete entries are shown but excluded from savings estimates; older paid drafts and reports remain readable.
+- The questions now give short, practical prompts to check bank transactions, billing emails and provider apps when amounts are not known. Small everyday buys asks what it costs **you** each week.
+- Existing report structure, official links and pricing remain unchanged.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.
