@@ -118,7 +118,7 @@ try{
    assert.match(await page.locator('section').first().innerText(),/Choose one, then enter the dollar amount below/);
    await page.locator('#takeawayAmountPeriod').selectOption('order');
    await page.locator('#takeawayOrder').fill('30');
-   await page.locator('#takeawayOrdersPerWeek').fill('2');
+   await page.locator('#takeawayOrdersPerWeek').fill('4');
    await page.locator('#takeawaySwapPerWeek').fill('1');
    assert.match(await page.locator('section').first().innerText(),/If you made one of those meals at home/);
    assert.match(await page.locator('section').first().innerText(),/Without it, we won't guess a saving/);
