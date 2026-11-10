@@ -68,7 +68,7 @@ try{
    assert.match(await page.locator('body').innerText(),/This is for later/);
    assert.match(await page.locator('body').innerText(),/Nothing recorded yet/);
    assert.match(await page.locator('body').innerText(),/If you cancel a \$20-a-month subscription/);
-   const note=page.getByText(/Saved only in this browser, not on other devices/);
+   const note=page.getByText(/saved only in this browser, not on other devices/i);
    const a=await details.boundingBox(),b=await note.boundingBox();
    assert.ok(a&&b&&b.y-(a.y+a.height)>=14,'Saved results note must sit below its button without overlap');
    await noOverflow(page);
