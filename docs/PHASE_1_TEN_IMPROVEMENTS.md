@@ -12,6 +12,15 @@
 - Quote-price tools and a local, self-reported savings tracker separate possible savings from checked differences. Tracker records do not sync across devices and are not independently verified.
 - Automated regression and browser tests cover desktop and mobile, privacy, all seven areas, saved draft recovery, editing, mistakes and the report tools.
 
+## 10 November pre-review product polish — still preview only
+- Removed the duplicate `Never / not sure` insurance choice from new audit and edit forms. Older paid answers using the combined choice remain valid.
+- An unused subscription now needs a specific service name and monthly charge before the report calculates a conditional cancellation saving; missing details still allow a useful plan.
+- Equal-price comparisons and equal spending targets are described as no change, never as savings.
+- Customers who use every subscription still see subscription checks, but clearer household bill reviews now rank ahead for a bills-focused goal.
+- Moved the three-action checklist to the top of the paid report so customers can act before reading long details.
+- Adjusted paid onboarding and calculation copy to explain what customers provide and what has not been verified.
+- Regression checks added for savings edge cases. All existing production release gates below remain open until explicitly verified.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.
