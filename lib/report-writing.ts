@@ -2,6 +2,7 @@ import type { ReportRefinements } from "./report-refinements";
 import type { SavingsAnalysis } from "./savings-engine";
 import { reasonForArea } from "./personalisation-questions";
 import {checklistTasks} from "./report-steps";
+import {annualisePayment,periodLabel} from "./payment-periods";
 
 function money(amount: number): string {
   return "$" + amount.toLocaleString("en-AU", { maximumFractionDigits: 2 });
@@ -32,9 +33,16 @@ export function makeReportMarkdown(
     } else if (op.area === "insurance") {
       for(const p of refinements.insurancePolicies) {
         lines.push((p.type || "Insurance") + ": " +
-          (p.premium === null ? "Price not given" : money(p.premium) + " per " + (p.paymentPeriod === "month" ? "month" : "year")) +
+          (p.premium === null ? "Price not given" : money(p.premium) + " per " + periodLabel(p.paymentPeriod)) +
           (p.renewal === "soon" ? " (Renews soon)" : ""));
       }
+      const priced = refinements.insurancePolicies.filter(p => p.premium !== null);
+      if (priced.length) lines.push(
+        (priced.length === refinements.insurancePolicies.length
+          ? "Combined yearly insurance cost: " : "Yearly cost for policies with prices: ") +
+          money(priced.reduce((total,p) => total + annualisePayment(p.premium ?? 0,p.paymentPeriod),0)) +
+          ". These are costs, not savings.",
+      );
     } else if (op.area === "takeaway") {
       if (d.takeawayOrder !== null) lines.push("Your usual takeaway spending: " + money(d.takeawayOrder) + (d.takeawayAmountPeriod === "week" ? " for a whole week." : " for one order."));
       if (d.takeawayOrdersPerWeek !== null) lines.push("You buy " + d.takeawayOrdersPerWeek + " orders each week.");
@@ -45,7 +53,7 @@ export function makeReportMarkdown(
       if (d.convenienceGoalWeekly !== null) lines.push("Your weekly goal: " + money(d.convenienceGoalWeekly) + ".");
     } else if (op.area === "energy") {
       if (d.electricityBill !== null) lines.push("Power bill: " + money(d.electricityBill) + " per " + (d.electricityPeriod === "month" ? "month" : "3 months") + ".");
-      if (d.gasMonthly !== null) lines.push("Gas bill: " + money(d.gasMonthly) + " a month.");
+      if (d.gasMonthly !== null) lines.push("Gas bill: " + money(d.gasMonthly) + " per " + periodLabel(d.gasPeriod) + ".");
     } else if (op.area === "phone") {
       if (d.mobileMonthly !== null) lines.push("Mobile: " + money(d.mobileMonthly) + " a month.");
       if (d.internetMonthly !== null) lines.push("Internet: " + money(d.internetMonthly) + " a month.");

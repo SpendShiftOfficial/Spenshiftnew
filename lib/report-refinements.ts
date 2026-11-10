@@ -1,4 +1,5 @@
 import type { PersonalisationArea } from "./personalisation-questions";
+import {isPaymentPeriod, type PaymentPeriod} from "./payment-periods";
 
 /**
  * Data accepted from a customer's optional post-purchase questionnaire.
@@ -8,7 +9,9 @@ export type PersonalisationDetails = {
   state: string;
   electricityBill: number | null;
   electricityPeriod: "month" | "quarter";
+  /** Legacy key: now the gas payment amount for gasPeriod (defaults to monthly for old reports). */
   gasMonthly: number | null;
+  gasPeriod: PaymentPeriod;
   internetMonthly: number | null;
   mobileMonthly: number | null;
   subscriptionsMonthly: number | null;
@@ -33,7 +36,7 @@ export type PersonalisationDetails = {
 export type InsuranceRefinement = {
   type: string;
   premium: number | null;
-  paymentPeriod: "month" | "year";
+  paymentPeriod: PaymentPeriod;
   insurer: string;
   coverDescription: string;
   renewal: "" | "soon" | "later" | "not_sure";
@@ -50,7 +53,7 @@ const areas: PersonalisationArea[] = [
   "energy", "phone", "subscriptions", "takeaway", "convenience", "insurance", "unplanned",
 ];
 const states = new Set(["", "NSW", "VIC", "QLD", "SA", "WA", "TAS", "ACT", "NT"]);
-const insuranceTypes = new Set(["", "Car", "Home or contents", "Health", "Life or income protection", "Pet", "Travel", "Other"]);
+const insuranceTypes = new Set(["", "Car", "Home or contents", "Health", "Life or income protection", "CTP / Green Slip", "Pet", "Travel", "Other"]);
 const unplannedTypes = new Set(["", "Online shopping", "Clothes or accessories", "Entertainment or hobbies", "Other purchases"]);
 const unusedChoices = new Set(["", "yes", "no", "not_sure"]);
 const renewalChoices = new Set(["", "soon", "later", "not_sure"]);
@@ -113,6 +116,7 @@ export function emptyRefinements(): ReportRefinements {
       electricityBill: null,
       electricityPeriod: "quarter",
       gasMonthly: null,
+      gasPeriod: "month",
       internetMonthly: null,
       mobileMonthly: null,
       subscriptionsMonthly: null,
@@ -156,7 +160,10 @@ export function validateRefinements(input: unknown): ReportRefinements {
   }
   const policies: InsuranceRefinement[] = rawPolicies.map((entry, index) => {
     const policy = record(entry);
-    const paymentPeriod: "month" | "year" = policy.paymentPeriod === "month" ? "month" : "year";
+    // Missing legacy policy frequencies were yearly. Reject unsupported new values.
+    const paymentValue = policy.paymentPeriod || "year";
+    if (!isPaymentPeriod(paymentValue)) throw new Error("Choose a valid insurance payment frequency.");
+    const paymentPeriod: PaymentPeriod = paymentValue;
     const type = fixedChoice(policy.type, insuranceTypes, "insurance type");
     const premium = money(policy.premium, "Insurance premium " + (index + 1));
     return {
@@ -198,6 +205,9 @@ export function validateRefinements(input: unknown): ReportRefinements {
   // An explicit bill choice overrides any old amounts that are now hidden.
   // A blank choice is preserved for older saved reports that did not ask this question.
   const phoneService = fixedChoice(details.phoneService, new Set(['', 'mobile', 'internet', 'both', 'neither', 'not_sure']), 'phone bills');
+  const gasValue = details.gasPeriod || "month";
+  if (!isPaymentPeriod(gasValue)) throw new Error("Choose a valid gas payment frequency.");
+  const gasPeriod: PaymentPeriod = gasValue;
 
   return {
     version: 1,
@@ -207,6 +217,7 @@ export function validateRefinements(input: unknown): ReportRefinements {
       electricityBill: money(details.electricityBill, "Electricity bill"),
       electricityPeriod: details.electricityPeriod === "month" ? "month" : "quarter",
       gasMonthly: money(details.gasMonthly, "Gas bill"),
+      gasPeriod,
       internetMonthly: ['mobile','neither','not_sure'].includes(phoneService) ? null : money(details.internetMonthly, "Internet bill"),
       mobileMonthly: ['internet','neither','not_sure'].includes(phoneService) ? null : money(details.mobileMonthly, "Mobile bill"),
       subscriptionsMonthly,

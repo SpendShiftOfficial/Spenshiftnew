@@ -1,8 +1,9 @@
 import type {SavingsOpportunity} from './savings-engine';
 import type {ReportRefinements, InsuranceRefinement} from './report-refinements';
+import {annualisePayment} from './payment-periods';
 
 function money(amount:number){return '$'+amount.toLocaleString('en-AU',{maximumFractionDigits:2});}
-function insuranceAnnual(policy:InsuranceRefinement){return (policy.premium??0)*(policy.paymentPeriod==='month'?12:1);}
+function insuranceAnnual(policy:InsuranceRefinement){return annualisePayment(policy.premium??0, policy.paymentPeriod);}
 
 export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string[] {
   const d = r.details;

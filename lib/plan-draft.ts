@@ -7,7 +7,7 @@ export const sectionKeys:Record<PersonalisationArea,string[]>={
  takeaway:['takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost','takeawayReason'],
  convenience:['convenienceWeekly','convenienceGoalWeekly','convenienceOverlap'],
  phone:['phoneService','mobileMonthly','internetMonthly'],
- energy:['state','electricityBill','electricityPeriod','hasGas','gasMonthly'],
+ energy:['state','electricityBill','electricityPeriod','hasGas','gasPeriod','gasMonthly'],
  insurance:[],unplanned:['unplannedArea','shoppingTrigger'],
 };
 export type RawPolicy={type:string;premium:string;paymentPeriod:string;insurer:string;coverDescription:string;renewal:string};
@@ -15,7 +15,7 @@ export type PlanDraft={version:1;answers:string[];details:Record<string,string>;
 export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'year',insurer:'',coverDescription:'',renewal:''});
 export function blankDraft(answers:string[]):PlanDraft{
  const details:Record<string,string>={};Object.keys(emptyRefinements().details).forEach(key=>details[key]='');
- details.electricityPeriod='quarter';details.takeawayAmountPeriod='order';
+ details.electricityPeriod='quarter';details.takeawayAmountPeriod='order';details.gasPeriod='month';
  return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalArea:'',step:0};
 }
 function obj(input:unknown):Record<string,unknown>{if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Please check your saved answers.');return input as Record<string,unknown>;}

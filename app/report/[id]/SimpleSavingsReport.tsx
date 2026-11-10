@@ -9,6 +9,7 @@ import {takeawayMath} from "@/lib/savings-math";
 import {goalIntro,priorityReason,rankOpportunities} from "@/lib/plan-priority";
 import CopyMessage from "./CopyMessage";
 import {firstSteps, checklistTasks} from "@/lib/report-steps";
+import {annualisePayment,periodLabel} from "@/lib/payment-periods";
 import styles from "./simple-report.module.css";
 
 type Props = {
@@ -24,11 +25,12 @@ function money(amount: number): string {
 }
 
 function insuranceAnnual(policy: InsuranceRefinement): number {
-  return (policy.premium ?? 0) * (policy.paymentPeriod === "month" ? 12 : 1);
+  return annualisePayment(policy.premium ?? 0, policy.paymentPeriod);
 }
 
 function insuranceTip(type: string): string {
   if (type === "Car") return "Check the car's value, who can drive it, and what you pay if you claim.";
+  if (type === "CTP / Green Slip") return "CTP generally covers injuries, not damage to your car. Check your state's requirements and the cover offered.";
   if (type === "Home or contents") return "Check what your home and things are covered for. Look closely at flood and storm cover.";
   if (type === "Health") return "Check hospital cover, waiting times, and extras you use. Don't drop cover just to pay less.";
   if (type === "Life or income protection") return "Check when the cover pays, what it leaves out, and any waiting time. Get advice before dropping cover.";
@@ -100,12 +102,13 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
               {p.coverDescription && <small>{p.coverDescription}</small>}
               <small>{insuranceTip(p.type)}</small>
             </div>
-            <span>{p.premium === null ? "Price not given" : money(p.premium) + " / " + (p.paymentPeriod === "month" ? "month" : "year")}</span>
+            <span>{p.premium === null ? "Price not given" : money(p.premium) + " / " + periodLabel(p.paymentPeriod)}</span>
           </div>
         ))}
-        {policies.every(p => p.premium !== null) && (
-          <p className={styles.costSummary}>Your total insurance cost:
-            <strong>{money(policies.reduce((sum,p) => sum + insuranceAnnual(p),0))} / year</strong>
+        {policies.some(p => p.premium !== null) && (
+          <p className={styles.costSummary}>
+            {policies.every(p => p.premium !== null) ? "Your total insurance cost:" : "Yearly cost of policies with prices:"}
+            <strong>{money(policies.reduce((sum,p) => sum + (p.premium === null ? 0 : insuranceAnnual(p)),0))} / year</strong>
           </p>
         )}
       </div>
@@ -115,7 +118,7 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
     <div className={styles.costDetails}>
       {d.state && <p><span>State</span><strong>{d.state}</strong></p>}
       {d.electricityBill !== null && <p><span>Power bill</span><strong>{money(d.electricityBill)} / {d.electricityPeriod === "month" ? "month" : "3 months"}</strong></p>}
-      {d.gasMonthly !== null && <p><span>Gas</span><strong>{money(d.gasMonthly)} / month</strong></p>}
+      {d.gasMonthly !== null && <p><span>Gas</span><strong>{money(d.gasMonthly)} / {periodLabel(d.gasPeriod)}</strong></p>}
     </div>
   );
   if (op.area === "phone") return (
@@ -252,7 +255,7 @@ function AreaCard({ op, index, answers, refinements, nested = false }: {
         electricityBillPeriod={refinements.details.electricityPeriod}
         currentAnnual={refinements.details.electricityBill*(refinements.details.electricityPeriod==='month'?12:4)}/>}
       {op.area==='energy'&&refinements.details.gasMonthly!==null&&<QuoteCheck
-        kind="gas" label="your gas plan" currentAnnual={refinements.details.gasMonthly*12}/>}
+        kind="gas" label="your gas plan" currentAnnual={annualisePayment(refinements.details.gasMonthly, refinements.details.gasPeriod)}/>}
 
     </article>
   );

@@ -459,3 +459,31 @@
 @media (max-width: 570px) {
   .actions { gap: 15px; }
 }
+
+/* Insurance asks the overall question first; each policy retains its own payment period. */
+.sectionQuestion {
+  font-weight: 750;
+  font-size: 17px;
+  color: #213c29;
+  line-height: 1.45;
+  margin: 0;
+}
+.insuranceTotal {
+  background: #eff8f1;
+  border: 1px solid #d3e6d6;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+  color: #224b2e;
+}
+.insuranceTotal strong {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.insuranceTotal small {
+  color: #526b59;
+  font-size: 13px;
+  line-height: 1.5;
+}

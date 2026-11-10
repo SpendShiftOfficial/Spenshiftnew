@@ -1,5 +1,6 @@
 import type { ReportRefinements } from "./report-refinements";
 import {takeawayMath} from "./savings-math";
+import {annualisePayment} from "./payment-periods";
 import {rankOpportunities} from "./plan-priority";
 import type { PersonalisationArea } from "./personalisation-questions";
 import { areaNames, auditPriorityScore, selectPersonalisationAreas } from "./personalisation-questions";
@@ -84,12 +85,12 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       const policies = refinements.insurancePolicies;
       if (policies.length > 0 && policies.every(p => p.premium !== null)) {
         annualSpend = cents(policies.reduce((sum, p) =>
-          sum + (p.premium ?? 0) * (p.paymentPeriod === "month" ? 12 : 1), 0));
+          sum + annualisePayment(p.premium ?? 0, p.paymentPeriod), 0));
       }
       const soon = policies.find(p => p.renewal === "soon");
       const mostExpensive = policies.filter(p => p.premium !== null)
-        .sort((a,b) => (b.premium ?? 0) * (b.paymentPeriod === "month" ? 12 : 1) -
-          (a.premium ?? 0) * (a.paymentPeriod === "month" ? 12 : 1))[0];
+        .sort((a,b) => annualisePayment(b.premium ?? 0, b.paymentPeriod) -
+          annualisePayment(a.premium ?? 0, a.paymentPeriod))[0];
       const priority = soon || mostExpensive;
       assumption = "These are the prices you pay now. We have not checked other quotes.";
       firstAction = priority
@@ -132,7 +133,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
     } else if (area === "energy") {
       const electricity = d.electricityBill === null ? null :
         d.electricityBill * (d.electricityPeriod === "month" ? 12 : 4);
-      const gas = d.gasMonthly === null ? null : d.gasMonthly * 12;
+      const gas = d.gasMonthly === null ? null : annualisePayment(d.gasMonthly, d.gasPeriod);
       if (electricity !== null || gas !== null) annualSpend = cents((electricity ?? 0) + (gas ?? 0));
       assumption = "These are your bill amounts. We have not checked a cheaper power or gas plan.";
       firstAction = "Find your latest power or gas bill.";
