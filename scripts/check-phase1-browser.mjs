@@ -26,7 +26,7 @@ try{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
    await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
-   await page.getByText('See an example of what your plan looks like',{exact:true}).click();assert.match(await page.locator('body').innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.match(await page.locator('body').innerText(),/\$40 less each week/);await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
+   const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
   });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
@@ -41,10 +41,12 @@ try{
    const hint=page.getByText('No bank login needed',{exact:true});
    const logoRect=await logo.boundingBox(),hintRect=await hint.boundingBox();
    assert.ok(logoRect&&hintRect&&logoRect.x+logoRect.width+6<hintRect.x,'Logo and privacy hint must not overlap');
-   const auditDetails=page.locator('details').filter({has:page.getByText('Check or change my first answers',{exact:true})}).first();
-   const areaLabel=page.getByText('Area 1 of 7',{exact:true});
-   const auditBox=await auditDetails.boundingBox(),areaBox=await areaLabel.boundingBox();
-   assert.ok(auditBox&&areaBox&&areaBox.y-(auditBox.y+auditBox.height)>=16,'Progress label needs separation from the audit editor');
+   assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
+   const previous=page.getByRole('button',{name:'Previous question',exact:true});
+   assert.equal(await previous.count(),1);
+   const heading=await page.getByRole('heading',{name:'Make your plan fit you.'}).boundingBox();
+   const progress=await page.getByText('Area 1 of 7',{exact:true}).boundingBox();
+   assert.ok(heading&&progress&&progress.y>heading.y+heading.height,'Progress must sit below the introduction');
    async function assertCurrencySpacing(selector){
     const metrics=await page.locator(selector).evaluate(input=>{
      const icon=input.previousElementSibling;
@@ -114,9 +116,9 @@ try{
   });
   await test('takeaway wording supports skipping unknown home meal cost '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
-   assert.match(await page.locator('section').first().innerText(),/Which takeaway cost can you estimate more easily/);
-   assert.match(await page.locator('section').first().innerText(),/Choose one, then enter the dollar amount below/);
-   await page.locator('#takeawayAmountPeriod').selectOption('order');
+   assert.match(await page.locator('section').first().innerText(),/About how much do you spend on one takeaway or eating-out meal/);
+   assert.equal(await page.locator('#takeawayAmountPeriod').count(),0);
+   await page.locator('#takeawayOrder').fill('22');await page.getByRole('button',{name:'I only know my weekly total'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');await page.getByRole('button',{name:'Use the cost of one meal instead'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');
    await page.locator('#takeawayOrder').fill('30');
    await page.locator('#takeawayOrdersPerWeek').fill('4');
    await page.locator('#takeawaySwapPerWeek').fill('1');
@@ -148,15 +150,27 @@ try{
    assert.ok(dimensions.field>=dimensions.parent-3,'Optional cover input should fill its field');
    await noOverflow(page);
   });
+  await test('previous question opens one free answer without showing a large accordion '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
+   assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
+   await page.getByRole('button',{name:'Previous question',exact:true}).click();
+   assert.match(await page.locator('h1').innerText(),/What would help you most/);
+   await page.getByRole('button',{name:'Previous question',exact:true}).click();
+   assert.match(await page.locator('h1').innerText(),/didn't plan to buy/);
+   await page.getByRole('button',{name:'Next question',exact:true}).click();
+   await page.getByRole('button',{name:'Back to my plan',exact:true}).click();
+   assert.match(await page.locator('h1').innerText(),/Make your plan fit you/);
+   await noOverflow(page);
+  });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){
     const heading=await page.locator('section h2').innerText();
-    if(heading==='Takeaway food'){assert.ok((await page.locator('#takeawayAmountPeriod').boundingBox()).y < (await page.locator('#takeawayOrder').boundingBox()).y);await page.locator('#takeawayAmountPeriod').selectOption('week');await page.locator('#takeawayOrder').fill('120');await page.locator('#takeawayOrdersPerWeek').fill('6');await page.locator('#takeawaySwapPerWeek').fill('2');await page.locator('#takeawayReplacementCost').fill('10');}
+    if(heading==='Takeaway and eating out'){assert.equal(await page.locator('#takeawayAmountPeriod').count(),0);await page.getByRole('button',{name:'I only know my weekly total'}).click();await page.locator('#takeawayOrder').fill('120');await page.locator('#takeawayOrdersPerWeek').fill('6');await page.locator('#takeawaySwapPerWeek').fill('2');await page.locator('#takeawayReplacementCost').fill('10');}
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
-    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.match(await page.locator('section').first().innerText(),/Does this amount also include takeaway food/);await page.locator('#convenienceOverlap').selectOption('no');await page.locator('#convenienceGoalWeekly').fill('70');}
+    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),0);assert.match(await page.locator('section').first().innerText(),/Do not include takeaway, restaurant meals or lunch/);await page.locator('#convenienceGoalWeekly').fill('70');}
     if(heading==='Insurance'){assert.match(await page.locator('section').first().innerText(),/Which insurance policies do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
-    if(heading==='Phone and internet'){await page.locator('#phoneService').selectOption('both');await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('#phoneService').selectOption('not_sure');assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('#phoneService').selectOption('mobile');assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
+    if(heading==='Phone and internet'){await page.locator('input[name=phoneService][value=both]').check();await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('input[name=phoneService][value=not_sure]').check();assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('input[name=phoneService][value=mobile]').check();assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
     if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');assert.ok((await page.locator('#electricityPeriod').boundingBox()).y < (await page.locator('#electricityBill').boundingBox()).y);await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('yes');assert.ok((await page.locator('#gasPeriod').boundingBox()).y < (await page.locator('#gasMonthly').boundingBox()).y);await page.locator('#gasPeriod').selectOption('quarter');await page.locator('#gasMonthly').fill('300');}
     if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
     await noOverflow(page);await next(page);
@@ -191,7 +205,7 @@ try{
    assert.match(await page.locator('body').innerText(),/Choose one area to check/);
    assert.equal(await page.getByRole('button',{name:'Make my plan'}).isDisabled(),true);
    await page.locator('#required-area').selectOption('phone');
-   await page.locator('#phoneService').selectOption('mobile');
+   await page.locator('input[name=phoneService][value=mobile]').check();
    await page.locator('#mobileMonthly').fill('40');
    await next(page);
    await page.getByRole('button',{name:'Make my plan'}).click();
@@ -215,9 +229,20 @@ try{
   await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');await page.locator('#takeawayOrder').fill('120');
   await page.waitForTimeout(1300);await page.getByRole('status').filter({hasText:'Saved.'}).waitFor();assert.equal(saved.details.takeawayOrder,'120');
   await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#takeawayOrder');assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
-  await page.getByText('Check or change my first answers',{exact:true}).click();await page.locator('#audit-edit-0').selectOption('Never');await page.waitForTimeout(1300);assert.equal(saved.answers[0],'Never');assert.match(await page.locator('h1').innerText(),/Make your plan/);
+  assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
+  await page.getByRole('button',{name:'Previous question',exact:true}).click();
+  assert.match(await page.locator('h1').innerText(),/What would help you most/);
+  for(let i=0;i<7;i++)await page.getByRole('button',{name:'Previous question',exact:true}).click();
+  assert.match(await page.locator('h1').innerText(),/takeaway or eat out/i);
+  await page.getByRole('button',{name:'Never',exact:true}).click();
+  await page.waitForTimeout(1300);assert.equal(saved.answers[0],'Never');
+  for(let i=0;i<7;i++)await page.getByRole('button',{name:'Next question',exact:true}).click();
+  await page.getByRole('button',{name:'Back to my plan',exact:true}).click();
+  assert.match(await page.locator('h1').innerText(),/Make your plan/);
  });
- await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.locator('#audit-edit-7').selectOption('Reduce stress');await page.waitForTimeout(1300);assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);});
+ await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.getByRole('button',{name:'Previous question',exact:true}).click();
+  await page.getByRole('button',{name:'Reduce stress',exact:true}).click();
+  await page.waitForTimeout(1300);assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);});
  await context.close();
 
  // One fully unattended, first-time customer walkthrough. The payment screen
@@ -280,9 +305,9 @@ try{
   await buyer.waitForURL('**/personalise?**');
   for(let i=0;i<7;i++){
    const heading=await buyer.locator('section h2').first().innerText();
-   if(heading==='Takeaway food'){
+   if(heading==='Takeaway and eating out'){
     await buyer.locator('#takeawayOrder').fill('120');
-    await buyer.locator('#takeawayAmountPeriod').selectOption('week');
+    await buyer.getByRole('button',{name:'I only know my weekly total'}).click();
     await buyer.locator('#takeawayOrdersPerWeek').fill('6');
     await buyer.locator('#takeawaySwapPerWeek').fill('2');
     await buyer.locator('#takeawayReason').selectOption('busy');
@@ -299,11 +324,11 @@ try{
    }
    if(heading==='Small everyday buys'){
     await buyer.locator('#convenienceWeekly').fill('100');
-    await buyer.locator('#convenienceOverlap').selectOption('no');
+    assert.equal(await buyer.locator('#convenienceOverlap').count(),0);
     await buyer.locator('#convenienceGoalWeekly').fill('70');
    }
    if(heading==='Phone and internet'){
-    await buyer.locator('#phoneService').selectOption('mobile');
+    await buyer.locator('input[name=phoneService][value=mobile]').check();
     await buyer.locator('#mobileMonthly').fill('55');
    }
    if(heading==='Power and gas'){
