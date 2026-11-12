@@ -102,10 +102,10 @@ check('three report actions are drawn from the same category steps in text and U
 check('takeaway stored text labels weekly and per-order costs correctly',()=>{
  const a=previewProfiles['takeaway-convenience'].answers;
  const weekly=validateRefinements({details:{takeawayAmountPeriod:'week',takeawayOrder:'120',takeawayOrdersPerWeek:'6'}});
- const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway spending: \$120 for a whole week/);
+ const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway or eating-out spending: \$120 for a whole week/);
  assert.doesNotMatch(weeklyText,/Your usual takeaway order: \$120/);
  const order=validateRefinements({details:{takeawayAmountPeriod:'order',takeawayOrder:'30',takeawayOrdersPerWeek:'6'}});
- const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway spending: \$30 for one order/);
+ const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway or eating-out spending: \$30 for one order/);
 });
 check('electricity quote marks one-bill annualisation as an estimate',()=>{
  const src=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
@@ -198,7 +198,7 @@ check('report revisions require a paid session and store history atomically',()=
 check('free sample shows a calculation without claiming the customer savings',()=>{
   const results=fs.readFileSync('app/results/page.tsx','utf8');
   assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
-  assert.match(results,/See an example of what your plan looks like/);
+  assert.match(results,/sampleActions/);assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);assert.doesNotMatch(results,/\$40 less each week/);
   assert.match(results,/areas\.slice\(3\)/);
 });
 
@@ -209,7 +209,7 @@ check('mobile input and private layout fixes have appropriate CSS specificity',(
  const styles=fs.readFileSync('app/globals.css','utf8');
  assert.ok(form.includes('.field .moneyInput input {'));
  assert.ok(form.includes('padding-left: 48px;'));
- assert.ok(form.includes('.optionalDetails + .progressTop'));
+ assert.ok(form.includes('.auditOptions'));
  assert.ok(report.includes('.lastCard > .helpDetails + .checkNote'));
  assert.ok(!report.includes('margin: -7px 0 18px'));
  assert.ok(header.includes('simple ? "logo" : "logo reveal-left"'));
@@ -276,12 +276,12 @@ check('quarterly gas bills affect yearly cost and all written report labels',()=
 });
 check('questionnaire asks the time period before the bill amount',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
- assert.ok(ui.indexOf("choice('takeawayAmountPeriod'")<ui.indexOf("amount('takeawayOrder'"));
+ assert.ok(ui.includes("I only know my weekly total"));assert.doesNotMatch(ui,/choice\('takeawayAmountPeriod'/);
  assert.ok(ui.indexOf("choice('electricityPeriod'")<ui.indexOf("amount('electricityBill'"));
  assert.ok(ui.indexOf("choice('gasPeriod'")<ui.indexOf("amount('gasMonthly'"));
  assert.ok(ui.indexOf("htmlFor={'policy-period-'+i}")<ui.indexOf("htmlFor={'policy-cost-'+i}"));
  assert.match(ui,/Which insurance policies do you pay for/);
- assert.match(ui,/Does this amount also include takeaway food/);
+ assert.doesNotMatch(ui,/Does this amount also include takeaway food/);assert.match(ui,/Do not include takeaway, restaurant meals or lunch/);
  assert.doesNotMatch(ui,/takeaway you already listed/);
 });
 
@@ -331,7 +331,7 @@ check('multiple entries in paid drafts survive save restore and revisions',()=>{
 });
 check('source offers relevant bill-finding help without adding more compulsory questions',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
- assert.ok(ui.includes('What do coffee, snacks and quick buys cost you each week?'));
+ assert.ok(ui.includes('About how much do coffee, snacks and other small buys cost you each week?'));
  for(const hint of ['bank transactions','email receipts','provider app','renewal email','rough estimate']) assert.match(ui,new RegExp(hint,'i'));
  assert.ok(ui.includes('Add another unused subscription'));
  assert.ok(ui.includes('Remove unused subscription'));
@@ -341,7 +341,7 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
  const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
- assert.ok(form.includes('Which takeaway cost can you estimate more easily?'));
+ assert.ok(form.includes('About how much do you spend on one takeaway or eating-out meal?'));
  assert.ok(form.includes('If you made one of those meals at home'));
  assert.ok(form.includes('Without it, we won\\\'t guess a saving'));
  assert.ok(form.includes('When is this policy due for renewal?'));
@@ -352,6 +352,49 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  assert.ok(tracker.includes('compare what you paid before and after'));
  assert.ok(tracker.includes('Nothing recorded yet?'));
  assert.ok(tracker.includes('Saved only in this browser')||tracker.includes('saved only in this browser'));
+});
+
+check('free audit separates meals from small treats, and goal drives free ordering',()=>{
+ const audit=fs.readFileSync('lib/audit-schema.ts','utf8');
+ const areas=fs.readFileSync('lib/personalisation-questions.ts','utf8');
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(audit,/How often do you get takeaway or eat out/);
+ assert.match(audit,/coffee, snacks or other small treats/);
+ assert.match(areas,/You get takeaway or eat out/);
+ assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);
+ const bill=[...high];bill[7]='Lower my bills';
+ const habits=[...high];habits[7]='Stop money disappearing so fast';
+ assert.notDeepEqual(analyseSavings(bill,emptyRefinements()).opportunities.map(o=>o.area),analyseSavings(habits,emptyRefinements()).opportunities.map(o=>o.area));
+});
+check('paid review is one answer at a time and retains original answers',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.doesNotMatch(ui,/Check or change my first answers/);
+ assert.match(ui,/auditReviewIndex/);
+ assert.match(ui,/Previous question/);
+ assert.match(ui,/setAuditReviewIndex\(7\)/);
+ assert.match(ui,/prev\.answers\.map/);
+ assert.match(ui,/changeTakeawayUnit/);
+ assert.match(ui,/takeawayOrder:''/);
+ const bill=blankDraft(high);bill.details.phoneService='both';bill.details.mobileMonthly='35';bill.details.internetMonthly='70';
+ const clean=prepareDraft(bill);assert.equal(clean.details.mobileMonthly,35);assert.equal(clean.details.internetMonthly,70);
+});
+check('small buys only count separately and old overlapping values remain safe',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:'no'}"));
+ assert.ok(!ui.includes("choice('convenienceOverlap'"));
+ const overlap=validateRefinements({details:{convenienceWeekly:'80',convenienceGoalWeekly:'60',convenienceOverlap:'yes'}});
+ assert.equal(analyseSavings(high,overlap).opportunities.find(o=>o.area==='convenience').scenarioSaving,null);
+ const separate=validateRefinements({details:{convenienceWeekly:'80',convenienceGoalWeekly:'60',convenienceOverlap:'no'}});
+ assert.equal(analyseSavings(high,separate).opportunities.find(o=>o.area==='convenience').scenarioSaving,1040);
+});
+check('visible phone choices only expose matching bill amounts',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.ok(ui.includes('name="phoneService"'));
+ assert.ok(ui.includes('Mobile phone only'));
+ assert.ok(ui.includes('Home internet only'));
+ assert.ok(ui.includes('Both mobile and home internet'));
+ const draft=blankDraft(high);draft.details.phoneService='not_sure';draft.details.mobileMonthly='45';draft.details.internetMonthly='70';
+ const clean=prepareDraft(draft);assert.equal(clean.details.mobileMonthly,null);assert.equal(clean.details.internetMonthly,null);
 });
 
 console.log('Phase 1 package: '+cases+' test groups passed.');
