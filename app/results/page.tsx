@@ -7,10 +7,21 @@ import Header from "@/components/Header";
 import { trackEvent } from "@/lib/gtag";
 import { trackTikTok } from "@/lib/tiktok";
 import { trackMeta, trackMetaStandard } from "@/lib/meta";
-import { areaNames, reasonForArea, selectPersonalisationAreas } from "@/lib/personalisation-questions";
+import { areaNames, reasonForArea, type PersonalisationArea } from "@/lib/personalisation-questions";
+import { analyseSavings } from "@/lib/savings-engine";
+import { emptyRefinements } from "@/lib/report-refinements";
 import styles from "./results.module.css";
 import {TERMS_VERSION} from "@/lib/audit-schema";
 
+const sampleActions: Record<PersonalisationArea,string> = {
+  takeaway: "Choose one meal you'd be happy to make at home. Compare what both meals would really cost.",
+  subscriptions: "Look for regular charges in your bank app. Check if any service you no longer use is still charging you.",
+  insurance: "Find your next insurance renewal. Compare two prices for the same cover and check the cost of a claim.",
+  convenience: "Choose a weekly limit for coffee and small treats. Check what you spent at the end of the week.",
+  phone: "Find your latest phone or internet bill. Compare the total price and features with two other plans.",
+  energy: "Find your latest power bill. Compare plans based on your actual usage, including fees.",
+  unplanned: "Write down one thing you want to buy. Wait a day, then decide if you still need it.",
+};
 export default function Results() {
   const [answers, setAnswers] = useState<string[]>([]);
   const checkoutAttempt=useRef({answers:"",id:""});
@@ -38,7 +49,10 @@ export default function Results() {
     } } catch {}
   }, []);
 
-  const areas = useMemo(() => selectPersonalisationAreas(answers), [answers]);
+  const areas = useMemo(() =>
+    analyseSavings(answers, emptyRefinements()).opportunities.map(item=>item.area),
+    [answers]
+  );
 
   async function checkout() {
     if (busy || !acceptedTerms || areas.length === 0) return;
@@ -136,21 +150,12 @@ export default function Results() {
                 <p><CheckCircle2 size={20} /> Help checking bills and regular payments</p>
                 <p><CheckCircle2 size={20} /> A short list to follow at your own pace</p>
               </div>
-              <details className={styles.samplePlan}>
-                <summary>See an example of what your plan looks like</summary>
-                <div className={styles.sampleInside}>
-                  <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
-                  <h3>Takeaway food</h3>
-                  <p>A customer pays $30 per order. They replace 2 orders a week with meals costing $10 each for the same people.</p>
-                  <p className={styles.sampleSaving}><strong>$40 less each week</strong> if they follow that plan.</p>
-                  <ol>
-                    <li>Choose two nights for food at home.</li>
-                    <li>Get the food in one shop.</li>
-                    <li>Compare what both meals really cost.</li>
-                  </ol>
-                  <small>Your report will use your answers. We won't promise any saving before checking the numbers.</small>
-                </div>
-              </details>
+              <div className={styles.miniPreview} aria-label="Example of a possible savings action">
+                <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
+                <h3>{areaNames[areas[0]]}</h3>
+                <p>{sampleActions[areas[0]]}</p>
+                <small>Your paid plan will use your details. We won't promise savings without checking the numbers.</small>
+              </div>
               <div className={styles.price}>A$39 <span>one-time payment</span></div>
               <p className={styles.honesty}>We don't compare live prices for you or promise a set amount of savings. Your plan will help you find out.</p>
               <label className={styles.terms}>
