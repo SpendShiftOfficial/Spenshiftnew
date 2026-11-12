@@ -102,7 +102,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       annualSpend=math.weeklyCost===null?null:Math.round(math.weeklyCost*52*100)/100;
       scenarioSaving=math.annualExample;
       assumption=math.weeklySaving===null?'We need both meal costs and a realistic change before showing a saving.':'This is a weekly goal after paying for food at home. It is not money saved yet.';
-      firstAction=d.takeawaySwapPerWeek===0?'Keep your routine for now. Check delivery fees before the next order.':d.takeawaySwapPerWeek!==null?'Choose '+d.takeawaySwapPerWeek+' orders to replace next week.':'Count your orders in a normal week before choosing a change.';
+      firstAction=d.takeawaySwapPerWeek===0?'Keep your routine for now. Check the full cost before your next meal out.':d.takeawaySwapPerWeek!==null?'Choose '+d.takeawaySwapPerWeek+' meals out to replace next week.':'Count your takeaway or eating-out meals in a normal week before choosing a change.';
       verification='Compare both costs for the same people, including food, delivery and extra travel.';
     } else if (area === "convenience") {
       if (d.convenienceWeekly !== null) annualSpend = cents(d.convenienceWeekly * 52);

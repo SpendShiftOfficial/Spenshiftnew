@@ -57,6 +57,15 @@
 - Renamed optional insurance cover details to distinguish coverage (for example comprehensive car) from the broader insurance category, and fixed the optional fields' desktop/mobile alignment.
 - Reframed the existing local savings tracker as a tool for **after** taking action, with a worked cancellation example and simpler before-and-after language. No additional account, syncing, payment, or pricing features were added.
 
+## 12 November first-time customer simplicity — preview only
+- The eight-question audit covers both takeaway and eating out; smaller purchases exclude meals and eating out.
+- Free results use the goal-aware ordering from the paid report with the details currently known. A compact area-relevant example replaces the lengthy fictional saving example.
+- Previous question is available on every paid area. On the first paid area it opens one free-audit answer at a time without sending the customer back to payment. The initial accordion is removed.
+- Paid takeaway starts with one simple cost question and has an optional link to enter a weekly total; switching unit clears the earlier number. Stored weekly amounts remain valid.
+- Small buys exclude meal spending. Revising that amount marks it separately for calculations; old overlapping and unknown answers stay excluded until the user corrects them.
+- Phone and internet uses simple visible options and reveals only the corresponding monthly bills, with server-side hidden value protection.
+- All edits are on this preview branch. A$29 is still deferred; no production release.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.

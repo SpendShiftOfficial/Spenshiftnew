@@ -24,7 +24,7 @@ export function findAuditConflict(d: PlanDraft): AuditConflict | null {
         (freeAnswer === "Almost daily" && weekly < 3)) {
       return {
         area: "takeaway",
-        message: "Your first takeaway answer and your weekly order count do not match. Check one of them before making your plan.",
+        message: "Your first takeaway or eating-out answer and your weekly meal count do not match. Check one of them before making your plan.",
       };
     }
   }

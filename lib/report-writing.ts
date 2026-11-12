@@ -51,8 +51,8 @@ export function makeReportMarkdown(
           ". These are costs, not savings.",
       );
     } else if (op.area === "takeaway") {
-      if (d.takeawayOrder !== null) lines.push("Your usual takeaway spending: " + money(d.takeawayOrder) + (d.takeawayAmountPeriod === "week" ? " for a whole week." : " for one order."));
-      if (d.takeawayOrdersPerWeek !== null) lines.push("You buy " + d.takeawayOrdersPerWeek + " orders each week.");
+      if (d.takeawayOrder !== null) lines.push("Your usual takeaway or eating-out spending: " + money(d.takeawayOrder) + (d.takeawayAmountPeriod === "week" ? " for a whole week." : " for one order."));
+      if (d.takeawayOrdersPerWeek !== null) lines.push("You get takeaway or eat out " + d.takeawayOrdersPerWeek + " times each week.");
       if (d.takeawaySwapPerWeek !== null) lines.push("Your goal is to replace " + d.takeawaySwapPerWeek + " orders a week.");
       if (d.takeawayReplacementCost !== null) lines.push("Food from home for the same people: " + money(d.takeawayReplacementCost) + ".");
     } else if (op.area === "convenience") {

@@ -34,7 +34,7 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
   }
   if (op.area === "takeaway") {
     if (d.takeawaySwapPerWeek === 0) return [
-      "Keep your takeaway routine if that is what works for you.",
+      "Keep your usual meals out if that is what works for you.",
       "Check the full cost, including delivery fees, before your next order.",
       "Only make a change if it suits your needs and costs less.",
     ];
@@ -42,19 +42,19 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
     const relevant =
       d.takeawayReason === "busy" ? "For busy nights, choose food you can make quickly, like wraps, eggs or a simple rice bowl. Buy what you need ahead of time."
       : d.takeawayReason === "tired" ? "Make an extra meal when you have more energy. Keep it ready in the fridge or freezer for a tiring day."
-      : d.takeawayReason === "enjoy" ? "Keep your favourite takeaway night. Choose less important orders to replace so the plan feels worth keeping."
+      : d.takeawayReason === "enjoy" ? "Keep your favourite meal out. Choose less important meals to replace so the plan feels worth keeping."
       : d.takeawayReason === "family" ? "Pick easy meals that feed everyone, such as pasta or wraps. Work out the full cost for the same number of people."
       : "Choose a home meal that you enjoy and can make on a normal week. Buy the food ahead of time.";
     if (d.takeawayOrdersPerWeek !== null && n !== null &&
         n > 0 && n <= d.takeawayOrdersPerWeek) {
       return [
-        "Pick " + n + (n === 1 ? " takeaway order" : " takeaway orders") + " you could replace next week.",
+        "Pick " + n + (n === 1 ? " takeaway or eating-out meal" : " takeaway or eating-out meals") + " you could replace next week.",
         relevant,
         "Check the full cost of each home meal for the same people. Count the difference, including any extra travel.",
       ];
     }
     return [
-      "Count how many takeaway orders you usually buy each week.",
+      "Count how many times you get takeaway or eat out in a normal week.",
       relevant,
       "Choose a change you could keep doing and compare the full cost of both meals.",
     ];
