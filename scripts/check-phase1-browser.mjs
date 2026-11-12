@@ -306,8 +306,8 @@ try{
   for(let i=0;i<7;i++){
    const heading=await buyer.locator('section h2').first().innerText();
    if(heading==='Takeaway and eating out'){
-    await buyer.locator('#takeawayOrder').fill('120');
     await buyer.getByRole('button',{name:'I only know my weekly total'}).click();
+    await buyer.locator('#takeawayOrder').fill('120');
     await buyer.locator('#takeawayOrdersPerWeek').fill('6');
     await buyer.locator('#takeawaySwapPerWeek').fill('2');
     await buyer.locator('#takeawayReason').selectOption('busy');
