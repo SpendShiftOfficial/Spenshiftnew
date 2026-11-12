@@ -332,7 +332,7 @@ check('multiple entries in paid drafts survive save restore and revisions',()=>{
 check('source offers relevant bill-finding help without adding more compulsory questions',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.ok(ui.includes('About how much do coffee, snacks and other small buys cost you each week?'));
- for(const hint of ['bank transactions','email receipts','provider app','renewal email','rough estimate']) assert.match(ui,new RegExp(hint,'i'));
+ for(const hint of ['bank transactions','email receipts','provider app','renewal email','rough amount']) assert.match(ui,new RegExp(hint,'i'));
  assert.ok(ui.includes('Add another unused subscription'));
  assert.ok(ui.includes('Remove unused subscription'));
 });
