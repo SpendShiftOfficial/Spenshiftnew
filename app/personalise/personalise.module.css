@@ -518,3 +518,20 @@
   outline: 3px solid rgba(5, 150, 37, .15);
   border-color: #059625;
 }
+
+/* Show one old answer at a time, without a full eight-question accordion. */
+.auditOptions { display: grid; gap: 10px; margin: 22px 0; }
+.auditOptions button { background: #fff; border: 1px solid #cbdccd; border-radius: 12px; padding: 15px 17px; min-height: 50px; text-align: left; color: #264333; font: inherit; font-size: 16px; cursor: pointer; }
+.auditOptions button[aria-pressed=true] { background: #e7f5e9; border: 2px solid #128034; font-weight: 750; }
+.auditOptions button:focus-visible { outline: 3px solid #a2dcb2; outline-offset: 3px; }
+.reviewIntro { color: #46624e; font-size: 15px; font-weight: 750; margin: 0 0 15px; }
+.unitSwitch { justify-self: start; background: none; border: none; padding: 2px 0; color: #236d36; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.unitSwitch:focus-visible { outline: 3px solid #a2dcb2; outline-offset: 4px; }
+.billChoices { border: 0; margin: 0; padding: 0; display: grid; gap: 9px; min-width: 0; }
+.billChoices legend { font-size: 17px; font-weight: 800; color: #203c28; padding: 0; margin: 0 0 7px; }
+.billChoices > p { color: #627266; font-size: 13px; margin: 0 0 4px; }
+.billChoice { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid #cbdccb; background: #fff; border-radius: 12px; cursor: pointer; color: #263e2d; line-height: 1.45; }
+.billChoice:has(input:checked) { background: #eaf6ec; border-color: #268847; }
+.billChoice input { appearance: auto; width: 19px; height: 19px; min-width: 19px; margin: 0; accent-color: #0a7a2c; }
+.billChoice span { flex: 1; }
+.billChoice:focus-within { outline: 3px solid #a2dcb2; outline-offset: 2px; }
