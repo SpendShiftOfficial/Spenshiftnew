@@ -217,7 +217,7 @@ try{
    await page.locator('#takeaway-home-cost summary').click();
    assert.equal(await page.locator('#takeawayReplacementCost').isVisible(),true);
    assert.equal(await page.locator('#takeawayReplacementCost').inputValue(),'');
-   assert.match(await page.locator('section').last().innerText(),/we won't guess a saving/);
+   assert.match(await page.locator('section').last().innerText(),/we won't guess a saving/i);
    await next(page);await next(page);
    assert.match(await page.locator('body').innerText(),/You can skip the home-meal cost/);
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
