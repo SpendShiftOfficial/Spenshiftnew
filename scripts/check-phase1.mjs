@@ -342,8 +342,8 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
  const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
  assert.ok(form.includes('Which meals do you usually buy?'));assert.ok(form.includes('restaurantOrdersPerWeek'));
- assert.ok(form.includes('If you made one of those meals at home'));
- assert.ok(form.includes('Without it, we won\\\'t guess a saving'));
+ assert.ok(form.includes('About how much would one home meal cost for the same people'));
+ assert.ok(form.includes('We will not guess your saving.'));
  assert.ok(form.includes('When is this policy due for renewal?'));
  assert.ok(form.includes('It is different from how often you pay'));
  assert.ok(form.includes('Any extra cover details? (optional)'));
