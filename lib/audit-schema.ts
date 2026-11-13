@@ -1,6 +1,6 @@
 /** Shared, server-validated audit choices. Keep old paid answers readable. */
 export const auditQuestions = [
- {q:'How often do you buy takeaway or go out for a meal?', options:['Never','Less than once a week','1–2 times/week','3–5 times/week','Almost daily']},
+ {q:'How often do you buy takeaway or go out for a meal?', options:['Never','Rarely','1–2 times/week','3–5 times/week','Almost daily']},
  {q:'How many subscriptions do you pay for?', options:['0–2','3–5','6–10','10+','Not sure']},
  {q:'When did you last check your insurance price?', options:['I don’t currently have insurance','Within 6 months','6–12 months ago','1–2 years ago','Over 2 years ago','Never','Not sure','Never / not sure']},
  {q:'How often do you buy coffee, snacks or other small treats?', options:['Rarely','1–2 times/week','3–5 times/week','Daily']},
@@ -15,6 +15,8 @@ export function validateAuditAnswers(input:unknown):string[]{
  return input.map((answer,index)=>{
   if(typeof answer!=='string'||answer.length>160) throw new Error('Please check question '+(index+1)+'.');
   const found=auditQuestions[index].options.find(option=>normal(option)===normal(answer));
+  // Older saved purchases can still contain the original wording.
+  if(!found && index===0 && normal(answer)==='Less than once a week') return 'Less than once a week';
   if(!found) throw new Error('Please check question '+(index+1)+'.');
   return found;
  });
