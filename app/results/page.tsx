@@ -73,6 +73,7 @@ export default function Results() {
   const [loaded, setLoaded] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [additionalArea, setAdditionalArea] = useState<PersonalisationArea | "">("");
+  const [showExtraArea, setShowExtraArea] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -200,7 +201,14 @@ export default function Results() {
                   <p>Your paid plan will cover all {areas.length + (additionalArea ? 1 : 0)} areas. Detailed answers may change which ones come first.</p>
                 </div>
               )}
-              {extraAreaChoice}
+              {areas.length === 0
+                ? extraAreaChoice
+                : areas.length < 7
+                  ? showExtraArea
+                    ? extraAreaChoice
+                    : <button type="button" className={styles.extraToggle}
+                        onClick={() => setShowExtraArea(true)}>Want to check another area?</button>
+                  : null}
             </section>
 
             <section className={styles.purchase} id="unlock-full-report">
