@@ -55,6 +55,7 @@ try{
     });
     assert.ok(metrics.paddingLeft>=44 && metrics.prefixGap>=12,selector+' must not overlap its dollar prefix');
    }
+   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
    await assertCurrencySpacing('#takeawayOrder');
    await page.locator('#takeawayOrder').fill('32.50');
    await assertCurrencySpacing('#takeawayOrder');
@@ -116,7 +117,8 @@ try{
   });
   await test('takeaway wording supports skipping unknown home meal cost '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
-   assert.match(await page.locator('section').first().innerText(),/About how much do you spend on one takeaway or eating-out meal/);
+   assert.match(await page.locator('section').first().innerText(),/Which meals do you usually buy/);
+   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
    assert.equal(await page.locator('#takeawayAmountPeriod').count(),0);
    await page.locator('#takeawayOrder').fill('22');await page.getByRole('button',{name:'I only know my weekly total'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');await page.getByRole('button',{name:'Use the cost of one meal instead'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');
    await page.locator('#takeawayOrder').fill('30');
@@ -134,6 +136,27 @@ try{
    const report=await takeaway.innerText();
    assert.match(report,/Check both costs for the same people before counting a saving/);
    assert.doesNotMatch(report,/Your goal:.*less a week/);
+   await noOverflow(page);
+  });
+  await test('restaurant-only entry clears hidden takeaway amounts '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
+   await page.locator('input[name=takeawayMealMode][value=both]').check();
+   await page.locator('#takeawayOrder').fill('30');
+   await page.locator('#restaurantOrder').fill('90');
+   await page.locator('input[name=takeawayMealMode][value=restaurant]').check();
+   assert.equal(await page.locator('#takeawayOrder').count(),0);
+   assert.equal(await page.locator('#restaurantOrder').inputValue(),'90');
+   await page.locator('#restaurantOrdersPerWeek').fill('5');
+   await page.locator('#restaurantSwapPerWeek').fill('2');
+   await page.locator('#restaurantReplacementCost').fill('20');
+   await next(page);await next(page);
+   await page.getByRole('button',{name:'Make my plan',exact:true}).click();
+   await page.waitForURL('**/plan-preview');
+   const meal=page.locator('#area-takeaway');
+   if(!await meal.isVisible())await page.locator('details').filter({has:meal}).locator('summary').first().click();
+   assert.match(await meal.innerText(),/Cafés and restaurants/);
+   assert.match(await meal.innerText(),/Possible total reduction: \$140 a week/);
+   assert.doesNotMatch(await meal.innerText(),/Takeaway or delivery/);
    await noOverflow(page);
   });
   await test('insurance renewal and optional cover details have clear meanings '+viewport.width,async()=>{
@@ -166,7 +189,17 @@ try{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){
     const heading=await page.locator('section h2').innerText();
-    if(heading==='Takeaway and eating out'){assert.equal(await page.locator('#takeawayAmountPeriod').count(),0);await page.getByRole('button',{name:'I only know my weekly total'}).click();await page.locator('#takeawayOrder').fill('120');await page.locator('#takeawayOrdersPerWeek').fill('6');await page.locator('#takeawaySwapPerWeek').fill('2');await page.locator('#takeawayReplacementCost').fill('10');}
+    if(heading==='Takeaway and eating out'){
+      await page.locator('input[name=takeawayMealMode][value=both]').check();
+      await page.locator('#takeawayOrder').fill('30');
+      await page.locator('#takeawayOrdersPerWeek').fill('4');
+      await page.locator('#takeawaySwapPerWeek').fill('1');
+      await page.locator('#takeawayReplacementCost').fill('10');
+      await page.locator('#restaurantOrdersPerWeek').fill('2');
+      await page.locator('#restaurantOrder').fill('80');
+      await page.locator('#restaurantSwapPerWeek').fill('1');
+      await page.locator('#restaurantReplacementCost').fill('20');
+    }
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
     if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),0);assert.match(await page.locator('section').first().innerText(),/Do not include takeaway, restaurant meals or lunch/);await page.locator('#convenienceGoalWeekly').fill('70');}
     if(heading==='Insurance'){assert.match(await page.locator('section').first().innerText(),/Which insurance policies do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
@@ -179,7 +212,7 @@ try{
    await page.waitForSelector('h1');const body=await page.locator('body').innerText();assert.match(body,/7 areas to check/);assert.match(body,/Your goal is to lower your bills/);
    const first=await page.locator('article h2').first().innerText();assert.equal(first,'Insurance');
    const subs=page.locator('#area-subscriptions');if(!await subs.isVisible())await page.locator('details').filter({has:subs}).locator('summary').first().click();assert.match(await subs.innerText(),/Keep the services you use/);
-   const takeaway=page.locator('#area-takeaway');if(!await takeaway.isVisible())await page.locator('details').filter({has:takeaway}).locator('summary').first().click();assert.match(await takeaway.innerText(),/\$120\s*\/ week/);assert.match(await takeaway.innerText(),/\$20 less a week/);
+   const takeaway=page.locator('#area-takeaway');if(!await takeaway.isVisible())await page.locator('details').filter({has:takeaway}).locator('summary').first().click();assert.match(await takeaway.innerText(),/Total usual weekly cost for the meals you listed: \$280/);assert.match(await takeaway.innerText(),/Possible total reduction: \$80 a week/);assert.match(await takeaway.innerText(),/Cafés and restaurants/);
    const insuranceCard=page.locator('#area-insurance');assert.match(await insuranceCard.innerText(),/\$2,820/);
    const energyCard=page.locator('#area-energy');assert.match(await energyCard.innerText(),/\$300 \/ 3 months/);
    await noOverflow(page);await page.screenshot({path:'test-artifacts/seven-area-plan-'+viewport.width+'.png',fullPage:true});
@@ -306,12 +339,16 @@ try{
   for(let i=0;i<7;i++){
    const heading=await buyer.locator('section h2').first().innerText();
    if(heading==='Takeaway and eating out'){
-    await buyer.getByRole('button',{name:'I only know my weekly total'}).click();
-    await buyer.locator('#takeawayOrder').fill('120');
-    await buyer.locator('#takeawayOrdersPerWeek').fill('6');
-    await buyer.locator('#takeawaySwapPerWeek').fill('2');
-    await buyer.locator('#takeawayReason').selectOption('busy');
+    await buyer.locator('input[name=takeawayMealMode][value=both]').check();
+    await buyer.locator('#takeawayOrder').fill('30');
+    await buyer.locator('#takeawayOrdersPerWeek').fill('4');
+    await buyer.locator('#takeawaySwapPerWeek').fill('1');
     await buyer.locator('#takeawayReplacementCost').fill('10');
+    await buyer.locator('#restaurantOrdersPerWeek').fill('2');
+    await buyer.locator('#restaurantOrder').fill('80');
+    await buyer.locator('#restaurantSwapPerWeek').fill('1');
+    await buyer.locator('#restaurantReplacementCost').fill('20');
+    await buyer.locator('#takeawayReason').selectOption('busy');
    }
    if(heading==='Subscriptions'){
     await buyer.locator('#subscriptionsMonthly').fill('70');
@@ -361,9 +398,9 @@ try{
   const report=await buyer.locator('body').innerText();
   assert.match(report,/Your 7 areas to check/);
   assert.match(report,/Insurance/);
-  assert.match(report,/about \$120 each week/i);
+  assert.match(report,/Total usual weekly cost for the meals you listed: \$280/i);
   assert.match(report,/not much time|quickly|busy nights/i);
-  assert.match(report,/\$20 less a week/);
+  assert.match(report,/Possible total reduction: \$80 a week/);
   assert.match(report,/Track money you've actually saved/);
   assert.equal(customerCheckout,1);
   await noOverflow(buyer);
