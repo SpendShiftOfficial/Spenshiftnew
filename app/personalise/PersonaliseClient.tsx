@@ -201,7 +201,11 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
           </button>
           {count('takeawayOrdersPerWeek',mealMode==='combined'?'About how many meals out do you buy in a week?':'About how many takeaway orders do you buy in a week?', 'Think of a normal week. A rough number is fine.')}
           {count('takeawaySwapPerWeek','How many of these meals could you make at home instead each week?', 'Only count meals you think you could really change. You can enter 0.')}
-          {Number(d.takeawaySwapPerWeek)>0&&amount('takeawayReplacementCost','About how much would it cost to make one of these meals at home? (optional)',"Think of the food for everyone you pay for. A rough guess is fine. If you skip this, we won't guess your saving.")}
+          {Number(d.takeawaySwapPerWeek)>0&&<details className={styles.optionalMealCost} id="takeaway-home-cost">
+            <summary>{d.takeawayReplacementCost ? 'Home meal cost: $'+d.takeawayReplacementCost+' (edit)' : 'Know what a home meal costs? (optional)'}</summary>
+            <p>Not sure? Leave this blank. We won't guess a saving.</p>
+            {amount('takeawayReplacementCost','About how much would it cost to make one of these meals at home?', "Count food for everyone you pay for. A rough amount is fine if you know it.")}
+          </details>}
         </div>}
       {['restaurant','both'].includes(mealMode)&&
         <div className={styles.mealGroup}>
@@ -209,10 +213,14 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
           {count('restaurantOrdersPerWeek','About how many times do you eat at a café or restaurant in a week?', 'Count full meals out, not a coffee or snack on its own. A rough number is fine.')}
           {amount('restaurantOrder','About how much do you usually pay when you eat out?', 'Think of a normal visit. Count the whole bill for everyone you pay for, including drinks. A rough guess is fine.')}
           {count('restaurantSwapPerWeek','How many times could you eat at home instead each week?', 'Only count meals you think you could really change. You can enter 0.')}
-          {Number(d.restaurantSwapPerWeek)>0&&amount('restaurantReplacementCost','About how much would it cost to make that meal at home? (optional)',"Count the food for everyone you pay for. A rough guess is fine. If you skip this, we won't guess your saving.")}
+          {Number(d.restaurantSwapPerWeek)>0&&<details className={styles.optionalMealCost} id="restaurant-home-cost">
+            <summary>{d.restaurantReplacementCost ? 'Home meal cost: $'+d.restaurantReplacementCost+' (edit)' : 'Know what a restaurant meal costs to make at home? (optional)'}</summary>
+            <p>Not sure? Leave this blank. We won't guess a saving.</p>
+            {amount('restaurantReplacementCost','About how much would it cost to make that meal at home?', "Count food for everyone you pay for. A rough amount is fine if you know it.")}
+          </details>}
         </div>}
       {mealMode&&choice('takeawayReason','What makes it hard to eat out less?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
-      <small>Count each meal once. We'll use what you spend and what food at home costs to work out a possible saving.</small>
+      <small>Count each meal once. If you know the home-meal cost, we can work out a possible saving. If not, we'll show the steps without guessing.</small>
     </>}
      {area==='convenience'&&<>
       {amount('convenienceWeekly','About how much do you spend on coffee, snacks and small treats each week?', 'Do not count takeaway or restaurant meals here. Check your bank app, or make a rough guess.')}
