@@ -481,10 +481,14 @@ check('paid questions use plain, specific wording and treat all figures as estim
 });
 
 check('occasional takeaway buyers can give a truthful answer',()=>{
- const optional='Less than once a week';
+ const optional='Rarely';
  assert.ok(auditQuestions[0].options.includes(optional));
+ assert.equal(auditQuestions[0].options.includes('Less than once a week'),false);
  const answers=[optional,'0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
  assert.deepEqual(validateAuditAnswers(answers),answers);
+ const historical=[...answers];historical[0]='Less than once a week';
+ assert.deepEqual(validateAuditAnswers(historical),historical);
+ assert.deepEqual(selectPersonalisationAreas(historical),selectPersonalisationAreas(answers));
  assert.equal(selectPersonalisationAreas(answers).includes('takeaway'),false);
  const d=blankDraft(answers);d.additionalArea='takeaway';d.details.takeawayMealMode='takeaway';d.details.takeawayOrdersPerWeek='0';
  assert.equal(findAuditConflict(d),null);
