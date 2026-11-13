@@ -384,8 +384,8 @@ check('paid first step explains why and has no Previous or free-audit escape',()
 
 check('small buys only count separately and old overlapping values remain safe',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
- assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:'no'}"));
- assert.ok(!ui.includes("choice('convenienceOverlap'"));
+ assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:''}"));
+ assert.ok(ui.includes("choice('convenienceOverlap'"));
  const overlap=validateRefinements({details:{convenienceWeekly:'80',convenienceGoalWeekly:'60',convenienceOverlap:'yes'}});
  assert.equal(analyseSavings(high,overlap).opportunities.find(o=>o.area==='convenience').scenarioSaving,null);
  const separate=validateRefinements({details:{convenienceWeekly:'80',convenienceGoalWeekly:'60',convenienceOverlap:'no'}});
