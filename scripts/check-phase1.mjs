@@ -25,7 +25,7 @@ function loadTs(file) {
 }
 
 
-const {validateAuditAnswers,auditQuestions}=loadTs('lib/audit-schema');
+const {validateAuditAnswers,auditQuestions,PLAN_PRICE_CENTS,LEGACY_PLAN_PRICE_CENTS,isAcceptedPlanPaymentAmount}=loadTs('lib/audit-schema');
 const {selectPersonalisationAreas,previewProfiles,reasonForArea}=loadTs('lib/personalisation-questions');
 const {validateRefinements,emptyRefinements}=loadTs('lib/report-refinements');
 const {blankDraft,cleanDraft,prepareDraft,restoreDraft,selectedDraftAreas}=loadTs('lib/plan-draft');
@@ -144,13 +144,36 @@ check('electricity quote marks one-bill annualisation as an estimate',()=>{
 check('checked results subtract fees and preserve losses',()=>{assert.equal(checkedDifference(100,70,5),25);assert.equal(checkedDifference(70,100,5),-35);assert.equal(checkedDifference(0,0,0),0);assert.throws(()=>checkedDifference(10,Infinity,0));assert.throws(()=>checkedDifference(10,-1,0));});
 check('equal quote and tracker results never say lower',()=>{assert.match(fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8'),/Both prices are the same/);assert.match(fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8'),/no change in cost/);});
 check('quote comparison is first-year only',()=>{assert.equal(quoteDifference(1200,80,'month',20),220);assert.equal(quoteDifference(1200,1300,'year',0),-100);});
-check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:39}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
+check('A$29 checkout, displayed prices and analytics preserve older A$39 purchases',()=>{
+ assert.equal(PLAN_PRICE_CENTS,2900);
+ assert.equal(LEGACY_PLAN_PRICE_CENTS,3900);
+ for(const total of [2900,3900])assert.equal(isAcceptedPlanPaymentAmount(total),true);
+ for(const total of [null,undefined,0,2899,3000,3901,'2900'])assert.equal(isAcceptedPlanPaymentAmount(total),false);
+ const route=fs.readFileSync('app/api/checkout/route.ts','utf8');
+ assert.match(route,/unit_amount:PLAN_PRICE_CENTS/);
+ assert.match(route,/amount:PLAN_PRICE_CENTS/);
+ const paid=fs.readFileSync('lib/paid-orders.ts','utf8');
+ assert.match(paid,/isAcceptedPlanPaymentAmount\(session\.amount_total\)/);
+ assert.match(paid,/isAcceptedPlanPaymentAmount\(chargedCents\)/);
+ assert.doesNotMatch(paid,/Your \$39 payment is confirmed/);
+ assert.match(fs.readFileSync('app/api/stripe/webhook/route.ts','utf8'),/sendOrderConfirmationOnce\(order, session\.amount_total\)/);
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(results,/Get my savings plan — A\$29/);
+ assert.match(results,/value: PLAN_PRICE_CENTS \/ 100/);
+ assert.match(results,/price: PLAN_PRICE_CENTS \/ 100/);
+ for(const file of ['components/SavingsOffer.tsx','app/services/page.tsx','app/pricing/layout.tsx','app/results/page.tsx']){
+  const copy=fs.readFileSync(file,'utf8');
+  assert.match(copy,/A\$29/);
+  assert.doesNotMatch(copy,/A\$39/);
+ }
+});
+check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:29}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
 check('private layout does not load measurement scripts',()=>{const layout=fs.readFileSync('app/layout.tsx','utf8');assert.doesNotMatch(layout,/googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/plan-preview/);assert.match(fs.readFileSync('components/PublicAnalytics.tsx','utf8'),/isMarketingPath/);});
 check('checkout validates before calling Stripe and does not leak provider errors',()=>{const route=fs.readFileSync('app/api/checkout/route.ts','utf8');assert.ok(route.indexOf('validateAuditAnswers(data.answers)')<route.indexOf('.checkout.sessions.create'));assert.match(route,/acceptedTerms/);assert.match(route,/idempotencyKey/);assert.doesNotMatch(route,/error: e\.message/);});
 check('checkout pause does not block existing paid access',()=>{assert.doesNotMatch(fs.readFileSync('lib/paid-orders.ts','utf8'),/SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS/);});
 check('recovery leaves unpaid and unfinished drafts untouched',()=>{const cron=fs.readFileSync('app/api/cron/recover-paid-reports/route.ts','utf8');assert.match(cron,/refinements->>completed/);assert.match(cron,/completed===true/);assert.match(fs.readFileSync('lib/report-fulfillment.ts','utf8'),/Please finish or skip the questions/);});
 check('optimistic draft writes cannot silently overwrite another tab',()=>{const api=fs.readFileSync('app/api/personalisation/draft/route.ts','utf8');assert.match(api,/body\.revision\s*!==\s*order\.updated_at/);assert.match(api,/\.eq\(["']updated_at["'],\s*body\.revision\)/);assert.match(api,/409/);});
-check('marketing reflects implemented product',()=>{for(const file of ['app/homePageClient.tsx','app/pricing/page.tsx','app/whats-included/page.tsx','app/how-it-works/page.tsx','components/SavingsOffer.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/3,050|1,300|30-day action plan|AI Powered|AI-powered/);assert.match(fs.readFileSync('components/SavingsOffer.tsx','utf8'),/A\$39/);});
+check('marketing reflects implemented product',()=>{for(const file of ['app/homePageClient.tsx','app/pricing/page.tsx','app/whats-included/page.tsx','app/how-it-works/page.tsx','components/SavingsOffer.tsx'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/3,050|1,300|30-day action plan|AI Powered|AI-powered/);assert.match(fs.readFileSync('components/SavingsOffer.tsx','utf8'),/A\$29/);});
 check('post-report corrections require payment and preserve revision history',()=>{const code=fs.readFileSync('app/api/report/revise/route.ts','utf8');assert.match(code,/paidSession\(data\.sessionId\)/);assert.match(code,/spendshift_update_report_revision/);assert.match(code,/p_expected_updated_at/);const migration=fs.readFileSync('supabase/migrations/20261110_phase1_report_revisions.sql','utf8');assert.match(migration,/SECURITY DEFINER/);assert.match(migration,/REVOKE ALL ON FUNCTION/);});
 const {findAuditConflict}=loadTs('lib/plan-conflicts');
 check('audit and detailed takeaway answers must agree',()=>{
