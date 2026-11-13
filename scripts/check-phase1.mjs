@@ -490,6 +490,16 @@ check('free audit frequency checks combined weekly takeaway and restaurant visit
  const okay=blankDraft(high);okay.details.takeawayMealMode='both';okay.details.takeawayOrdersPerWeek='2';okay.details.restaurantOrdersPerWeek='3';assert.equal(findAuditConflict(okay),null);
  const missing=blankDraft(high);missing.details.takeawayMealMode='both';missing.details.takeawayOrdersPerWeek='2';assert.equal(findAuditConflict(missing),null);
 });
+check('extra-area choice is hidden for seven, optional for one to six, and visible for none',()=>{
+ const src=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(src,/areas\.length === 0\s*\? extraAreaChoice/);
+ assert.match(src,/areas\.length < 7\s*\? showExtraArea/);
+ assert.match(src,/setShowExtraArea\(true\)/);
+ assert.match(src,/Want to check another area\?/);
+ assert.match(src,/\{extraAreaChoice\}/);
+ assert.match(src,/Object\.entries\(areaNames\)\.filter\(\(\[key\]\) => !areas\.includes/);
+ assert.match(src,/You chose this area\. We have not confirmed a problem/);
+});
 check('free results offer three main actions and relevant worked examples',()=>{
  const results=fs.readFileSync('app/results/page.tsx','utf8');
  assert.match(results,/firstChecks\[area\]/);assert.match(results,/previewExamples\[previewArea\]/);
