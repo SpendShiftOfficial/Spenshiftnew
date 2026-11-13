@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 import {validateAuditAnswers} from "./audit-schema";
+import {isPersonalisationArea} from "./personalisation-questions";
+import {blankDraft} from "./plan-draft";
 import { Resend } from "resend";
 import { supabaseAdmin } from "./supabase";
 
@@ -65,12 +67,20 @@ export async function ensurePaidOrder(session: Stripe.Checkout.Session): Promise
   if (session.payment_status !== "paid") throw new Error("Cannot record an unpaid order.");
   if (!isCorrectReportPurchase(session)) throw new Error("Invalid report purchase.");
   const answers = auditAnswersFromSession(session);
+  const savedArea = session.metadata?.additional_area || "";
+  if (savedArea && !isPersonalisationArea(savedArea)) throw new Error("Invalid paid spending area.");
+  // The first paid draft keeps an explicitly chosen area even when the free
+  // eight-question screening found none. Never overwrite an existing paid order.
+  const initialRefinements = savedArea
+    ? { version: 1, draft: { ...blankDraft(answers), additionalArea: savedArea } }
+    : null;
   const { data: created, error } = await supabaseAdmin
     .from("report_orders")
     .upsert({
       stripe_session_id: session.id,
       status: "awaiting_details",
       answers,
+      ...(initialRefinements ? { refinements: initialRefinements } : {}),
       customer_email: session.customer_details?.email || session.customer_email || null,
       paid_at: new Date().toISOString(),
     }, { onConflict: "stripe_session_id", ignoreDuplicates: true })
