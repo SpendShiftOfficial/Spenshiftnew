@@ -370,7 +370,7 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
  assert.ok(form.includes('Which kinds of meals do you buy?'));assert.ok(form.includes('restaurantOrdersPerWeek'));
  assert.ok(form.includes('About how much would it cost to make one of these meals at home?'));
- assert.match(form,/guess your saving/);
+ assert.match(form,/won't guess a saving/);
  assert.ok(form.includes('When does this insurance renew?'));
  assert.ok(form.includes('even if you pay monthly'));
  assert.ok(form.includes('What does your insurance cover? (optional)'));
