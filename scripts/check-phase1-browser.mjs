@@ -19,8 +19,31 @@ try{
  browser=await chromium.launch({headless:true});
  for(const viewport of [{width:1280,height:900},{width:375,height:812}]){
   const context=await browser.newContext({viewport});const page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
-  await test('truthful public pages '+viewport.width,async()=>{
-   for(const route of ['/','/pricing','/whats-included','/how-it-works']){await go(page,route);const text=await page.locator('body').innerText();assert.ok(!/3,050|30-day action plan|AI Powered/.test(text));assert.match(text,/A\$29/);assert.doesNotMatch(text,/A\$39/);await noOverflow(page);}
+  await test('seven public pages, clear offer and mobile layout '+viewport.width,async()=>{
+   const routes=['/','/pricing','/whats-included','/how-it-works','/why-spendshift','/services','/save-money-australia'];
+   for(const route of routes){
+    await go(page,route);
+    const body=await page.locator('body').innerText();
+    assert.doesNotMatch(body,/A\$39|30.day savings action plan|AI Powered|AI-powered savings insights/i,'Outdated marketing claim on '+route);
+    if(route!=='/save-money-australia')assert.match(body,/A\$29/,'A$29 missing on '+route);
+    assert.ok(await page.getByRole('link',{name:'Start my free savings check'}).count()>0,'Free audit CTA missing on '+route);
+    assert.ok(await page.locator('a[href="/audit"]').count()>0,'Free audit link broken on '+route);
+    const title=await page.title();
+    assert.match(title,/SpendShift/,'Page title missing on '+route);
+    const description=await page.locator('meta[name="description"]').getAttribute('content');
+    assert.ok(description&&description.length>35,'Description missing on '+route);
+    assert.equal(await page.locator('a[href="/#services"]').count(),0,'Outdated footer anchor on '+route);
+    await noOverflow(page);
+    await page.screenshot({path:'test-artifacts/marketing-'+(route==='/'?'home':route.slice(1))+'-'+viewport.width+'.png',fullPage:true});
+   }
+   if(viewport.width<600){
+    await go(page,'/');
+    const menu=page.getByRole('button',{name:'Open menu'});
+    await menu.click();
+    assert.equal(await page.getByRole('button',{name:'Close menu'}).getAttribute('aria-expanded'),'true');
+    assert.ok(await page.locator('#site-mobile-nav a[href="/pricing"]').isVisible());
+    await page.getByRole('button',{name:'Close menu'}).click();
+   }
   });
   await test('free eight-question journey '+viewport.width,async()=>{
    await go(page,'/audit');
