@@ -4,41 +4,26 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./simple-report.module.css";
 
-export default function ReportEditLink({
-  reportId,
-  revisionCount = 0,
-}: {
-  reportId: string;
-  revisionCount?: number;
-}) {
+/** A small correction route, not a second post-report action panel. */
+export default function ReportEditLink({ reportId }: { reportId: string }) {
   const [sessionId, setSessionId] = useState("");
 
   useEffect(() => {
     try {
       const value = sessionStorage.getItem("spendshift_edit_session_" + reportId);
-      if (value && /^cs_(test|live)_[A-Za-z0-9]{12,200}$/.test(value)) {
-        setSessionId(value);
-      }
+      if (value && /^cs_(test|live)_[A-Za-z0-9]{12,200}$/.test(value)) setSessionId(value);
     } catch {
-      // The secure purchase email remains the alternate way to edit.
+      // Customers can use the secure correction link in their report email.
     }
   }, [reportId]);
 
   return (
-    <div className={styles.revisionPanel}>
-      <h2>Need to fix a number?</h2>
-      <p>You can correct an answer and update this plan. You will not pay again.</p>
+    <p className={styles.reportCorrection}>
       {sessionId ? (
-        <Link className={styles.revisionLink}
-          href={"/personalise?session_id=" + encodeURIComponent(sessionId) + "&revise=1"}>
-          Fix an answer in my plan
-        </Link>
+        <>Need to correct an answer? <Link href={"/personalise?session_id=" + encodeURIComponent(sessionId) + "&revise=1"}>Update my answers</Link> — no new payment.</>
       ) : (
-        <p>Open the private <strong>Fix an answer</strong> link in your SpendShift purchase email. If you cannot find it, contact support.</p>
+        <>Need to correct an answer? Use the private edit link in your report email, or contact <a href="mailto:info@spendshift.com.au">SpendShift support</a>.</>
       )}
-      {revisionCount > 0 && (
-        <p className={styles.checkNote}>You have updated this plan {revisionCount} {revisionCount === 1 ? "time" : "times"}. Earlier versions are kept securely.</p>
-      )}
-    </div>
+    </p>
   );
 }
