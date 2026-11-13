@@ -392,7 +392,15 @@ check('final review uses per-area edit links without Previous and the paid repor
  assert.ok(!summary.includes('Previous question'));
  assert.ok(ui.includes("draft.step>0&&<button className={styles.secondary} type='button' onClick={previous}>Previous question"));
  const paid=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
- assert.ok(!paid.includes('ReportEditLink'));
+ assert.ok(paid.includes('<ReportEditLink reportId={reportId} />'));
+  const correction=fs.readFileSync('app/report/[id]/ReportEditLink.tsx','utf8');
+  assert.doesNotMatch(correction,/revisionPanel|Need to fix a number\?/);
+  assert.match(correction,/spendshift_edit_session_/);
+  assert.match(correction,/&revise=1/);
+  assert.match(correction,/report email/);
+  assert.match(correction,/mailto:info@spendshift.com.au/);
+  const mail=fs.readFileSync('lib/paid-orders.ts','utf8');
+  assert.match(mail,/&revise=1/);
  assert.ok(paid.includes('<SavingsTracker reportId={reportId}'));
  assert.ok(fs.existsSync('app/report/[id]/ReportEditLink.tsx'));
 });
@@ -471,16 +479,59 @@ check('free audit frequency checks combined weekly takeaway and restaurant visit
 });
 check('free results offer three main actions and relevant worked examples',()=>{
  const results=fs.readFileSync('app/results/page.tsx','utf8');
- assert.match(results,/firstChecks\[area\]/);assert.match(results,/previewExamples\[areas\[0\]\]/);
+ assert.match(results,/firstChecks\[area\]/);assert.match(results,/previewExamples\[previewArea\]/);
  assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
  assert.match(results,/Possible \$200 first-year price difference/);
  assert.match(results,/Possible \$40 less each week/);
  assert.match(results,/In your paid plan: clear steps and useful links/);
  assert.doesNotMatch(results,/What the customer would do:/);
  assert.doesNotMatch(results,/steps:\[/);
- assert.match(results,/areas\.slice\(0,3\)/);assert.match(results,/areas\.slice\(3\)/);
+ assert.match(results,/shownAreas\.slice\(0,3\)/);assert.match(results,/areas\.slice\(3\)/);
 });
 
+check('overlooked areas stay opt-in and survive paid draft restoration',()=>{
+ const {isPersonalisationArea}=loadTs('lib/personalisation-questions');
+ assert.equal(isPersonalisationArea('subscriptions'),true);
+ assert.equal(isPersonalisationArea('energy'),true);
+ for(const bad of ['',null,'__proto__','unknown',{},'phone;insurance'])assert.equal(isPersonalisationArea(bad),false);
+ const no=previewProfiles['few-opportunities'].answers;
+ assert.deepEqual(selectPersonalisationAreas(no),[]);
+ const draft=blankDraft(no);draft.additionalArea='subscriptions';
+ assert.deepEqual(selectedDraftAreas(draft),['subscriptions']);
+ const normalized=prepareDraft(draft);
+ assert.equal(normalized.additionalArea,'subscriptions');
+ assert.equal(analyseSavings(no,normalized).estimatedAnnualScenario,null);
+ const free=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(free,/We don't recommend paying based on these answers alone/);
+ assert.match(free,/optional-extra-area/);
+ assert.match(free,/additionalArea: additionalArea \|\| null/);
+ const api=fs.readFileSync('app/api/checkout/route.ts','utf8');
+ assert.match(api,/isPersonalisationArea\(additionalArea\)/);
+ assert.match(api,/additional_area:additionalArea\|\|''/);
+ assert.match(api,/JSON\.stringify\(\{answers,additionalArea\}\)/);
+ const order=fs.readFileSync('lib/paid-orders.ts','utf8');
+ assert.match(order,/savedArea.*additional_area/);
+ assert.match(order,/blankDraft\(answers\), additionalArea: savedArea/);
+ assert.match(order,/ignoreDuplicates: true/);
+});
+check('known bills and missing values lead to relevant first actions',()=>{
+ const {firstSteps}=loadTs('lib/report-steps');
+ const answers=previewProfiles['household-bills'].answers;
+ const r=validateRefinements({details:{mobileMonthly:'44.90',internetMonthly:'79.95',state:'NSW',electricityBill:'425.50',electricityPeriod:'quarter'}});
+ const a=analyseSavings(answers,r);
+ const phone=a.opportunities.find(x=>x.area==='phone');
+ const energy=a.opportunities.find(x=>x.area==='energy');
+ assert.match(firstSteps(phone,r).join(' '),/44\.9.*79\.95/);
+ assert.match(firstSteps(energy,r).join(' '),/425\.5.*3 months/);
+ assert.doesNotMatch(firstSteps(energy,r).join(' '),/guaranteed saving/);
+ const missing=emptyRefinements();
+ assert.match(firstSteps(phone,missing)[0],/provider's app or latest bill/);
+ assert.match(firstSteps(energy,missing)[0],/last bill.*kWh/);
+ const rendered=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.match(rendered,/Don't know your bill amounts\?/);
+ const insured=validateRefinements({insurancePolicies:[{type:'Car',premium:'1800',paymentPeriod:'year',renewal:'soon'}]});
+ assert.match(firstSteps(analyseSavings(sample,insured).opportunities.find(x=>x.area==='insurance'),insured)[0],/\$1,800.*next 3 months/);
+});
 check('paid questions use plain, specific wording and treat all figures as estimates',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  for(const phrase of [
