@@ -60,9 +60,11 @@ export function makeReportMarkdown(
         if(item.orders!==null)lines.push("Number of meals each week: "+item.orders+".");
         if(item.swaps!==null)lines.push("Meals you may replace each week: "+item.swaps+".");
         if(item.homeCost!==null)lines.push("Home meal for the same people: "+money(item.homeCost)+".");
-        if(item.netWeeklySaving!==null)lines.push(
-          "Possible weekly cost change for these meals: "+money(item.netWeeklySaving)+
-          " less if positive. This is not a recorded saving."
+        if(item.netWeeklySaving!==null)lines.push(item.netWeeklySaving>0
+          ? "Possible weekly reduction for these meals: "+money(item.netWeeklySaving)+". This is not money saved yet."
+          : item.netWeeklySaving===0
+            ? "These meals would cost the same to make at home."
+            : "Replacing these meals could cost "+money(-item.netWeeklySaving)+" more a week."
         );
       }
       if(meals.weeklyCost!==null)lines.push("Combined weekly meal cost: "+money(meals.weeklyCost)+".");

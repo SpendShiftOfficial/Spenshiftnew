@@ -26,7 +26,7 @@ function mealComponent(
 }
 export function takeawayMath(r:ReportRefinements){
  const d=r.details;
- const mode=d.takeawayMealMode || "combined";
+ const mode=d.takeawayMealMode;
  const parts:MealComponent[]=[];
  if(["takeaway","both","combined"].includes(mode))parts.push(
   mealComponent(mode==="combined"?"combined":"takeaway",

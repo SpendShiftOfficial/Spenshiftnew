@@ -66,6 +66,14 @@
 - Phone and internet uses simple visible options and reveals only the corresponding monthly bills, with server-side hidden value protection.
 - All edits are on this preview branch. A$29 is still deferred; no production release.
 
+## 13 November first-product meal accuracy and proof of value — preview only
+- Improved free Question 1 to specify takeaway or going out for a meal and exclude standalone coffee or snacks. All eight questions and the three highlighted + remaining-four results layout remain.
+- Added a practical first step to each prominent free result. Replaced the vague prepayment teaser with a worked, category-relevant fictional example, including explicit assumptions, real arithmetic where suitable and actions the customer could take. Examples are never presented as the customer's saving or as live provider quotes.
+- Kept seven spending areas. In the paid "Takeaway and eating out" area, customers can select takeaway, café/restaurant meals or both. Prices, weekly visits, chosen replacements and optional home-meal costs are recorded separately for each type.
+- The combined meal-savings illustration now deducts replacement-meal costs from the specific purchases chosen. It does not count the same meal twice or invent a combined saving when an active meal category lacks a replacement cost. Restaurant-only customers do not inherit hidden takeaway amounts.
+- Earlier reports and drafts with a single blended meal price are preserved as "combined" for compatibility. Customers can revise old plans to use the new separate method, with old blended amounts cleared to avoid treating them as takeaway-only.
+- Calculation, validation, written report, visual report and action steps are updated together. Production is untouched, and the agreed A$29 price is still for a future launch change.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.
