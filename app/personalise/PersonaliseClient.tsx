@@ -12,6 +12,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [moving,setMoving]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);const [auditReviewIndex,setAuditReviewIndex]=useState<number|null>(null);
  const revision=useRef('');const lastSaved=useRef('');const queue=useRef<Promise<void>>(Promise.resolve());const latest=useRef(draft);latest.current=draft;
  const signature=JSON.stringify(draft);const areas=selectedDraftAreas(draft);const review=draft.step>=areas.length;const area=areas[draft.step];const d=draft.details;
+ const mealMode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
  const listedPolicies=draft.insurancePolicies.filter(p=>p.type||p.premium||p.insurer||p.coverDescription);
  const pricedPolicies=listedPolicies.filter(p=>p.premium.trim()!==''&&/^(?:0|[1-9]\d{0,5})(?:\.\d{1,2})?$/.test(p.premium)&&isPaymentPeriod(p.paymentPeriod));
  const combinedInsuranceAnnual=pricedPolicies.reduce((total,p)=>total+annualisePayment(Number(p.premium),p.paymentPeriod as import('@/lib/payment-periods').PaymentPeriod),0);
@@ -29,6 +30,19 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(ready&&sessionId&&!reportId&&JSON.stringify(latest.current)!==lastSaved.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[ready,sessionId,reportId]);
  function update(key:string,value:string){setError('');setDraft(prev=>({...prev,details:{...prev.details,[key]:value,...(key==='unusedSubscriptionChoice'&&value!=='yes'?{unusedSubscriptionMonthly:'',unusedSubscriptionName:''}:{}),...(key==='hasGas'&&value!=='yes'?{gasMonthly:''}:{}),...(key==='convenienceWeekly'?{convenienceOverlap:'no'}:{}),...(key==='phoneService'?(value==='both'?{}:value==='mobile'?{internetMonthly:''}:value==='internet'?{mobileMonthly:''}:{mobileMonthly:'',internetMonthly:''}):{})},additionalUnusedSubscriptions:key==='unusedSubscriptionChoice'&&value!=='yes'?[]:prev.additionalUnusedSubscriptions}));}
  function updateExtra(index:number,patch:Partial<RawUnusedSubscription>){setError('');setDraft(prev=>({...prev,additionalUnusedSubscriptions:prev.additionalUnusedSubscriptions.map((item,i)=>i===index?{...item,...patch}:item)}));}
+ function setMealMode(value:string){
+  setError('');
+  setDraft(prev=>{
+   const d=prev.details;
+   const previous=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
+   const oldCombined=previous==='combined'&&value!=='combined';
+   return {...prev,details:{
+    ...d,takeawayMealMode:value,
+    ...((oldCombined||value==='restaurant'||value==='')?{takeawayOrder:'',takeawayOrdersPerWeek:'',takeawaySwapPerWeek:'',takeawayReplacementCost:''}:{}),
+    ...(!['restaurant','both'].includes(value)?{restaurantOrder:'',restaurantOrdersPerWeek:'',restaurantSwapPerWeek:'',restaurantReplacementCost:''}:{})
+   }};
+  });
+ }
  function changeTakeawayUnit(){setError('');setDraft(prev=>({...prev,details:{...prev.details,takeawayAmountPeriod:prev.details.takeawayAmountPeriod==='week'?'order':'week',takeawayOrder:''}}));}
  function previous(){setError('');if(draft.step>0)setDraft(prev=>({...prev,step:prev.step-1}));else setAuditReviewIndex(7);}
  function policy(index:number,patch:Partial<RawPolicy>){setDraft(prev=>({...prev,insurancePolicies:prev.insurancePolicies.map((p,i)=>i===index?{...p,...patch}:p)}));}
@@ -55,10 +69,17 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
        ? 'Add a service name and monthly price for each unused subscription you want counted in a possible saving.'
        : !d.unusedSubscriptionChoice ? 'Check your bank statements or app subscriptions if you are unsure.' : '';
    }
-   if(a==='takeaway')return d.takeawayReplacementCost===''&&Number(d.takeawaySwapPerWeek)>0
-     ? 'Not sure what a home meal costs? You can leave it blank. Your plan will still help, but we cannot estimate a saving from the swap yet.'
-     : !d.takeawayOrder||!d.takeawayOrdersPerWeek
-     ? 'Your plan will be more specific if you add a usual order cost and weekly order count.' : '';
+   if(a==='takeaway'){
+     const mode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
+     if(!mode)return 'Choose the kind of meals you pay for. You can still skip amounts you do not know.';
+     const groups=[
+      ...(['takeaway','both','combined'].includes(mode)?[{name:'takeaway',cost:d.takeawayOrder,count:d.takeawayOrdersPerWeek,swap:d.takeawaySwapPerWeek,home:d.takeawayReplacementCost}]:[]),
+      ...(['restaurant','both'].includes(mode)?[{name:'restaurant',cost:d.restaurantOrder,count:d.restaurantOrdersPerWeek,swap:d.restaurantSwapPerWeek,home:d.restaurantReplacementCost}]:[]),
+     ];
+     if(groups.some(g=>Number(g.swap)>0&&!g.home))return 'A home-meal cost is missing. Without it we cannot calculate a saving for that kind of meal, but you can still make your plan.';
+     if(groups.some(g=>!g.cost||!g.count))return 'Add the cost of each type of meal and how often you buy it for a more personal plan.';
+     return '';
+   }
    if(a==='convenience')return !d.convenienceWeekly||!d.convenienceGoalWeekly
      ? 'Add your weekly spending and goal for a clear target.' : '';
    if(a==='phone')return d.phoneService==='both'||d.phoneService==='mobile'||d.phoneService==='internet'
@@ -83,7 +104,24 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
          : []),
      ];
    }
-   if(a==='takeaway')return [['Takeaway cost',money(d.takeawayOrder,d.takeawayAmountPeriod==='week'?'a week':'an order')],['Orders each week',d.takeawayOrdersPerWeek||'Not provided'],['Orders to replace',d.takeawaySwapPerWeek||'Not provided'],['Cost at home',money(d.takeawayReplacementCost,'for the same people')],['Why takeaway is hard',({busy:'Not much time',tired:'Too tired to cook',enjoy:'I enjoy takeaway',family:'Cooking for other people',other:'Other'})[d.takeawayReason]||'Not provided']];
+   if(a==='takeaway'){
+     const mode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
+     const facts:[string,string][]=[];
+     if(['takeaway','both','combined'].includes(mode))facts.push(
+      [mode==='combined'?'Earlier combined meal cost':'Takeaway cost',money(d.takeawayOrder,d.takeawayAmountPeriod==='week'?'a week':'per meal')],
+      [mode==='combined'?'Meals out each week':'Takeaways each week',d.takeawayOrdersPerWeek||'Not provided'],
+      ['Takeaways or meals to replace',d.takeawaySwapPerWeek||'Not provided'],
+      ['Home cost for these meals',money(d.takeawayReplacementCost,'per meal')]
+     );
+     if(['restaurant','both'].includes(mode))facts.push(
+      ['Restaurant meal cost',money(d.restaurantOrder,'per meal')],
+      ['Restaurant visits each week',d.restaurantOrdersPerWeek||'Not provided'],
+      ['Restaurant visits to replace',d.restaurantSwapPerWeek||'Not provided'],
+      ['Home cost for restaurant meals',money(d.restaurantReplacementCost,'per meal')]
+     );
+     facts.push(['Main challenge',({busy:'Not much time',tired:'Too tired to cook',enjoy:'I enjoy eating out',family:'Cooking for other people',other:'Other'})[d.takeawayReason]||'Not provided']);
+     return facts;
+   }
    if(a==='convenience')return [['Current cost',money(d.convenienceWeekly,'a week')],['Weekly goal',money(d.convenienceGoalWeekly,'a week')],['Includes takeaway?',d.convenienceOverlap==='no'?'No':d.convenienceOverlap==='yes'?'Yes':'Not sure']];
    if(a==='phone')return [['Bills',d.phoneService||'Not provided'],['Mobile',money(d.mobileMonthly,'a month')],['Internet',money(d.internetMonthly,'a month')]];
    if(a==='energy')return [['State',d.state||'Not provided'],['Power',money(d.electricityBill,d.electricityPeriod==='month'?'a month':'for 3 months')],['Gas',d.hasGas==='no'?'No gas bill':money(d.gasMonthly,'per '+periodLabel(isPaymentPeriod(d.gasPeriod)?d.gasPeriod:'month'))]];
@@ -151,15 +189,42 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
       {d.unusedSubscriptionChoice==='no'&&<p>We will help you check prices, not tell you to cancel services you use.</p>}
     </>}
      {area==='takeaway'&&<>
-      {amount('takeawayOrder',d.takeawayAmountPeriod==='week'?'About how much do you spend on takeaway or eating out in a week?':'About how much do you spend on one takeaway or eating-out meal?','Check a recent payment in your bank app, or give a rough amount.')}
-      <button type="button" className={styles.unitSwitch} onClick={changeTakeawayUnit}>
-        {d.takeawayAmountPeriod==='week'?'Use the cost of one meal instead':'I only know my weekly total'}
-      </button>
-      {count('takeawayOrdersPerWeek','How many times do you get takeaway or eat out each week?')}
-      {count('takeawaySwapPerWeek','How many of those meals could you replace with food at home each week?')}
-      {choice('takeawayReason','What makes takeaway or eating out hard to cut back on?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I really enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
-      {Number(d.takeawaySwapPerWeek)>0&&amount('takeawayReplacementCost','If you made one of those meals at home, about how much would it cost? (optional)','Think of the groceries needed to feed the same people. A rough guess is fine, or leave this blank. Without it, we won\'t guess a saving.')}
-      <small>Compare the cost of food for the same number of people, including any extra costs.</small>
+      <fieldset className={styles.billChoices}>
+        <legend>Which meals do you usually buy?</legend>
+        <p>Pick the answer that fits you. Takeaway and restaurant meals can cost different amounts.</p>
+        {([['takeaway','Takeaway or food delivery'],['restaurant','Meals at cafés or restaurants'],['both','Both types']] as [string,string][]).map(([value,label])=>
+          <label className={styles.billChoice} key={value}>
+            <input type="radio" name="takeawayMealMode" value={value} checked={d.takeawayMealMode===value} onChange={()=>setMealMode(value)}/>
+            <span>{label}</span>
+          </label>)}
+        {(d.takeawayMealMode==='combined'||(!d.takeawayMealMode&&(d.takeawayOrder||d.takeawayOrdersPerWeek)))&&
+          <label className={styles.billChoice}>
+            <input type="radio" name="takeawayMealMode" value="combined" checked={mealMode==='combined'} onChange={()=>setMealMode('combined')}/>
+            <span>My earlier combined meals (from my saved plan)</span>
+          </label>}
+      </fieldset>
+      {mealMode==='combined'&&<p className={styles.reviewHint}>Your earlier answers used one average for takeaway and eating out. You can keep that method, or choose a meal type above to enter separate costs.</p>}
+      {['takeaway','both','combined'].includes(mealMode)&&
+        <div className={styles.mealGroup}>
+          <h3>{mealMode==='combined'?'Earlier combined meals':'Takeaway or food delivery'}</h3>
+          {amount('takeawayOrder',d.takeawayAmountPeriod==='week'?'About how much do you spend on these meals in a week?':'About how much does one of these meals cost?','Check a recent payment in your bank app, or give a rough amount.')}
+          <button type="button" className={styles.unitSwitch} onClick={changeTakeawayUnit}>
+            {d.takeawayAmountPeriod==='week'?'Use the cost of one meal instead':'I only know my weekly total'}
+          </button>
+          {count('takeawayOrdersPerWeek',mealMode==='combined'?'How many meals out do you buy each week?':'How many times do you buy takeaway each week?')}
+          {count('takeawaySwapPerWeek','How many of these meals could you replace at home each week?')}
+          {Number(d.takeawaySwapPerWeek)>0&&amount('takeawayReplacementCost','About how much would one home meal cost for the same people? (optional)','Include groceries for everyone eating. If unsure, leave blank. We will not guess your saving.')}
+        </div>}
+      {['restaurant','both'].includes(mealMode)&&
+        <div className={styles.mealGroup}>
+          <h3>Meals at cafés or restaurants</h3>
+          {count('restaurantOrdersPerWeek','How many times do you eat at a café or restaurant each week?')}
+          {amount('restaurantOrder','About how much do you spend each time?','Include everyone you pay for and any drinks. Check a recent payment or use a rough amount.')}
+          {count('restaurantSwapPerWeek','How many of these meals could you replace at home each week?')}
+          {Number(d.restaurantSwapPerWeek)>0&&amount('restaurantReplacementCost','About how much would a home meal cost for the same people? (optional)','Include groceries for everyone eating. If unsure, leave blank. We will not guess your saving.')}
+        </div>}
+      {mealMode&&choice('takeawayReason','What makes cutting back on these meals hard?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
+      <small>Only count each meal once. We'll use your separate costs and home-meal prices to calculate a possible saving.</small>
     </>}
      {area==='convenience'&&<>
       {amount('convenienceWeekly','About how much do coffee, snacks and other small buys cost you each week?','Only count small buys here. Do not include takeaway, restaurant meals or lunch. Check your bank app or use a rough amount.')}
