@@ -70,6 +70,20 @@ check('subscription cross-field limits',()=>{assert.throws(()=>validateRefinemen
 const meal=validateRefinements({details:{takeawayOrder:'120',takeawayAmountPeriod:'order',takeawayOrdersPerWeek:'7',takeawaySwapPerWeek:'3',takeawayReplacementCost:'40'}});
 check('net meal maths uses the same group and replacement costs',()=>{const m=takeawayMath(meal);assert.equal(m.weeklyCost,840);assert.equal(m.weeklySaving,240);assert.equal(m.annualExample,12480);});
 check('weekly amount is never read as one order',()=>{const r=validateRefinements({details:{takeawayOrder:'120',takeawayAmountPeriod:'week',takeawayOrdersPerWeek:'6',takeawaySwapPerWeek:'2',takeawayReplacementCost:'10'}});const m=takeawayMath(r);assert.equal(m.orderCost,20);assert.equal(m.weeklyCost,120);assert.equal(m.weeklySaving,20);assert.equal(m.annualExample,1040);assert.equal(m.parts[0].type,'combined');});
+check('home-meal estimates are hidden until requested but saved calculations still require them',()=>{
+ const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(form,/id="takeaway-home-cost"/);
+ assert.match(form,/id="restaurant-home-cost"/);
+ assert.match(form,/Know what a home meal costs\? \(optional\)/);
+ assert.match(form,/Know what a restaurant meal costs to make at home\? \(optional\)/);
+ assert.match(form,/Not sure\? Leave this blank\. We won't guess a saving/);
+ assert.match(form,/d\.takeawayReplacementCost \? 'Home meal cost: \$'/);
+ assert.match(form,/d\.restaurantReplacementCost \? 'Home meal cost: \$'/);
+ const unknown=validateRefinements({details:{takeawayMealMode:'takeaway',takeawayOrder:'30',takeawayOrdersPerWeek:'4',takeawaySwapPerWeek:'1'}});
+ assert.equal(takeawayMath(unknown).weeklySaving,null);
+ const known=validateRefinements({details:{takeawayMealMode:'takeaway',takeawayOrder:'30',takeawayOrdersPerWeek:'4',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10'}});
+ assert.equal(takeawayMath(known).weeklySaving,20);
+});
 check('unknown replacement, zero swaps, higher cost give no saving',()=>{for(const patch of [{takeawayReplacementCost:''},{takeawaySwapPerWeek:'0'},{takeawayReplacementCost:'130'}]){const r=validateRefinements({details:{takeawayOrder:'120',takeawayOrdersPerWeek:'7',takeawaySwapPerWeek:'3',takeawayReplacementCost:'40',...patch}});assert.equal(takeawayMath(r).weeklySaving,null);}});
 check('reject impossible weekly targets',()=>{assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'3',takeawaySwapPerWeek:'4'}}));assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'2.5'}}));assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'22'}}));assert.throws(()=>validateRefinements({details:{convenienceWeekly:'50',convenienceGoalWeekly:'60'}}));});
 check('overlapping small buys are not added',()=>{for(const overlap of ['','yes','not_sure']){const r=validateRefinements({details:{...meal.details,convenienceWeekly:100,convenienceGoalWeekly:70,convenienceOverlap:overlap}});const a=analyseSavings(high,r);assert.equal(a.opportunities.find(o=>o.area==='convenience').scenarioSaving,null);assert.equal(a.estimatedAnnualScenario,12480);}});
