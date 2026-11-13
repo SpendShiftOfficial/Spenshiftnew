@@ -13,7 +13,7 @@ export default function Audit(){
  const q=auditQuestions[index];const visibleOptions=q.options.filter(a=>a!=='Never / not sure'||answers[index]===a);
  return <div className={styles.page}><Header simple/><main className={styles.wrap}>
   <p className={styles.progress}>Question {index+1} of 8</p><div className={styles.track} role='progressbar' aria-label='Your free check' aria-valuenow={Math.round(index/8*100)} aria-valuemin={0} aria-valuemax={100}><span style={{width:index/8*100+'%'}}/></div>
-  <h1>{q.q}</h1><p>Choose the answer that fits you best.</p>
+  <h1>{q.q}</h1><p>{index===0?"Count takeaway, delivery and meals at cafés or restaurants. Don't count coffee or snacks on their own.":index===3?"Count coffee, snacks and small treats — not full meals.":"Choose the answer that fits you best."}</p>
   <div className={styles.options} role='group' aria-label={q.q}>{visibleOptions.map(a=><button key={a} type='button' aria-pressed={answers[index]===a} onClick={()=>choose(a)}>{a}</button>)}</div>
   <div className={styles.actions}>{index>0?<button type='button' onClick={()=>setIndex(index-1)}>Previous question</button>:<a href='/'>Back home</a>}<button className={styles.next} type='button' disabled={!answers[index]} onClick={next}>{index===7?'See my free results':'Next question'}</button></div>
   {error&&<p role='alert'>{error}</p>}<p className={styles.small}>No bank login. No payment for your free results.</p>

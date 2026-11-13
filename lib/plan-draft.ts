@@ -4,7 +4,7 @@ import {emptyRefinements,validateRefinements} from './report-refinements';
 import {findAuditConflict} from './plan-conflicts';
 export const sectionKeys:Record<PersonalisationArea,string[]>={
  subscriptions:['subscriptionsMonthly','unusedSubscriptionChoice','unusedSubscriptionName','unusedSubscriptionMonthly'],
- takeaway:['takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost','takeawayReason'],
+ takeaway:['takeawayMealMode','takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost','restaurantOrder','restaurantOrdersPerWeek','restaurantSwapPerWeek','restaurantReplacementCost','takeawayReason'],
  convenience:['convenienceWeekly','convenienceGoalWeekly','convenienceOverlap'],
  phone:['phoneService','mobileMonthly','internetMonthly'],
  energy:['state','electricityBill','electricityPeriod','hasGas','gasPeriod','gasMonthly'],
@@ -50,6 +50,15 @@ export function prepareDraft(d:PlanDraft){
  if(details.phoneService==='mobile')details.internetMonthly='';
  if(details.phoneService==='internet')details.mobileMonthly='';
  if(details.unusedSubscriptionChoice!=='yes'){details.unusedSubscriptionMonthly='';details.unusedSubscriptionName='';}
+ // A customer may switch meal types. Old hidden figures must not enter a new report.
+ const mealMode=details.takeawayMealMode ||
+  (details.takeawayOrder || details.takeawayOrdersPerWeek ? 'combined' : '');
+ if(!['takeaway','both','combined'].includes(mealMode)){
+  for(const key of ['takeawayOrder','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost'])details[key]='';
+ }
+ if(!['restaurant','both'].includes(mealMode)){
+  for(const key of ['restaurantOrder','restaurantOrdersPerWeek','restaurantSwapPerWeek','restaurantReplacementCost'])details[key]='';
+ }
  return validateRefinements({version:1,additionalArea:d.additionalArea||null,details,
   additionalUnusedSubscriptions:areas.includes('subscriptions')&&details.unusedSubscriptionChoice==='yes'?d.additionalUnusedSubscriptions:[],
   insurancePolicies:areas.includes('insurance')?d.insurancePolicies:[]});

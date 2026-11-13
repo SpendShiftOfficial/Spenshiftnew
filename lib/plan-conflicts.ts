@@ -14,17 +14,25 @@ export function findAuditConflict(d: PlanDraft): AuditConflict | null {
     areas.push(d.additionalArea as PersonalisationArea);
   }
   const { answers, details } = d;
-  const weekly = details.takeawayOrdersPerWeek === ""
-    ? null : Number(details.takeawayOrdersPerWeek);
-  if (areas.includes("takeaway") && weekly !== null && Number.isFinite(weekly)) {
+  const mealMode = details.takeawayMealMode || "combined";
+  const takeawayCount = details.takeawayOrdersPerWeek === "" ? null : Number(details.takeawayOrdersPerWeek);
+  const restaurantCount = details.restaurantOrdersPerWeek === "" ? null : Number(details.restaurantOrdersPerWeek);
+  const bothKnown = mealMode !== "both" || (takeawayCount !== null && restaurantCount !== null);
+  const weekly = mealMode === "both"
+    ? bothKnown ? (takeawayCount ?? 0) + (restaurantCount ?? 0) : null
+    : mealMode === "restaurant" ? restaurantCount : takeawayCount;
+  const anyPositive = mealMode === "both"
+    ? (takeawayCount !== null && takeawayCount > 0) || (restaurantCount !== null && restaurantCount > 0)
+    : weekly !== null && weekly > 0;
+  if (areas.includes("takeaway") && (weekly !== null && Number.isFinite(weekly) || anyPositive)) {
     const freeAnswer = answers[0];
-    if ((freeAnswer === "Never" && weekly > 0) ||
-        (freeAnswer !== "Never" && weekly === 0) ||
-        (freeAnswer === "1–2 times/week" && weekly > 4) ||
-        (freeAnswer === "Almost daily" && weekly < 3)) {
+    if ((freeAnswer === "Never" && anyPositive) ||
+        (weekly !== null && freeAnswer !== "Never" && weekly === 0) ||
+        (weekly !== null && freeAnswer === "1–2 times/week" && weekly > 4) ||
+        (weekly !== null && freeAnswer === "Almost daily" && weekly < 3)) {
       return {
         area: "takeaway",
-        message: "Your first takeaway or eating-out answer and your weekly meal count do not match. Check one of them before making your plan.",
+        message: "Your first meal-out answer and your weekly meal count do not match. Check one of them before making your plan.",
       };
     }
   }

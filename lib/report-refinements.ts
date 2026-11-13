@@ -22,6 +22,12 @@ export type PersonalisationDetails = {
   takeawayOrdersPerWeek: number | null;
   takeawaySwapPerWeek: number | null;
   takeawayReplacementCost: number | null;
+  /** Empty for unanswered new forms; combined for older single-average reports. */
+  takeawayMealMode: "" | "takeaway" | "restaurant" | "both" | "combined";
+  restaurantOrder: number | null;
+  restaurantOrdersPerWeek: number | null;
+  restaurantSwapPerWeek: number | null;
+  restaurantReplacementCost: number | null;
   convenienceWeekly: number | null;
   convenienceGoalWeekly: number | null;
   unplannedArea: string;
@@ -130,6 +136,11 @@ export function emptyRefinements(): ReportRefinements {
       takeawayOrdersPerWeek: null,
       takeawaySwapPerWeek: null,
       takeawayReplacementCost: null,
+      takeawayMealMode: "",
+      restaurantOrder: null,
+      restaurantOrdersPerWeek: null,
+      restaurantSwapPerWeek: null,
+      restaurantReplacementCost: null,
       convenienceWeekly: null,
       convenienceGoalWeekly: null,
       unplannedArea: "",
@@ -219,6 +230,22 @@ export function validateRefinements(input: unknown): ReportRefinements {
       takeawaySwapPerWeek > takeawayOrdersPerWeek) {
     throw new Error("You can't swap more takeaway orders than you buy.");
   }
+  const restaurantOrdersPerWeek = countPerWeek(details.restaurantOrdersPerWeek, "Eating-out visits");
+  const restaurantSwapPerWeek = countPerWeek(details.restaurantSwapPerWeek, "Eating-out meals to replace");
+  if (restaurantOrdersPerWeek !== null && restaurantSwapPerWeek !== null &&
+      restaurantSwapPerWeek > restaurantOrdersPerWeek) {
+    throw new Error("You can't replace more restaurant meals than you buy.");
+  }
+  const requestedMealMode = fixedChoice(
+    details.takeawayMealMode, new Set(["", "takeaway", "restaurant", "both", "combined"]), "meal type",
+  ) as PersonalisationDetails["takeawayMealMode"];
+  // Preserve earlier paid reports that used a single average for takeaway and eating out.
+  const hasEarlierCombinedMeals = takeawayOrdersPerWeek !== null ||
+    takeawaySwapPerWeek !== null || details.takeawayOrder !== undefined &&
+    details.takeawayOrder !== null && details.takeawayOrder !== "";
+  const takeawayMealMode = requestedMealMode || (hasEarlierCombinedMeals ? "combined" : "");
+  const hasTakeaway = ["combined", "takeaway", "both"].includes(takeawayMealMode);
+  const hasRestaurant = ["restaurant", "both"].includes(takeawayMealMode);
   const convenienceWeekly = money(details.convenienceWeekly, "Small buys each week");
   const convenienceGoalWeekly = money(details.convenienceGoalWeekly, "New weekly small-buy goal");
   if (convenienceWeekly !== null && convenienceGoalWeekly !== null &&
@@ -248,10 +275,15 @@ export function validateRefinements(input: unknown): ReportRefinements {
       unusedSubscriptionMonthly,
       unusedSubscriptionChoice: effectiveUnusedChoice,
       unusedSubscriptionName,
-      takeawayOrder: money(details.takeawayOrder, "Takeaway order"),
-      takeawayOrdersPerWeek,
-      takeawaySwapPerWeek,
-      takeawayReplacementCost: money(details.takeawayReplacementCost, "Cost to make a meal instead"),
+      takeawayOrder: hasTakeaway ? money(details.takeawayOrder, "Takeaway order") : null,
+      takeawayOrdersPerWeek: hasTakeaway ? takeawayOrdersPerWeek : null,
+      takeawaySwapPerWeek: hasTakeaway ? takeawaySwapPerWeek : null,
+      takeawayReplacementCost: hasTakeaway ? money(details.takeawayReplacementCost, "Cost to make a takeaway meal instead") : null,
+      takeawayMealMode,
+      restaurantOrder: hasRestaurant ? money(details.restaurantOrder, "Restaurant meal") : null,
+      restaurantOrdersPerWeek: hasRestaurant ? restaurantOrdersPerWeek : null,
+      restaurantSwapPerWeek: hasRestaurant ? restaurantSwapPerWeek : null,
+      restaurantReplacementCost: hasRestaurant ? money(details.restaurantReplacementCost, "Cost to make a restaurant meal instead") : null,
       convenienceWeekly,
       convenienceGoalWeekly,
       unplannedArea: fixedChoice(details.unplannedArea, unplannedTypes, "unplanned purchases"),
