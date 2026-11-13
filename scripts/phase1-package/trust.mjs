@@ -21,7 +21,7 @@ export function validateAuditAnswers(input:unknown):string[]{
   return found;
  });
 }
-export const PLAN_PRICE_CENTS=3900;
+export const PLAN_PRICE_CENTS=2900;
 export const TERMS_VERSION='2026-11-phase1';
 `);
 write('lib/request-safety.ts',String.raw`export class InputError extends Error { constructor(message:string, public status=400){super(message);} }
@@ -160,5 +160,5 @@ edit('lib/paid-orders.ts',s=>{
  s=s.replace('Please keep this private report link secure. Estimates are illustrative and actual results vary.','Keep this link private. It opens your plan without a password. Possible savings are not money saved yet.');
  return s;
 });
-edit('app/success/page.tsx',s=>s.replace('transaction_id: sessionId, value: 39','value: 39').replace('transaction_id: sessionId, report_id: reportId, value: 39','value: 39'));
+edit('app/success/page.tsx',s=>s.replace('transaction_id: sessionId, value: 29','value: 29').replace('transaction_id: sessionId, report_id: reportId, value: 29','value: 29'));
 }
