@@ -26,7 +26,11 @@ try{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
    await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
-   const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
+   const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
+   assert.match(await example.innerText(),/In your paid plan: clear steps and useful links/);
+   assert.equal(await example.locator('ol').count(),0,'The free example must not give away the full three-step guide');
+   await noOverflow(page);
+   await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
   });
   await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
    await go(page,'/audit');
