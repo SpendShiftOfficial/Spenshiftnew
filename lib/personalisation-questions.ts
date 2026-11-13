@@ -56,6 +56,11 @@ export const areaNames: Record<PersonalisationArea, string> = {
   unplanned: "Unplanned shopping",
 };
 
+/** Match one of the existing seven review areas (never accept an arbitrary string). */
+export function isPersonalisationArea(value: unknown): value is PersonalisationArea {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(areaNames, value);
+}
+
 /** Score for deciding where to start. This is never a dollar value. */
 export function auditPriorityScore(area: PersonalisationArea, auditAnswers: string[]): number {
   const rule = rules[area];
