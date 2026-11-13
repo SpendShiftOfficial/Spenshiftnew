@@ -475,3 +475,8 @@
 }
 .mealSummary > strong { color: #23442b; font-size: 17px; }
 .mealSummary p { margin: 0; color: #3d5544; font-size: 15px; line-height: 1.5; }
+
+/* Keep answer corrections discoverable without bringing back a large panel. */
+.reportCorrection { margin-top:14px; font-size:13px; line-height:1.55; color:#526353; }
+.reportCorrection a { color:#166936; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+.reportCorrection a:focus-visible { outline:3px solid #a2d0a9; outline-offset:2px; }
