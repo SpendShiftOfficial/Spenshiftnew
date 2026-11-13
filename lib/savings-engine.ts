@@ -125,7 +125,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       } else if (d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
                  areas.includes("takeaway") && d.convenienceOverlap !== "no") {
         assumption = "We have not added this goal to your possible savings because the amount may include takeaway or meals out. We don't count the same spending twice.";
-        firstAction = "Check your small buys again, leaving out full meals. Update your plan after you check.";
+        firstAction = "Check your small buys again, leaving out full meals. Do not count a separate saving until you know the amount.";
       } else {
         assumption = "We cannot yet calculate a reliable reduction in small buys.";
         firstAction = "Pick a weekly limit for coffees, snacks and quick buys. Keep takeaway costs separate.";
