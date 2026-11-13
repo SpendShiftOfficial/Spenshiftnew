@@ -11,7 +11,7 @@ const high=['Almost daily','10+','Never','Daily',"I honestly don't know","I hone
 const getAnswers=()=>high.slice();
 let tests=0;let browser;
 async function test(name,fn){await fn();tests++;console.log('PASS '+name);}
-async function noOverflow(page){assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'Page overflows the viewport');}
+async function noOverflow(page){const details=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,oversized:[...document.querySelectorAll('*')].map(el=>({tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,75):'',right:Math.round(el.getBoundingClientRect().right),left:Math.round(el.getBoundingClientRect().left)})).filter(x=>x.right>innerWidth+2||x.left < -2).slice(0,12)}));assert.ok(details.scrollWidth<=details.width+2,'Page overflows the viewport at '+page.url()+' '+JSON.stringify(details));}
 async function go(page,url){await page.goto(base+url,{waitUntil:'networkidle'});}
 async function next(page){await page.getByRole('button',{name:'Next',exact:true}).click();await page.waitForTimeout(180);}
 try{
