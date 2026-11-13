@@ -74,6 +74,13 @@
 - Earlier reports and drafts with a single blended meal price are preserved as "combined" for compatibility. Customers can revise old plans to use the new separate method, with old blended amounts cleared to avoid treating them as takeaway-only.
 - Calculation, validation, written report, visual report and action steps are updated together. Production is untouched, and the agreed A$29 price is still for a future launch change.
 
+## 13 November paid-questionnaire clarity pass — preview only
+- The first paid screen explains in large, plain language why we ask for a few more details: the free eight answers show where to look; spending amounts help make the report more useful. Rough guesses and skipping unknown amounts are explicitly allowed. Only genuine paid sessions are told no further payment is due.
+- The **first paid area has no Previous question button**. Previous remains available only from the second paid area onwards and the final review, and always navigates within paid personalisation. We removed the old detour into the first eight free questions.
+- Wording across subscriptions, takeaway/delivery, café and restaurant meals, home meals, small purchases, phone/internet, energy/gas, insurance and unplanned shopping has been rewritten for everyday Australian readers. Cost questions distinguish a whole order or total restaurant bill from an individual meal, include everyone the customer pays for, and say rough estimates are fine.
+- An optional short hint can now appear under weekly-count questions to clarify ordinary-week estimates. Empty optional amounts still produce no invented saving. Calculation and validation rules are unchanged.
+- Added a prominent first-step explanation and readable label/help typography. No new spending categories, pricing changes, production release or database migration.
+
 ## Operational limits / release gates
 - No production merge, migration or production environment edits are part of this package.
 - Tests with mocked Stripe/Supabase responses verify the interface and client recovery, NOT a real new Stripe charge or actual provider delivery.
