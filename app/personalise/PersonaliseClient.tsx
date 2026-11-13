@@ -2,14 +2,14 @@
 import {useEffect,useRef,useState} from 'react';
 import Header from '@/components/Header';
 import {useRouter} from 'next/navigation';
-import {auditQuestions,validateAuditAnswers} from '@/lib/audit-schema';
+import {validateAuditAnswers} from '@/lib/audit-schema';
 import {areaNames,previewProfiles,type PersonalisationArea} from '@/lib/personalisation-questions';
 import {blankDraft,cleanDraft,restoreDraft,selectedDraftAreas,prepareDraft,sectionKeys,emptyPolicy,type PlanDraft,type RawPolicy,type RawUnusedSubscription} from '@/lib/plan-draft';
 import styles from './personalise.module.css';
 import {paymentPeriodOptions,annualisePayment,isPaymentPeriod,periodLabel} from '@/lib/payment-periods';
 export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:boolean;hasPaidSession:boolean}){
  const router=useRouter();const [sessionId,setSessionId]=useState('');const [isRevision,setIsRevision]=useState(false);const [draft,setDraft]=useState<PlanDraft>(blankDraft(previewProfiles['subscriptions-insurance'].answers));
- const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [moving,setMoving]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);const [auditReviewIndex,setAuditReviewIndex]=useState<number|null>(null);
+ const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [moving,setMoving]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);
  const revision=useRef('');const lastSaved=useRef('');const queue=useRef<Promise<void>>(Promise.resolve());const latest=useRef(draft);latest.current=draft;
  const signature=JSON.stringify(draft);const areas=selectedDraftAreas(draft);const review=draft.step>=areas.length;const area=areas[draft.step];const d=draft.details;
  const mealMode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
@@ -44,7 +44,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
   });
  }
  function changeTakeawayUnit(){setError('');setDraft(prev=>({...prev,details:{...prev.details,takeawayAmountPeriod:prev.details.takeawayAmountPeriod==='week'?'order':'week',takeawayOrder:''}}));}
- function previous(){setError('');if(draft.step>0)setDraft(prev=>({...prev,step:prev.step-1}));else setAuditReviewIndex(7);}
+ function previous(){if(draft.step===0)return;setError('');setDraft(prev=>({...prev,step:prev.step-1}));}
  function policy(index:number,patch:Partial<RawPolicy>){setDraft(prev=>({...prev,insurancePolicies:prev.insurancePolicies.map((p,i)=>i===index?{...p,...patch}:p)}));}
  function checkCurrent(){try{const test=cleanDraft(draft);const others=areas.filter(a=>a!==area);for(const a of others)for(const key of sectionKeys[a])test.details[key]='';if(area!=='insurance')test.insurancePolicies=[];if(area!=='subscriptions')test.additionalUnusedSubscriptions=[];prepareDraft(test);return '';}catch(e){return e instanceof Error?e.message:'Please check these amounts.';}}
  async function next(){if(moving||submitting)return;setError('');const snapshot=cleanDraft(draft);const issue=checkCurrent();if(issue){setError(issue);return;}snapshot.step=Math.min(snapshot.step+1,areas.length);setMoving(true);try{await persist(snapshot);setDraft(snapshot);}catch(e){setError(e instanceof Error?e.message:'Your answers were not saved.');}finally{setMoving(false);}}
@@ -133,33 +133,17 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  const count=(key:string,label:string)=> <div className={styles.field}><label htmlFor={key}>{label}</label><input id={key} type='number' min='0' max='21' step='1' inputMode='numeric' value={d[key]||''} placeholder='Not sure' onChange={e=>update(key,e.target.value)}/></div>;
  if(!ready)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>{error?'We could not open your plan':'Opening your plan'}</h1><p role={error?'alert':undefined}>{error||'Checking your purchase…'}</p></main></div>;
  if(reportId)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>Your plan is ready.</h1><a className={styles.primary} href={'/report/'+encodeURIComponent(reportId)}>Open my plan</a></main></div>;
- if(auditReviewIndex!==null){
-  const q=auditQuestions[auditReviewIndex];
-  return <div className={styles.page}><Header simple/><main className={styles.wrap}>
-   <p className={styles.reviewIntro}>Your first answers — question {auditReviewIndex+1} of 8</p>
-   <section className={styles.panel} aria-label="Review a free-audit answer">
-    <h1>{q.q}</h1>
-    <p className={styles.intro}>Choose an answer or keep the one you picked. Your plan is still yours. You won't pay again.</p>
-    <div className={styles.auditOptions} role="group" aria-label={q.q}>
-      {q.options.filter(a=>a!=='Never / not sure'||draft.answers[auditReviewIndex]===a).map(answer=>
-       <button type="button" key={answer} aria-pressed={draft.answers[auditReviewIndex]===answer}
-        onClick={()=>{setError('');setDraft(prev=>({...prev,step:0,answers:prev.answers.map((a,i)=>i===auditReviewIndex?answer:a)}));}}>{answer}</button>)}
-    </div>
-    <div className={styles.actions}>
-      <button type="button" className={styles.secondary} onClick={()=>{setError('');if(auditReviewIndex>0)setAuditReviewIndex(auditReviewIndex-1);else setAuditReviewIndex(null);}}>
-        {auditReviewIndex===0?'Back to my plan':'Previous question'}
-      </button>
-      <button type="button" className={styles.primary} onClick={()=>{setError('');if(auditReviewIndex<7)setAuditReviewIndex(auditReviewIndex+1);else setAuditReviewIndex(null);}}>
-        {auditReviewIndex===7?'Back to my plan':'Next question'}
-      </button>
-    </div>
-    {error&&<p role="alert" className={styles.submitError}>{error}</p>}
-   </section>
-  </main></div>;
- }
 
  return <div className={styles.page}><Header simple/><main className={styles.wrap}><fieldset className={styles.journeyFieldset} disabled={moving||submitting}>
-  <h1>{isRevision?'Fix an answer in your plan.':'Make your plan fit you.'}</h1>{isRevision&&<p>The old report stays safe until you save your changes. You will not pay again.</p>}<p className={styles.intro}>{areas.length===0?'Your updated answers no longer point to a clear area. Choose one area you would like help checking so your paid plan stays useful.':areas.length+' areas to check. We’ll save what you enter. Skip any amount you don’t know.'}</p>
+  <h1>{isRevision?'Update your savings plan.':'Make your plan fit you.'}</h1>
+   {isRevision&&<p className={styles.intro}>You can change any answer in your plan. Your old report stays safe until you save. You will not pay again.</p>}
+   {!isRevision&&draft.step===0&&!review&&<section className={styles.introPanel} aria-label="Why we ask for more details">
+     <h2>A few more details. A plan made for you.</h2>
+     <p>Your first 8 answers showed us where to start. Now tell us a little more about what you pay. This helps us give you clearer steps and show possible savings when we have enough information.</p>
+     <p><strong>A rough guess is fine.</strong> Skip any amount you don't know. We'll save your answers as you go.</p>
+     {sessionId&&<p className={styles.noExtraCharge}>You have already paid. There is no extra charge.</p>}
+   </section>}
+   <p className={styles.intro}>{areas.length===0?'Your new answers do not point to a clear place to start. Pick one area you want help with.':areas.length+' areas to check. We’ll go through them one at a time.'}</p>
   {sessionId&&<p role='status' aria-live='polite' className={styles.selectionNote}>{saving}</p>}
   {!sessionId&&<div className={styles.demoPanel}><label htmlFor='demo'>Test customer — no payment or saved customer data</label><select id='demo' onChange={e=>setDraft(blankDraft(previewProfiles[e.target.value].answers))}>{Object.entries(previewProfiles).map(([key,p])=><option key={key} value={key}>{p.label}</option>)}</select></div>}
   
@@ -248,7 +232,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
      {area==='energy'&&<>{choice('state','Your state or territory',['NSW','VIC','QLD','SA','WA','TAS','ACT','NT'].map(s=>[s,s]))}{choice('electricityPeriod','How long does your latest power bill cover?',[['quarter','Three months'],['month','One month']])}{amount('electricityBill','About how much is that power bill?','Check your latest electricity bill in your email or provider app, or estimate.')}{choice('hasGas','Do you pay a gas bill?',[['yes','Yes'],['no','No'],['not_sure','Not sure']])}{d.hasGas==='yes'&&<>{choice('gasPeriod','How often do you pay your gas bill?',paymentPeriodOptions.map(p=>[p.value,p.label]))}{amount('gasMonthly','About how much is each gas payment?','Check your latest gas bill in your email or provider app. A rough amount is fine.')}</>}</>}
      {area==='insurance'&&<><p className={styles.sectionQuestion}>Which insurance policies do you pay for?</p><p className={styles.policyHint}>Add each policy separately. Rough costs are fine. We'll work out the combined yearly cost for you. Skip any amount you don't know.</p>{draft.insurancePolicies.map((p,i)=><div className={styles.policyCard} key={i}><strong>Policy {i+1}</strong><div className={styles.field}><label htmlFor={'policy-type-'+i}>What type of insurance is this?</label><select id={'policy-type-'+i} value={p.type} onChange={e=>policy(i,{type:e.target.value})}><option value=''>Choose a type / not sure</option>{['Car','Home or contents','Health','Life or income protection','CTP / Green Slip','Pet','Travel','Other'].map(t=><option key={t}>{t}</option>)}</select></div><div className={styles.field}><label htmlFor={'policy-period-'+i}>How often do you pay for this policy?</label><select id={'policy-period-'+i} value={p.paymentPeriod} onChange={e=>policy(i,{paymentPeriod:e.target.value})}>{paymentPeriodOptions.map(({value,label})=><option key={value} value={value}>{label}</option>)}</select></div><div className={styles.field}><label htmlFor={'policy-cost-'+i}>About how much is each payment?</label><input id={'policy-cost-'+i} type='number' min='0' max='100000' step='0.01' inputMode='decimal' placeholder='Not sure' value={p.premium} onChange={e=>policy(i,{premium:e.target.value})}/><small>Check your renewal email, insurer app or bank transactions. A rough payment amount is fine.</small></div><div className={styles.field}><label htmlFor={'policy-renewal-'+i}>When is this policy due for renewal?</label><select id={'policy-renewal-'+i} value={p.renewal} onChange={e=>policy(i,{renewal:e.target.value})}><option value=''>Not sure / skip</option><option value='soon'>In the next 3 months</option><option value='later'>Later</option></select><small>Renewal is when your insurer offers you a new term or price. It is different from how often you pay. Check your renewal email if unsure.</small></div><details className={styles.optionalDetails}><summary>Add insurer and cover details (optional)</summary><div className={styles.optionalInner}><label>Insurance company<input maxLength={80} placeholder='e.g. NRMA' value={p.insurer} onChange={e=>policy(i,{insurer:e.target.value})}/></label><label>Any extra cover details? (optional)<input maxLength={120} placeholder='e.g. comprehensive car cover' value={p.coverDescription} onChange={e=>policy(i,{coverDescription:e.target.value})}/></label><small>The insurance type above is the category. This box is only for details such as comprehensive car cover or basic hospital cover. Skip it if unsure. No policy or account numbers.</small></div></details><button type='button' className={styles.extraLink} onClick={()=>setDraft(prev=>({...prev,insurancePolicies:prev.insurancePolicies.filter((_,j)=>i!==j)}))}>Remove policy {i+1}</button></div>)}{draft.insurancePolicies.length<6&&<button type='button' className={styles.addPolicy} onClick={()=>setDraft(p=>({...p,insurancePolicies:[...p.insurancePolicies,emptyPolicy()]}))}>Add another policy</button>}<div className={styles.insuranceTotal} aria-live='polite'><strong>{pricedPolicies.length?'Combined yearly cost so far: $'+combinedInsuranceAnnual.toLocaleString('en-AU',{maximumFractionDigits:2}):'Combined yearly cost: Not calculated yet'}</strong><small>{pricedPolicies.length===0?'Add a payment amount to see your yearly total.':pricedPolicies.length<listedPolicies.length?'This covers only the '+pricedPolicies.length+' '+(pricedPolicies.length===1?'policy':'policies')+' with a price. Add other costs for a complete total.':'Based on the policies and payment amounts you entered. This is spending, not money saved.'}</small></div></>}
      {area==='unplanned'&&<>{choice('unplannedArea','What do you tend to buy?',['Online shopping','Clothes or accessories','Entertainment or hobbies','Other purchases'].map(x=>[x,x]))}{choice('shoppingTrigger','What makes you want to buy it?',['Sales or deals','Boredom','Social media','Other','Not sure'].map(x=>[x,x]))}</>}
-    </div><div className={styles.actions}><button className={styles.secondary} type='button' onClick={previous}>Previous question</button><button className={styles.primary} type='button' onClick={()=>next()}>Next</button>{isRevision&&<button className={styles.secondary} type='button' onClick={()=>setDraft(p=>({...p,step:areas.length}))}>Back to review</button>}</div><p className={styles.footnote}>Don't know an amount? Leave it blank and tap Next. We'll keep what you entered.</p></>}
+    </div><div className={styles.actions}>{draft.step>0&&<button className={styles.secondary} type='button' onClick={previous}>Previous question</button>}<button className={styles.primary} type='button' onClick={()=>next()}>Next</button>{isRevision&&<button className={styles.secondary} type='button' onClick={()=>setDraft(p=>({...p,step:areas.length}))}>Back to review</button>}</div><p className={styles.footnote}>Don't know an amount? Leave it blank and tap Next. We'll keep what you entered.</p></>}
    {error&&<p role='alert' className={styles.submitError}>{error}</p>}
   </section></fieldset><p className={styles.footnote}>No bank login, policy numbers or passwords needed.</p>
  </main></div>;
