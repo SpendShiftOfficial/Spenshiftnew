@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import {validateAuditAnswers} from "./audit-schema";
+import {validateAuditAnswers,isAcceptedPlanPaymentAmount} from "./audit-schema";
 import {isPersonalisationArea} from "./personalisation-questions";
 import {blankDraft} from "./plan-draft";
 import { Resend } from "resend";
@@ -48,7 +48,7 @@ export function auditAnswersFromSession(session: Stripe.Checkout.Session): strin
 function isCorrectReportPurchase(session: Stripe.Checkout.Session): boolean {
   return session.mode === "payment" &&
     session.currency?.toLowerCase() === "aud" &&
-    session.amount_total === 3900 &&
+    isAcceptedPlanPaymentAmount(session.amount_total) &&
     session.metadata?.product === "spendshift_full_report";
 }
 
@@ -141,15 +141,18 @@ async function claimEmailColumn(sessionId: string, column: "confirmation_sent_at
   return Boolean(data?.length);
 }
 
-export async function sendOrderConfirmationOnce(order: PaidOrder): Promise<void> {
+export async function sendOrderConfirmationOnce(order: PaidOrder, chargedCents: number | null): Promise<void> {
   if (!order.customer_email || !process.env.RESEND_API_KEY || (process.env.VERCEL_ENV === "preview" && process.env.PHASE1_TEST_EMAILS !== "enabled")) return;
   if (!(await claimEmailColumn(order.stripe_session_id, "confirmation_sent_at"))) return;
   try {
     const url = site + "/success?session_id=" + encodeURIComponent(order.stripe_session_id);
+    const paymentMessage = isAcceptedPlanPaymentAmount(chargedCents)
+      ? "Your A$" + (chargedCents / 100) + " payment is confirmed."
+      : "Your payment is confirmed.";
     await sendEmail(
       order.customer_email,
       "Your SpendShift payment is confirmed — finish your savings report",
-      "Your $39 payment is confirmed. Your report is reserved. Next, answer short questions about the areas in your plan. You can skip any amount you do not know. Your progress is saved as you go.<br><br>" +
+      paymentMessage + " Your report is reserved. Next, answer short questions about the areas in your plan. You can skip any amount you do not know. Your progress is saved as you go.<br><br>" +
       '<a style="background:#059625;color:#fff;padding:13px 22px;border-radius:24px;text-decoration:none;display:inline-block" href="' + htmlSafe(url) + '">Continue to your report</a><br><br>' +
       "Keep this link private because it provides access to your purchase.",
     );
