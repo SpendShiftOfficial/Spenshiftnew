@@ -2,6 +2,7 @@ import {validateAuditAnswers} from './audit-schema';
 import {selectPersonalisationAreas, type PersonalisationArea} from './personalisation-questions';
 import {emptyRefinements,validateRefinements} from './report-refinements';
 import {findAuditConflict} from './plan-conflicts';
+import {isPaymentPeriod} from './payment-periods';
 export const sectionKeys:Record<PersonalisationArea,string[]>={
  subscriptions:['subscriptionsMonthly','unusedSubscriptionChoice','unusedSubscriptionName','unusedSubscriptionMonthly'],
  takeaway:['takeawayMealMode','takeawayOrder','takeawayAmountPeriod','takeawayOrdersPerWeek','takeawaySwapPerWeek','takeawayReplacementCost','restaurantOrder','restaurantOrdersPerWeek','restaurantSwapPerWeek','restaurantReplacementCost','takeawayReason'],
@@ -13,10 +14,10 @@ export const sectionKeys:Record<PersonalisationArea,string[]>={
 export type RawPolicy={type:string;premium:string;paymentPeriod:string;insurer:string;coverDescription:string;renewal:string};
 export type RawUnusedSubscription={name:string;monthly:string};
 export type PlanDraft={version:1;answers:string[];details:Record<string,string>;insurancePolicies:RawPolicy[];additionalUnusedSubscriptions:RawUnusedSubscription[];additionalArea:string;step:number};
-export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'year',insurer:'',coverDescription:'',renewal:''});
+export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'',insurer:'',coverDescription:'',renewal:''});
 export function blankDraft(answers:string[]):PlanDraft{
  const details:Record<string,string>={};Object.keys(emptyRefinements().details).forEach(key=>details[key]='');
- details.electricityPeriod='quarter';details.takeawayAmountPeriod='order';details.gasPeriod='month';
+ details.electricityPeriod='';details.takeawayAmountPeriod='order';details.gasPeriod='';
  return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalUnusedSubscriptions:[],additionalArea:'',step:0};
 }
 function obj(input:unknown):Record<string,unknown>{if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Please check your saved answers.');return input as Record<string,unknown>;}
@@ -43,6 +44,16 @@ export function prepareDraft(d:PlanDraft){
  if(conflict) throw new Error(conflict.message);
  const areas=selectedDraftAreas(d);
  if(areas.length===0)throw new Error('Choose at least one area to check before making your plan.');
+ // New paid answers should not silently assume when a bill is paid.
+ // Existing saved reports retain their explicitly stored or legacy validated periods.
+ if(areas.includes('energy')){
+   if(d.details.electricityBill!==''&&!['month','quarter'].includes(d.details.electricityPeriod))
+     throw new Error("Choose whether your power bill covers one month or three months. If you're not sure, leave the bill amount blank.");
+   if(d.details.hasGas==='yes'&&d.details.gasMonthly!==''&&!isPaymentPeriod(d.details.gasPeriod))
+     throw new Error("Choose how often you pay your gas bill. If you're not sure, leave the amount blank.");
+ }
+ if(areas.includes('insurance')&&d.insurancePolicies.some(p=>p.premium!==''&&!isPaymentPeriod(p.paymentPeriod)))
+   throw new Error("Choose how often you pay for each insurance policy with a price. If you're not sure, leave the amount blank.");
  const details:Record<string,string>={};
  for(const area of areas)for(const key of sectionKeys[area])details[key]=d.details[key]||'';
  if(details.hasGas==='no'||details.hasGas==='not_sure')details.gasMonthly='';
