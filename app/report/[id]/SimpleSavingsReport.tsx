@@ -3,7 +3,6 @@ import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refine
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
 import SavingsTracker, { type TrackerOption } from "./SavingsTracker";
-import ReportEditLink from "./ReportEditLink";
 import QuoteCheck from "./QuoteCheck";
 import {takeawayMath} from "@/lib/savings-math";
 import {goalIntro,priorityReason,rankOpportunities} from "@/lib/plan-priority";
@@ -299,7 +298,7 @@ function AreaCard({ op, index, answers, refinements, nested = false }: {
   );
 }
 
-export default function SimpleSavingsReport({ reportId, answers, analysis, refinements, revisionCount = 0 }: Props) {
+export default function SimpleSavingsReport({ reportId, answers, analysis, refinements }: Props) {
   const ops = rankOpportunities(analysis.opportunities, answers, refinements);
   const first = ops.slice(0, 3);
   const more = ops.slice(3);
@@ -368,7 +367,6 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
         </section>}
 
         <SavingsTracker reportId={reportId} options={trackerOptions} />
-        {!reportId.startsWith("demo-") && <ReportEditLink reportId={reportId} revisionCount={revisionCount} />}
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
