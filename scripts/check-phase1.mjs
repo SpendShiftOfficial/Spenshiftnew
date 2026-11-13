@@ -262,7 +262,8 @@ check('mobile input and private layout fixes have appropriate CSS specificity',(
  assert.ok(form.includes('.introPanel'));
  assert.ok(report.includes('.lastCard > .helpDetails + .checkNote'));
  assert.ok(!report.includes('margin: -7px 0 18px'));
- assert.ok(header.includes('simple ? "logo" : "logo reveal-left"'));
+ assert.ok(header.includes('<Link href="/" className="logo">'));
+ assert.ok(!header.includes('logo reveal-left'));
  assert.ok(styles.includes('.topbar.topbar-simple'));
 });
 

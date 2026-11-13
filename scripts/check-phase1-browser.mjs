@@ -28,6 +28,11 @@ try{
     if(route!=='/save-money-australia')assert.match(body,/A\$29/,'A$29 missing on '+route);
     assert.ok(await page.getByRole('link',{name:'Start my free savings check'}).count()>0,'Free audit CTA missing on '+route);
     assert.ok(await page.locator('a[href="/audit"]').count()>0,'Free audit link broken on '+route);
+    const brand=page.locator('header.topbar .logo');
+    assert.equal(await brand.isVisible(),true,'Header logo not visible on '+route);
+    assert.ok(await brand.evaluate(el=>Number(getComputedStyle(el).opacity)>=0.99),'Header logo faded on '+route);
+    const footer=page.locator('footer .footerGrid');
+    assert.ok(await footer.evaluate(el=>Number(getComputedStyle(el).opacity)>=0.99),'Footer hidden on '+route);
     const title=await page.title();
     assert.match(title,/SpendShift/,'Page title missing on '+route);
     const description=await page.locator('meta[name="description"]').getAttribute('content');
