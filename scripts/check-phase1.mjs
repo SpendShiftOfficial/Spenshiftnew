@@ -209,7 +209,7 @@ check('mobile input and private layout fixes have appropriate CSS specificity',(
  const styles=fs.readFileSync('app/globals.css','utf8');
  assert.ok(form.includes('.field .moneyInput input {'));
  assert.ok(form.includes('padding-left: 48px;'));
- assert.ok(form.includes('.auditOptions'));
+ assert.ok(form.includes('.introPanel'));
  assert.ok(report.includes('.lastCard > .helpDetails + .checkNote'));
  assert.ok(!report.includes('margin: -7px 0 18px'));
  assert.ok(header.includes('simple ? "logo" : "logo reveal-left"'));
@@ -331,7 +331,7 @@ check('multiple entries in paid drafts survive save restore and revisions',()=>{
 });
 check('source offers relevant bill-finding help without adding more compulsory questions',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
- assert.ok(ui.includes('About how much do coffee, snacks and other small buys cost you each week?'));
+ assert.ok(ui.includes('About how much do you spend on coffee, snacks and small treats each week?'));
  for(const hint of ['bank transactions','email receipts','provider app','renewal email','rough amount']) assert.match(ui,new RegExp(hint,'i'));
  assert.ok(ui.includes('Add another unused subscription'));
  assert.ok(ui.includes('Remove unused subscription'));
@@ -341,12 +341,12 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
  const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
- assert.ok(form.includes('Which meals do you usually buy?'));assert.ok(form.includes('restaurantOrdersPerWeek'));
- assert.ok(form.includes('About how much would one home meal cost for the same people'));
- assert.ok(form.includes('We will not guess your saving.'));
- assert.ok(form.includes('When is this policy due for renewal?'));
- assert.ok(form.includes('It is different from how often you pay'));
- assert.ok(form.includes('Any extra cover details? (optional)'));
+ assert.ok(form.includes('Which kinds of meals do you buy?'));assert.ok(form.includes('restaurantOrdersPerWeek'));
+ assert.ok(form.includes('About how much would it cost to make one of these meals at home?'));
+ assert.match(form,/guess your saving/);
+ assert.ok(form.includes('When does this insurance renew?'));
+ assert.ok(form.includes('even if you pay monthly'));
+ assert.ok(form.includes('What does your insurance cover? (optional)'));
  assert.ok(css.includes('.optionalInner label input'));
  assert.ok(tracker.includes('This is for later.'));
  assert.ok(tracker.includes('compare what you paid before and after'));
@@ -366,18 +366,22 @@ check('free audit separates meals from small treats, and goal drives free orderi
  const habits=[...high];habits[7]='Stop money disappearing so fast';
  assert.notDeepEqual(analyseSavings(bill,emptyRefinements()).opportunities.map(o=>o.area),analyseSavings(habits,emptyRefinements()).opportunities.map(o=>o.area));
 });
-check('paid review is one answer at a time and retains original answers',()=>{
+check('paid first step explains why and has no Previous or free-audit escape',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.doesNotMatch(ui,/Check or change my first answers/);
- assert.match(ui,/auditReviewIndex/);
- assert.match(ui,/Previous question/);
- assert.match(ui,/setAuditReviewIndex\(7\)/);
- assert.match(ui,/prev\.answers\.map/);
- assert.match(ui,/changeTakeawayUnit/);
- assert.match(ui,/takeawayOrder:''/);
+ assert.doesNotMatch(ui,/auditReviewIndex|setAuditReviewIndex/);
+ assert.doesNotMatch(ui,/import \{auditQuestions,/);
+ assert.match(ui,/A few more details\. A plan made for you\./);
+ assert.match(ui,/Your first 8 answers showed us where to start/);
+ assert.match(ui,/A rough guess is fine/);
+ assert.match(ui,/There is no extra charge/);
+ assert.match(ui,/draft\.step===0&&!review/);
+ assert.match(ui,/draft\.step>0&&<button className=\{styles\.secondary\} type='button' onClick=\{previous\}>Previous question/);
+ assert.match(ui,/function previous\(\)\{if\(draft\.step===0\)return;/);
  const bill=blankDraft(high);bill.details.phoneService='both';bill.details.mobileMonthly='35';bill.details.internetMonthly='70';
  const clean=prepareDraft(bill);assert.equal(clean.details.mobileMonthly,35);assert.equal(clean.details.internetMonthly,70);
 });
+
 check('small buys only count separately and old overlapping values remain safe',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:'no'}"));
@@ -449,6 +453,28 @@ check('free results offer three main actions and relevant worked examples',()=>{
  assert.match(results,/Possible \$200 first-year price difference/);
  assert.match(results,/Possible \$40 less each week/);
  assert.match(results,/areas\.slice\(0,3\)/);assert.match(results,/areas\.slice\(3\)/);
+});
+
+check('paid questions use plain, specific wording and treat all figures as estimates',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ for(const phrase of [
+  'About how much do you usually pay for one takeaway order?',
+  'Count the whole order',
+  'About how much do you usually pay when you eat out?',
+  'Count the whole bill for everyone you pay for',
+  'About how many takeaway orders do you buy in a week?',
+  'How many times could you eat at home instead each week?',
+  'About how much do you pay for all your subscriptions each month?',
+  'Do you still pay for any subscriptions you don\'t use?',
+  'About how much do you spend on coffee, snacks and small treats each week?',
+  'About how much do you pay for your mobile each month?',
+  'About how much was your last power bill?',
+  'How often do you pay for this insurance?',
+  'What does your insurance cover? (optional)',
+  'What do you often buy without planning to?',
+ ]) assert.ok(ui.includes(phrase),'Missing clear customer question: '+phrase);
+ assert.ok(ui.includes('A rough guess is fine.'));
+ assert.match(ui,/count=\(key:string,label:string,hint=''/);
 });
 
 console.log('Phase 1 package: '+cases+' test groups passed.');
