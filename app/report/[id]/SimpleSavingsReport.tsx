@@ -2,6 +2,7 @@ import type { SavingsAnalysis, SavingsOpportunity } from "@/lib/savings-engine";
 import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refinements";
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
+import ReportEditLink from "./ReportEditLink";
 import SavingsTracker, { type TrackerOption } from "./SavingsTracker";
 import QuoteCheck from "./QuoteCheck";
 import {takeawayMath} from "@/lib/savings-math";
@@ -338,6 +339,9 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
               " You can do the rest when you're ready."
             : "Your answers did not show a clear problem. We won't make one up."}</p>
           <p>{goalIntro(answers[7])}</p>
+          {ops.length > 0 && ops.some(op => op.area !== "unplanned") &&
+           ops.every(op => op.annualSpend === null && op.scenarioSaving === null) &&
+            <p className={styles.smallNote}>Don't know your bill amounts? The steps below show where to find them. We won't guess a saving.</p>}
           <div className={styles.notice}>
             <strong>How we use your numbers.</strong> A bill is a cost, not a saving. We show a possible saving only when your answers give us enough information to calculate it.
           </div>
@@ -370,6 +374,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
+          {!reportId.startsWith("demo-") && <ReportEditLink reportId={reportId} />}
         </footer>
       </div>
     </main>
