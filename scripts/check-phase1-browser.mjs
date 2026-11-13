@@ -210,10 +210,10 @@ try{
       await page.locator('#restaurantReplacementCost').fill('20');
     }
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
-    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),0);assert.match(await page.locator('section').last().innerText(),/Do not count takeaway or restaurant meals here/);await page.locator('#convenienceGoalWeekly').fill('70');}
+    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),1);await page.locator('#convenienceOverlap').selectOption('no');assert.match(await page.locator('section').last().innerText(),/Do not count takeaway or restaurant meals here/);await page.locator('#convenienceGoalWeekly').fill('70');}
     if(heading==='Insurance'){assert.match(await page.locator('section').last().innerText(),/What insurance do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
     if(heading==='Phone and internet'){await page.locator('input[name=phoneService][value=both]').check();await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('input[name=phoneService][value=not_sure]').check();assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('input[name=phoneService][value=mobile]').check();assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
-    if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');assert.ok((await page.locator('#electricityPeriod').boundingBox()).y < (await page.locator('#electricityBill').boundingBox()).y);await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('yes');assert.ok((await page.locator('#gasPeriod').boundingBox()).y < (await page.locator('#gasMonthly').boundingBox()).y);await page.locator('#gasPeriod').selectOption('quarter');await page.locator('#gasMonthly').fill('300');}
+    if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');assert.ok((await page.locator('#electricityPeriod').boundingBox()).y < (await page.locator('#electricityBill').boundingBox()).y);await page.locator('#electricityPeriod').selectOption('quarter');await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('yes');assert.ok((await page.locator('#gasPeriod').boundingBox()).y < (await page.locator('#gasMonthly').boundingBox()).y);await page.locator('#gasPeriod').selectOption('quarter');await page.locator('#gasMonthly').fill('300');}
     if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
     await noOverflow(page);await next(page);
    }
@@ -228,7 +228,7 @@ try{
   });
   await test('checked savings are retained and not forecast totals '+viewport.width,async()=>{
    await page.getByText("I've made a change — compare my costs",{exact:true}).click();const form=page.locator('form').last();
-   await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra fees or costs not included above ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save this result'}).click();
+   await form.locator('select').first().selectOption('subscriptions');await form.getByLabel('What you paid before ($)',{exact:true}).fill('70');await form.getByLabel('What you paid after ($)',{exact:true}).fill('50');await form.getByLabel('Extra costs for that same week, month or year ($)',{exact:true}).fill('5');await form.locator('input[type=date]').fill('2026-11-01');await form.locator('input[type=checkbox]').check();await form.getByRole('button',{name:'Save this result'}).click();
    assert.match(await page.locator('body').innerText(),/recorded \$15 less/);await page.reload({waitUntil:'networkidle'});await page.waitForTimeout(300);assert.match(await page.locator('body').innerText(),/recorded \$15 less/);
   });
   await test('electricity price comparison labels one bill as a rough estimate '+viewport.width,async()=>{
@@ -241,6 +241,47 @@ try{
    assert.match(await section.innerText(),/Rough estimate: the new quote could be/);
    await section.getByLabel('I checked this yearly cost against 12 months of electricity bills.').check();
    assert.doesNotMatch(await section.innerText(),/Rough estimate: the new quote could be/);
+  });
+  await test('unconfirmed small-buy overlap is not called a saving '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
+   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
+   await page.locator('#takeawayOrder').fill('30');
+   await page.locator('#takeawayOrdersPerWeek').fill('4');
+   await page.locator('#takeawaySwapPerWeek').fill('1');
+   await page.locator('#takeawayReplacementCost').fill('10');
+   await next(page);
+   assert.equal(await page.locator('#convenienceOverlap').inputValue(),'');
+   await page.locator('#convenienceWeekly').fill('100');
+   await page.locator('#convenienceGoalWeekly').fill('70');
+   await page.locator('#convenienceOverlap').selectOption('yes');
+   await next(page);
+   assert.match(await page.locator('body').innerText(),/small-buy total leaves out takeaway/);
+   await page.getByRole('button',{name:'Make my plan',exact:true}).click();
+   await page.waitForURL('**/plan-preview');
+   const card=page.locator('#area-convenience');
+   if(!await card.isVisible())await page.locator('details').filter({has:card}).locator('summary').first().click();
+   assert.match(await card.innerText(),/haven't added a saving for small buys/);
+   assert.doesNotMatch(await card.innerText(),/Your goal:.*less each week/);
+   await noOverflow(page);
+  });
+  await test('new insurance and power costs ask for payment periods '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('household-bills');
+   assert.equal(await page.locator('#electricityPeriod').inputValue(),'');
+   await page.locator('#electricityBill').fill('500');
+   await page.getByRole('button',{name:'Next',exact:true}).click();
+   assert.match(await page.locator('p[role="alert"]').innerText(),/power bill covers/);
+   await page.locator('#electricityPeriod').selectOption('quarter');
+   await next(page);
+   await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
+   await next(page);
+   assert.equal(await page.locator('#policy-period-0').inputValue(),'');
+   await page.locator('#policy-type-0').selectOption('Car');
+   await page.locator('#policy-cost-0').fill('100');
+   await page.getByRole('button',{name:'Next',exact:true}).click();
+   assert.match(await page.locator('p[role="alert"]').innerText(),/insurance policy/);
+   await page.locator('#policy-period-0').selectOption('month');
+   await next(page);
+   await noOverflow(page);
   });
   await test('no-opportunity paid draft must choose one area before generating '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('few-opportunities');
@@ -375,13 +416,13 @@ try{
    }
    if(heading==='Insurance'){
     await buyer.locator('#policy-type-0').selectOption('Car');
-    await buyer.locator('#policy-cost-0').fill('1800');
+    await buyer.locator('#policy-period-0').selectOption('year');await buyer.locator('#policy-cost-0').fill('1800');
     await buyer.locator('#policy-renewal-0').selectOption('soon');
    }
    if(heading==='Small everyday buys'){
     await buyer.locator('#convenienceWeekly').fill('100');
-    assert.equal(await buyer.locator('#convenienceOverlap').count(),0);
-    await buyer.locator('#convenienceGoalWeekly').fill('70');
+    assert.equal(await buyer.locator('#convenienceOverlap').count(),1);
+    await buyer.locator('#convenienceOverlap').selectOption('no');await buyer.locator('#convenienceGoalWeekly').fill('70');
    }
    if(heading==='Phone and internet'){
     await buyer.locator('input[name=phoneService][value=mobile]').check();
@@ -389,7 +430,7 @@ try{
    }
    if(heading==='Power and gas'){
     await buyer.locator('#state').selectOption('NSW');
-    await buyer.locator('#electricityBill').fill('520');
+    await buyer.locator('#electricityPeriod').selectOption('quarter');await buyer.locator('#electricityBill').fill('520');
     await buyer.locator('#hasGas').selectOption('no');
    }
    if(heading==='Unplanned shopping'){
