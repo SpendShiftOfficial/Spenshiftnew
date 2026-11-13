@@ -568,7 +568,7 @@ check('overlooked areas stay opt-in and survive paid draft restoration',()=>{
  const api=fs.readFileSync('app/api/checkout/route.ts','utf8');
  assert.match(api,/isPersonalisationArea\(additionalArea\)/);
  assert.match(api,/additional_area:additionalArea\|\|''/);
- assert.match(api,/JSON\.stringify\(\{answers,additionalArea\}\)/);
+ assert.match(api,/JSON\.stringify\(\{answers,additionalArea,amount:PLAN_PRICE_CENTS\}\)/);
  const order=fs.readFileSync('lib/paid-orders.ts','utf8');
  assert.match(order,/savedArea.*additional_area/);
  assert.match(order,/blankDraft\(answers\), additionalArea: savedArea/);
