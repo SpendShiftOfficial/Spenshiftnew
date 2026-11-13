@@ -477,6 +477,15 @@ check('paid questions use plain, specific wording and treat all figures as estim
  assert.match(ui,/count=\(key:string,label:string,hint=''/);
 });
 
+check('occasional takeaway buyers can give a truthful answer',()=>{
+ const optional='Less than once a week';
+ assert.ok(auditQuestions[0].options.includes(optional));
+ const answers=[optional,'0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+ assert.deepEqual(validateAuditAnswers(answers),answers);
+ assert.equal(selectPersonalisationAreas(answers).includes('takeaway'),false);
+ const d=blankDraft(answers);d.additionalArea='takeaway';d.details.takeawayMealMode='takeaway';d.details.takeawayOrdersPerWeek='0';
+ assert.equal(findAuditConflict(d),null);
+});
 check('new bill amounts require a confirmed payment period',()=>{
  const draft=blankDraft(high);
  assert.equal(draft.details.electricityPeriod,'');
