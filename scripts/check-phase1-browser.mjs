@@ -242,6 +242,8 @@ try{
     if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
     await noOverflow(page);await next(page);
    }
+   assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0,'Final review has no Previous question');
+   assert.equal(await page.getByRole('button',{name:/^Check or edit /}).count(),7,'Seven review areas remain editable');
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();await page.waitForURL('**/plan-preview');
    await page.waitForSelector('h1');const body=await page.locator('body').innerText();assert.match(body,/7 areas to check/);assert.match(body,/Your goal is to lower your bills/);
    const first=await page.locator('article h2').first().innerText();assert.equal(first,'Insurance');
@@ -473,6 +475,8 @@ try{
   }
   assert.match(await buyer.locator('body').innerText(),/nearly done/i);
   assert.ok(customerWrites>=7);
+   assert.equal(await buyer.getByRole('button',{name:'Previous question',exact:true}).count(),0,'Paid review has no Previous button');
+   assert.equal(await buyer.getByRole('button',{name:/^Check or edit /}).count(),7,'Paid review areas remain editable');
   // The same calculation and report renderer used by the real product now
   // receive the exact draft from this simulated paid journey.
   await buyer.evaluate(d=>sessionStorage.setItem('spendshift_demo_plan',JSON.stringify(d)),customerDraft);
