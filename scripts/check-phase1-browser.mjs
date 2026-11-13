@@ -26,11 +26,33 @@ try{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
    await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
+   assert.equal(await page.locator('#optional-extra-area').count(),0,'Seven flagged areas must not show an extra dropdown');
+   assert.equal(await page.getByRole('button',{name:'Want to check another area?'}).count(),0,'Seven flagged areas must not show the optional link');
    const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
    assert.match(await example.innerText(),/In your paid plan: clear steps and useful links/);
    assert.equal(await example.locator('ol').count(),0,'The free example must not give away the full three-step guide');
    await noOverflow(page);
    await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
+  });
+  await test('one to six flagged areas reveal only missing choices on request '+viewport.width,async()=>{
+   const context=await browser.newContext({viewport});const choicePage=await context.newPage();
+   await choicePage.goto(base+'/audit',{waitUntil:'networkidle'});
+   await choicePage.evaluate(()=>localStorage.setItem('spendshift_answers',JSON.stringify(['Never','6–10','Over 2 years ago','Rarely','Within 6 months','Within 6 months','Rarely','Lower my bills'])));
+   await choicePage.goto(base+'/results',{waitUntil:'networkidle'});
+   assert.match(await choicePage.locator('body').innerText(),/2 places to check/);
+   assert.equal(await choicePage.locator('#optional-extra-area').count(),0);
+   const show=choicePage.getByRole('button',{name:'Want to check another area?',exact:true});
+   assert.equal(await show.count(),1);
+   await show.click();
+   const select=choicePage.locator('#optional-extra-area');
+   assert.equal(await select.count(),1);
+   const options=await select.locator('option').allTextContents();
+   assert.deepEqual(options,['No extra area','Takeaway and eating out','Small everyday buys','Phone and internet','Power and gas','Unplanned shopping']);
+   await select.selectOption('phone');
+   assert.equal(await select.inputValue(),'phone');
+   assert.match(await choicePage.locator('body').innerText(),/Your paid plan will cover all 3 areas/);
+   await noOverflow(choicePage);
+   await context.close();
   });
   await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
    await go(page,'/audit');
@@ -42,6 +64,7 @@ try{
      await page.getByRole('button',{name:value==='Save more money'?'See my free results':'Next question',exact:true}).click();
    }
    await page.waitForURL('**/results');
+   assert.equal(await page.locator('#optional-extra-area').count(),1,'No flagged areas should show the manual choice immediately');
    assert.match(await page.locator('body').innerText(),/don't recommend paying based on these answers alone/);
    await page.locator('#optional-extra-area').selectOption('subscriptions');
    assert.match(await page.locator('body').innerText(),/You chose Subscriptions to check/);
