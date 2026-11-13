@@ -23,5 +23,10 @@ export function validateAuditAnswers(input:unknown):string[]{
   return found;
  });
 }
-export const PLAN_PRICE_CENTS=3900;
+export const PLAN_PRICE_CENTS=2900;
+/** Keep older A$39 orders valid; only new checkouts use the current price. */
+export const LEGACY_PLAN_PRICE_CENTS=3900;
+export function isAcceptedPlanPaymentAmount(amount: unknown): amount is number {
+ return amount===PLAN_PRICE_CENTS || amount===LEGACY_PLAN_PRICE_CENTS;
+}
 export const TERMS_VERSION='2026-11-phase1';
