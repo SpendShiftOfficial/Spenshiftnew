@@ -34,7 +34,8 @@ try{
   });
   await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
    await go(page,'/audit');
-   await page.getByRole('button',{name:'Less than once a week',exact:true}).click();
+   assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
+   await page.getByRole('button',{name:'Rarely',exact:true}).click();
    await page.getByRole('button',{name:'Next question',exact:true}).click();
    for(const value of ['0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
      await page.getByRole('button',{name:value,exact:true}).click();
@@ -42,6 +43,14 @@ try{
    }
    await page.waitForURL('**/results');
    assert.match(await page.locator('body').innerText(),/don't recommend buying a report/);
+   await noOverflow(page);
+  });
+  await test('older saved free answers reopen as Rarely '+viewport.width,async()=>{
+   await go(page,'/audit');
+   await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Less than once a week'],index:0})));
+   await page.reload({waitUntil:'networkidle'});
+   assert.equal(await page.getByRole('button',{name:'Rarely',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await noOverflow(page);
   });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
