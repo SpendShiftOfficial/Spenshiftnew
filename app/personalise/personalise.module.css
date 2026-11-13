@@ -535,3 +535,19 @@
 .billChoice input { appearance: auto; width: 19px; height: 19px; min-width: 19px; margin: 0; accent-color: #0a7a2c; }
 .billChoice span { flex: 1; }
 .billChoice:focus-within { outline: 3px solid #a2dcb2; outline-offset: 2px; }
+
+/* Keep the two kinds of meals visually distinct, but in one savings area. */
+.mealGroup {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #d5e4d7;
+  border-radius: 15px;
+  background: #f8fbf8;
+  min-width: 0;
+}
+.mealGroup h3 { margin: 0; color: #1a4327; font-size: 19px; font-weight: 800; line-height: 1.3; }
+.mealGroup > small { color: #607363; font-size: 13px; line-height: 1.55; }
+@media (max-width: 570px) {
+  .mealGroup { padding: 15px; gap: 17px; }
+}
