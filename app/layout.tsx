@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/save-money-australia.png",
         width: 1200,
         height: 630,
       },
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     title: "SpendShift",
     description:
       "Start with free spending results. Get a personalised savings plan for A$29 once if you want more help.",
-    images: ["/og-image.jpg"],
+    images: ["/save-money-australia.png"],
   },
 
   icons: {

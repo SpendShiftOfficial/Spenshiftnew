@@ -2,7 +2,6 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ScrollReveal from "@/components/ScrollReveal";
 
 import {
   ArrowRight,
@@ -110,7 +109,7 @@ export default function WhySpendShiftPage() {
         {/* HERO */}
         <section className="whyPageHero">
           <div className="container whyPageHeroGrid">
-            <div className="whyPageHeroContent reveal-left delay-1">
+            <div className="whyPageHeroContent">
               <span className="innerEyebrow">
                 <Sparkles size={17} />
                 Why SpendShift
@@ -162,7 +161,7 @@ Australian money-saving guide
               </Link>
             </div>
 
-            <aside className="whyHeroPanel reveal-right delay-2">
+            <aside className="whyHeroPanel">
               <span className="whyHeroPanelLabel">
                 SpendShift is designed to be
               </span>
@@ -207,7 +206,7 @@ Australian money-saving guide
         {/* BENEFITS */}
         <section className="whyBenefitsSection">
           <div className="container">
-            <div className="sectionIntro reveal-up">
+            <div className="sectionIntro">
               <span className="sectionEyebrow">Designed Differently</span>
 
               <h2 className="sectionTitle">
@@ -223,7 +222,7 @@ Australian money-saving guide
               </p>
             </div>
 
-            <div className="whyBenefitsGrid reveal-up">
+            <div className="whyBenefitsGrid">
               {benefits.map((benefit) => {
                 const Icon = benefit.icon;
 
@@ -258,7 +257,7 @@ Australian money-saving guide
         {/* COMPARISON */}
         <section className="whyComparisonSection">
           <div className="container">
-            <div className="sectionIntro reveal-up">
+            <div className="sectionIntro">
               <span className="sectionEyebrow">
                 A simple way to start
               </span>
@@ -277,18 +276,18 @@ Australian money-saving guide
 
             <div className="whyComparisonTable">
               <div className="whyComparisonHeader">
-                <span className="reveal-left">Tracking every expense</span>
-                <span className="reveal-right">SpendShift</span>
+                <span className="">Tracking every expense</span>
+                <span className="">SpendShift</span>
               </div>
 
               {differences.map((item) => (
                 <div className="whyComparisonRow" key={item.traditional}>
-                  <div className="whyComparisonTraditional reveal-up">
+                  <div className="whyComparisonTraditional">
                     <span className="comparisonMinus">−</span>
                     {item.traditional}
                   </div>
 
-                  <div className="whyComparisonSpendShift reveal-up">
+                  <div className="whyComparisonSpendShift">
                     <CheckCircle2 size={19} fill="#059625" stroke="white" />
                     {item.spendshift}
                   </div>
@@ -301,7 +300,7 @@ Australian money-saving guide
         {/* AUSTRALIAN SECTION */}
         <section className="whyAustralianSection">
           <div className="container whyAustralianGrid">
-            <div className="whyAustralianContent reveal-left">
+            <div className="whyAustralianContent">
               <span className="sectionEyebrow">Built for Australians</span>
 
               <h2>
@@ -336,7 +335,7 @@ Australian money-saving guide
               </div>
             </div>
 
-            <div className="whyAustralianCard reveal-right">
+            <div className="whyAustralianCard">
               <MapPin size={40} />
 
               <span>Australian focused</span>
@@ -356,7 +355,7 @@ Australian money-saving guide
         {/* PRIVACY */}
         <section className="whyPrivacySection">
           <div className="container whyPrivacyGrid">
-            <div className="whyPrivacyCard reveal-left">
+            <div className="whyPrivacyCard">
               <ShieldCheck size={44} />
 
               <h3>No bank connection required</h3>
@@ -368,7 +367,7 @@ Australian money-saving guide
               </p>
             </div>
 
-            <div className="whyPrivacyContent reveal-right">
+            <div className="whyPrivacyContent">
               <span className="sectionEyebrow">Privacy First</span>
 
               <h2>
@@ -394,7 +393,7 @@ Australian money-saving guide
         <section className="finalCtaSection">
           <div className="container">
             <div className="cta">
-              <div className="reveal-left">
+              <div className="">
                 <h2>See what may be worth checking.</h2>
 
                 <p>
@@ -403,7 +402,7 @@ Australian money-saving guide
                 </p>
               </div>
 
-              <div className="reveal-right">
+              <div className="">
                 <Link href="/audit" className="btn white">
                   Start my free savings check
                   <ArrowRight size={18} />
@@ -415,7 +414,6 @@ Australian money-saving guide
           </div>
         </section>
         <Footer />
-        <ScrollReveal />
       </main>
     </div>
   );
