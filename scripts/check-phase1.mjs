@@ -396,6 +396,15 @@ check('final review uses per-area edit links without Previous and the paid repor
  assert.ok(paid.includes('<SavingsTracker reportId={reportId}'));
  assert.ok(fs.existsSync('app/report/[id]/ReportEditLink.tsx'));
 });
+check('overlapping small buys never suggest a missing post-report editing button',()=>{
+ const rendered=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.match(rendered,/Check your small buys without full meals before counting any reduction/);
+ assert.doesNotMatch(rendered,/then fix the answer in your plan/);
+ const r=validateRefinements({details:{takeawayMealMode:'takeaway',takeawayOrder:'30',takeawayOrdersPerWeek:'3',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10',convenienceWeekly:'50',convenienceGoalWeekly:'40',convenienceOverlap:'yes'}});
+ const op=analyseSavings(high,r).opportunities.find(x=>x.area==='convenience');
+ assert.equal(op.scenarioSaving,null);
+ assert.doesNotMatch(op.firstAction,/Update your plan/);
+});
 check('small buys only count separately and old overlapping values remain safe',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:''}"));
