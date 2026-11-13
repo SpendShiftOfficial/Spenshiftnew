@@ -22,56 +22,49 @@ const firstChecks:Record<PersonalisationArea,string>={
  energy:"Find your latest power bill and see what you pay for the electricity you use.",
  unplanned:"Write down your next unplanned purchase and wait one day before deciding.",
 };
-type PreviewExample={story:string;costs:{label:string;value:string}[];outcome:string;note:string;steps:[string,string,string]};
+type PreviewExample={story:string;costs:{label:string;value:string}[];outcome:string;note:string};
 const previewExamples:Record<PersonalisationArea,PreviewExample>={
  subscriptions:{
-  story:"Example customer: they find two streaming services they no longer use.",
+  story:"Example: two streaming services are no longer used.",
   costs:[{label:"Stan",value:"$20/month"},{label:"Netflix",value:"$15/month"},{label:"Total unused charges",value:"$35/month"}],
   outcome:"Possible $420 less in one year",
-  note:"Only if both services are cancelled, no replacements are bought and the charges stop for 12 months.",
-  steps:["Find both charges in bank transactions or receipts.","Open each account to cancel the unused service.","Check the next bank statement to see that both payments stopped."],
+  note:"Only if both are cancelled, not replaced and stop billing for 12 months.",
  },
  takeaway:{
-  story:"Example customer: they replace two $30 takeaway orders each week with $10 home meals for the same people.",
+  story:"Example: swap two takeaway orders for home meals each week.",
   costs:[{label:"Two takeaway meals",value:"$60/week"},{label:"Two home meals",value:"$20/week"}],
   outcome:"Possible $40 less each week",
-  note:"This example only includes those two takeaway meals, not restaurant visits. Extra shopping, travel or food costs may change the result.",
-  steps:["Pick two usual takeaway nights to change.","Buy the food for two home meals and check the full price.","Check what both meals really cost before counting any saving."],
+  note:"For the same people, with all extra costs included. Not saved yet.",
  },
  insurance:{
-  story:"Example customer: their car insurance costs $1,500 a year. They find a sample quote for $1,300.",
+  story:"Example: compare a car policy with an illustrative quote.",
   costs:[{label:"Current policy",value:"$1,500/year"},{label:"Example new quote",value:"$1,300/year"}],
   outcome:"Possible $200 first-year price difference",
-  note:"Not a real quote. Compare the same cover, claim costs, exclusions, renewal terms and switching fees before changing.",
-  steps:["Find your renewal notice and current cover.","Ask for two quotes based on the same protection.","Check the full first-year cost and what is excluded."],
+  note:"Not a live quote. Check the same cover, claim costs and fees.",
  },
  phone:{
-  story:"Example customer: they pay $70 a month for mobile and find a comparable $55 plan.",
+  story:"Example: compare a mobile plan with an illustrative alternative.",
   costs:[{label:"Current mobile plan",value:"$70/month"},{label:"Example new plan",value:"$55/month"}],
   outcome:"Possible $180 difference in one year",
-  note:"Assumes the same coverage, data and service for 12 months, with no extra fees. Not live provider pricing.",
-  steps:["Find your latest bill and note your data use.","Compare plans that meet the same needs.","Check any joining fees and when special prices end."],
+  note:"Not live prices. Check data, coverage, fees and the full-year cost.",
  },
  energy:{
-  story:"Example customer: a full year's electricity bills add up to $2,000. A comparable example plan costs $1,800.",
+  story:"Example: compare yearly power costs for the same usage.",
   costs:[{label:"Current yearly electricity cost",value:"$2,000"},{label:"Example yearly quote",value:"$1,800"}],
   outcome:"Possible $200 first-year price difference",
-  note:"Assumes the same energy use and included supply charges. Actual bills change with usage and seasons.",
-  steps:["Find a year's bills and look at your energy use.","Compare plans using that same use and location.","Check supply charges, discounts and other fees."],
+  note:"Not live prices. Assumes the same usage and all charges.",
  },
  convenience:{
-  story:"Example customer: small buys cost $50 a week. They choose a realistic $35 weekly limit.",
+  story:"Example: set a lower weekly limit for coffee and snacks.",
   costs:[{label:"Current small buys",value:"$50/week"},{label:"New weekly goal",value:"$35/week"}],
   outcome:"Possible $15 less each week",
-  note:"Only if they keep to the limit. It is a spending goal, not money already saved.",
-  steps:["Look at last week's coffees and snacks, without meals.","Choose the small treats worth keeping.","Check actual spending after seven days."],
+  note:"A goal, not money saved yet. Meals aren't included.",
  },
  unplanned:{
-  story:"Example customer: they almost buy a $60 item they had not planned for.",
+  story:"Example: skip an unplanned $60 purchase.",
   costs:[{label:"Unplanned item",value:"$60"},{label:"If they skip it",value:"$0 spent"}],
   outcome:"Possible $60 not spent once",
-  note:"Only if they decide not to buy it and do not replace it with another purchase. There is no reliable yearly estimate.",
-  steps:["Put the item on a list instead of checking out.","Wait a full day before deciding.","If you skip the purchase, record only what you actually kept."],
+  note:"Only if it's not bought or replaced. One-off, not yearly.",
  },
 };
 export default function Results() {
@@ -212,9 +205,7 @@ export default function Results() {
                 </dl>
                 <p className={styles.previewResult}>{previewExamples[areas[0]].outcome}</p>
                 <p className={styles.previewCaution}>{previewExamples[areas[0]].note}</p>
-                <strong className={styles.previewSubheading}>What the customer would do:</strong>
-                <ol>{previewExamples[areas[0]].steps.map(step=><li key={step}>{step}</li>)}</ol>
-                <small>Your paid plan will use your details and show relevant help links. No saving is guaranteed.</small>
+                <small>In your paid plan: clear steps and useful links for your answers. No saving is guaranteed.</small>
               </div>
               <div className={styles.price}>A$39 <span>one-time payment</span></div>
               <p className={styles.honesty}>We don't compare live prices for you or promise a set amount of savings. Your plan will help you find out.</p>
