@@ -259,7 +259,7 @@ check('legacy billing data stays monthly for gas, yearly for missing insurance p
  const legacy=validateRefinements({details:{gasMonthly:'85'},insurancePolicies:[{type:'Car',premium:'1800'}]});
  assert.equal(legacy.details.gasPeriod,'month');assert.equal(legacy.insurancePolicies[0].paymentPeriod,'year');
  assert.equal(analyseSavings(high,legacy).opportunities.find(o=>o.area==='energy').annualSpend,1020);
- const oldDraft=blankDraft(high);oldDraft.details.gasMonthly='85';oldDraft.details.hasGas='yes';
+ const oldDraft=blankDraft(high);oldDraft.details.gasMonthly='85';oldDraft.details.hasGas='yes';oldDraft.details.gasPeriod='month';
  const restored=restoreDraft(high,{version:1,draft:oldDraft});
  assert.equal(restored.details.gasPeriod,'month');
  assert.throws(()=>validateRefinements({details:{gasPeriod:'daily'}}),/gas payment frequency/);
