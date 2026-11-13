@@ -147,7 +147,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
      <p><strong>A rough guess is fine.</strong> Skip any amount you don't know. We'll save your answers as you go.</p>
      {sessionId&&<p className={styles.noExtraCharge}>You have already paid. There is no extra charge.</p>}
    </section>}
-   <p className={styles.intro}>{areas.length===0?'Your new answers do not point to a clear place to start. Pick one area you want help with.':areas.length+' areas to check. We’ll go through them one at a time.'}</p>
+   <p className={styles.intro}>{areas.length===0?'Your new answers do not point to a clear place to start. Pick one area you want help with.':areas.length+(areas.length===1?' area':' areas')+' to check. We’ll go through them one at a time.'}</p>
   {sessionId&&<p role='status' aria-live='polite' className={styles.selectionNote}>{saving}</p>}
   {!sessionId&&<div className={styles.demoPanel}><label htmlFor='demo'>Test customer — no payment or saved customer data</label><select id='demo' onChange={e=>setDraft(blankDraft(previewProfiles[e.target.value].answers))}>{Object.entries(previewProfiles).map(([key,p])=><option key={key} value={key}>{p.label}</option>)}</select></div>}
   
