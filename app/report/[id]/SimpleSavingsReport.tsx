@@ -111,6 +111,9 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
         <strong>{money(d.convenienceWeekly)} <small>/ week</small></strong>
         <span>What you spend on small buys now</span>
       </div>}
+      {op.scenarioSaving === null && d.convenienceWeekly !== null && d.convenienceGoalWeekly !== null &&
+        d.convenienceGoalWeekly < d.convenienceWeekly && d.convenienceOverlap !== "no" &&
+        <p className={styles.smallNote}>We haven't added a saving for small buys because this amount may include takeaway or meals out. Check what you spend without full meals, then fix the answer in your plan.</p>}
       {op.scenarioSaving !== null && d.convenienceGoalWeekly !== null &&
         d.convenienceWeekly !== null && (
         <div className={styles.possible}>
