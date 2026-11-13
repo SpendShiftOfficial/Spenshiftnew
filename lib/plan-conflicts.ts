@@ -27,7 +27,7 @@ export function findAuditConflict(d: PlanDraft): AuditConflict | null {
   if (areas.includes("takeaway") && (weekly !== null && Number.isFinite(weekly) || anyPositive)) {
     const freeAnswer = answers[0];
     if ((freeAnswer === "Never" && anyPositive) ||
-        (weekly !== null && freeAnswer !== "Never" && weekly === 0) ||
+        (weekly !== null && !['Never', 'Less than once a week'].includes(freeAnswer) && weekly === 0) ||
         (weekly !== null && freeAnswer === "1–2 times/week" && weekly > 4) ||
         (weekly !== null && freeAnswer === "Almost daily" && weekly < 3)) {
       return {
