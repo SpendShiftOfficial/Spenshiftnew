@@ -266,6 +266,7 @@ try{
   });
   await test('new insurance and power costs ask for payment periods '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('household-bills');
+   await next(page);
    assert.equal(await page.locator('#electricityPeriod').inputValue(),'');
    await page.locator('#electricityBill').fill('500');
    await page.getByRole('button',{name:'Next',exact:true}).click();
