@@ -189,8 +189,8 @@ export default function SavingsTracker({
               Extra costs for that same week, month or year ($)
               <input type="number" min="0" max="100000" step="0.01" required
                 value={fees} onChange={e => setFees(e.target.value)} />
-               <small>Use the same time period for all amounts. For a one-off switching fee, choose Year and compare the full-year costs.</small>
             </label>
+            <small className={styles.checkNote}>Use the same time period for all amounts. For a one-off switching fee, choose Year and compare the full-year costs.</small>
             <label>
               Date you checked
               <input type="date" required max={localToday || undefined} value={date} onChange={e => setDate(e.target.value)} />
