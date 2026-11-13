@@ -16,7 +16,7 @@ type Rule = { index: number; signals: Record<string, number> };
 
 const rules: Record<PersonalisationArea, Rule> = {
   takeaway: { index: 0, signals: {
-    "Never": 0, "Less than once a week": 1, "1–2 times/week": 2, "3–5 times/week": 3, "Almost daily": 4,
+    "Never": 0, "Rarely": 1, "Less than once a week": 1, "1–2 times/week": 2, "3–5 times/week": 3, "Almost daily": 4,
   }},
   subscriptions: { index: 1, signals: {
     "0–2": 0, "3–5": 2, "6–10": 3, "10+": 4, "Not sure": 2,
