@@ -11,7 +11,7 @@ import { areaNames, reasonForArea, type PersonalisationArea } from "@/lib/person
 import { analyseSavings } from "@/lib/savings-engine";
 import { emptyRefinements } from "@/lib/report-refinements";
 import styles from "./results.module.css";
-import {TERMS_VERSION} from "@/lib/audit-schema";
+import {TERMS_VERSION,PLAN_PRICE_CENTS} from "@/lib/audit-schema";
 
 const firstChecks:Record<PersonalisationArea,string>={
  takeaway:"Check how much your takeaway and restaurant meals cost in a normal week.",
@@ -132,14 +132,14 @@ export default function Results() {
         throw new Error(data.error || "We couldn't open checkout. Please try again.");
       }
       trackEvent("begin_checkout", {
-        currency: "AUD", value: 39,
-        items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: 39, quantity: 1 }],
+        currency: "AUD", value: PLAN_PRICE_CENTS / 100,
+        items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: PLAN_PRICE_CENTS / 100, quantity: 1 }],
       });
       trackTikTok("InitiateCheckout", {
-        contents: [{ content_id: "spendshift_full_report", content_name: "SpendShift Full Savings Report", quantity: 1, price: 39 }],
-        content_type: "product", value: 39, currency: "AUD",
+        contents: [{ content_id: "spendshift_full_report", content_name: "SpendShift Full Savings Report", quantity: 1, price: PLAN_PRICE_CENTS / 100 }],
+        content_type: "product", value: PLAN_PRICE_CENTS / 100, currency: "AUD",
       });
-      trackMetaStandard("InitiateCheckout", { value: 39, currency: "AUD" });
+      trackMetaStandard("InitiateCheckout", { value: PLAN_PRICE_CENTS / 100, currency: "AUD" });
       await new Promise(resolve => setTimeout(resolve, 350));
       window.location.assign(data.url);
     } catch (err) {
@@ -233,14 +233,14 @@ export default function Results() {
                 <p className={styles.previewCaution}>{previewExamples[previewArea].note}</p>
                 <small>In your paid plan: clear steps and useful links for your answers. No saving is guaranteed.</small>
               </div>
-              <div className={styles.price}>A$39 <span>one-time payment</span></div>
+              <div className={styles.price}>A$29 <span>one-time payment</span></div>
               <p className={styles.honesty}>We don't check live prices or promise savings. If you don't know your bill amounts, we'll show you where to find them, but we can't calculate a reduction without enough figures.</p>
               <label className={styles.terms}>
                 <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
                 <span>I agree to the <Link href="/terms-and-conditions" target="_blank">Terms</Link>, <Link href="/privacy-policy" target="_blank">Privacy Policy</Link> and <Link href="/financial-information-ai-disclaimer" target="_blank">Financial Information & AI Disclaimer</Link>.</span>
               </label>
               <button className={styles.payButton} type="button" disabled={!acceptedTerms || busy} onClick={checkout}>
-                <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$39"} <ArrowRight size={19} />
+                <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$29"} <ArrowRight size={19} />
               </button>
               {error && <p className={styles.error} role="alert">{error}</p>}
               <p className={styles.footnote}>One payment. Next, add details for the areas in your plan. Skip any amount you do not know.</p>
