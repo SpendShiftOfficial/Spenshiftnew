@@ -50,7 +50,8 @@ try{
    assert.deepEqual(options,['No extra area','Takeaway and eating out','Small everyday buys','Phone and internet','Power and gas','Unplanned shopping']);
    await select.selectOption('phone');
    assert.equal(await select.inputValue(),'phone');
-   assert.match(await choicePage.locator('body').innerText(),/Your paid plan will cover all 3 areas/);
+   assert.equal(await show.count(),0,'The link is replaced by the revealed selector');
+   assert.equal(await choicePage.getByRole('heading',{name:'Get your simple savings plan.'}).count(),1);
    await noOverflow(choicePage);
    await context.close();
   });
