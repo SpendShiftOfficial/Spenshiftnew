@@ -76,8 +76,8 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
       ...(['takeaway','both','combined'].includes(mode)?[{name:'takeaway',cost:d.takeawayOrder,count:d.takeawayOrdersPerWeek,swap:d.takeawaySwapPerWeek,home:d.takeawayReplacementCost}]:[]),
       ...(['restaurant','both'].includes(mode)?[{name:'restaurant',cost:d.restaurantOrder,count:d.restaurantOrdersPerWeek,swap:d.restaurantSwapPerWeek,home:d.restaurantReplacementCost}]:[]),
      ];
-     if(groups.some(g=>Number(g.swap)>0&&!g.home))return 'A home-meal cost is missing. Without it we cannot calculate a saving for that kind of meal, but you can still make your plan.';
-     if(groups.some(g=>!g.cost||!g.count))return 'Add the cost of each type of meal and how often you buy it for a more personal plan.';
+     if(groups.some(g=>Number(g.swap)>0&&!g.home))return "You can skip the home-meal cost. We just can't work out a saving for that meal until you know it.";
+     if(groups.some(g=>!g.cost||!g.count))return 'Add about what you usually pay and how many meals you buy in a week to make your plan more useful.';
      return '';
    }
    if(a==='convenience')return !d.convenienceWeekly||!d.convenienceGoalWeekly
@@ -130,7 +130,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  }
  const choice=(key:string,label:string,options:[string,string][],hint='')=> <div className={styles.field}><label htmlFor={key}>{label}</label><select id={key} value={d[key]||''} onChange={e=>update(key,e.target.value)}><option value=''>Not sure / skip</option>{options.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>{hint&&<small>{hint}</small>}</div>;
  const amount=(key:string,label:string,hint='')=><div className={styles.field}><label htmlFor={key}>{label}</label><div className={styles.moneyInput}><span aria-hidden='true'>$</span><input id={key} type='number' min='0' max='100000' step='0.01' inputMode='decimal' value={d[key]||''} placeholder='Not sure' onChange={e=>update(key,e.target.value)}/></div>{hint&&<small>{hint}</small>}</div>;
- const count=(key:string,label:string)=> <div className={styles.field}><label htmlFor={key}>{label}</label><input id={key} type='number' min='0' max='21' step='1' inputMode='numeric' value={d[key]||''} placeholder='Not sure' onChange={e=>update(key,e.target.value)}/></div>;
+ const count=(key:string,label:string,hint='')=> <div className={styles.field}><label htmlFor={key}>{label}</label><input id={key} type='number' min='0' max='21' step='1' inputMode='numeric' value={d[key]||''} placeholder='Not sure' onChange={e=>update(key,e.target.value)}/>{hint&&<small>{hint}</small>}</div>;
  if(!ready)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>{error?'We could not open your plan':'Opening your plan'}</h1><p role={error?'alert':undefined}>{error||'Checking your purchase…'}</p></main></div>;
  if(reportId)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>Your plan is ready.</h1><a className={styles.primary} href={'/report/'+encodeURIComponent(reportId)}>Open my plan</a></main></div>;
 
@@ -174,8 +174,8 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
     </>}
      {area==='takeaway'&&<>
       <fieldset className={styles.billChoices}>
-        <legend>Which meals do you usually buy?</legend>
-        <p>Pick the answer that fits you. Takeaway and restaurant meals can cost different amounts.</p>
+        <legend>Which kinds of meals do you buy?</legend>
+        <p>Pick what you buy. We'll ask about each kind on its own because the prices can be different.</p>
         {([['takeaway','Takeaway or food delivery'],['restaurant','Meals at cafés or restaurants'],['both','Both types']] as [string,string][]).map(([value,label])=>
           <label className={styles.billChoice} key={value}>
             <input type="radio" name="takeawayMealMode" value={value} checked={d.takeawayMealMode===value} onChange={()=>setMealMode(value)}/>
@@ -191,24 +191,24 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
       {['takeaway','both','combined'].includes(mealMode)&&
         <div className={styles.mealGroup}>
           <h3>{mealMode==='combined'?'Earlier combined meals':'Takeaway or food delivery'}</h3>
-          {amount('takeawayOrder',d.takeawayAmountPeriod==='week'?'About how much do you spend on these meals in a week?':'About how much does one of these meals cost?','Check a recent payment in your bank app, or give a rough amount.')}
+          {amount('takeawayOrder',d.takeawayAmountPeriod==='week'?'About how much do you spend on these meals in a normal week?':mealMode==='combined'?'About how much do you usually spend on one meal out?':'About how much do you usually pay for one takeaway order?',"A rough guess is fine. Count the whole order, including food, drinks, delivery fees and everyone you pay for.")}
           <button type="button" className={styles.unitSwitch} onClick={changeTakeawayUnit}>
             {d.takeawayAmountPeriod==='week'?'Use the cost of one meal instead':'I only know my weekly total'}
           </button>
-          {count('takeawayOrdersPerWeek',mealMode==='combined'?'How many meals out do you buy each week?':'How many times do you buy takeaway each week?')}
-          {count('takeawaySwapPerWeek','How many of these meals could you replace at home each week?')}
-          {Number(d.takeawaySwapPerWeek)>0&&amount('takeawayReplacementCost','About how much would one home meal cost for the same people? (optional)','Include groceries for everyone eating. If unsure, leave blank. We will not guess your saving.')}
+          {count('takeawayOrdersPerWeek',mealMode==='combined'?'About how many meals out do you buy in a week?':'About how many takeaway orders do you buy in a week?', 'Think of a normal week. A rough number is fine.')}
+          {count('takeawaySwapPerWeek','How many of these meals could you make at home instead each week?', 'Only count meals you think you could really change. You can enter 0.')}
+          {Number(d.takeawaySwapPerWeek)>0&&amount('takeawayReplacementCost','About how much would it cost to make one of these meals at home? (optional)',"Think of the food for everyone you pay for. A rough guess is fine. If you skip this, we won't guess your saving.")}
         </div>}
       {['restaurant','both'].includes(mealMode)&&
         <div className={styles.mealGroup}>
           <h3>Meals at cafés or restaurants</h3>
-          {count('restaurantOrdersPerWeek','How many times do you eat at a café or restaurant each week?')}
-          {amount('restaurantOrder','About how much do you spend each time?','Include everyone you pay for and any drinks. Check a recent payment or use a rough amount.')}
-          {count('restaurantSwapPerWeek','How many of these meals could you replace at home each week?')}
-          {Number(d.restaurantSwapPerWeek)>0&&amount('restaurantReplacementCost','About how much would a home meal cost for the same people? (optional)','Include groceries for everyone eating. If unsure, leave blank. We will not guess your saving.')}
+          {count('restaurantOrdersPerWeek','About how many times do you eat at a café or restaurant in a week?', 'Count full meals out, not a coffee or snack on its own. A rough number is fine.')}
+          {amount('restaurantOrder','About how much do you usually pay when you eat out?', 'Think of a normal visit. Count the whole bill for everyone you pay for, including drinks. A rough guess is fine.')}
+          {count('restaurantSwapPerWeek','How many times could you eat at home instead each week?', 'Only count meals you think you could really change. You can enter 0.')}
+          {Number(d.restaurantSwapPerWeek)>0&&amount('restaurantReplacementCost','About how much would it cost to make that meal at home? (optional)',"Count the food for everyone you pay for. A rough guess is fine. If you skip this, we won't guess your saving.")}
         </div>}
-      {mealMode&&choice('takeawayReason','What makes cutting back on these meals hard?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
-      <small>Only count each meal once. We'll use your separate costs and home-meal prices to calculate a possible saving.</small>
+      {mealMode&&choice('takeawayReason','What makes it hard to eat out less?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
+      <small>Count each meal once. We'll use what you spend and what food at home costs to work out a possible saving.</small>
     </>}
      {area==='convenience'&&<>
       {amount('convenienceWeekly','About how much do coffee, snacks and other small buys cost you each week?','Only count small buys here. Do not include takeaway, restaurant meals or lunch. Check your bank app or use a rough amount.')}
