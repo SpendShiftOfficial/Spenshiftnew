@@ -212,9 +212,12 @@ try{
    await page.locator('#takeawayOrder').fill('30');
    await page.locator('#takeawayOrdersPerWeek').fill('4');
    await page.locator('#takeawaySwapPerWeek').fill('1');
-   assert.match(await page.locator('section').last().innerText(),/About how much would it cost to make one of these meals at home/);
-   assert.match(await page.locator('section').last().innerText(),/we won't guess your saving/);
+   assert.equal(await page.locator('#takeawayReplacementCost').isVisible(),false,'Home-meal cost must not be a visible compulsory question');
+   assert.match(await page.locator('section').last().innerText(),/Know what a home meal costs\? \(optional\)/);
+   await page.locator('#takeaway-home-cost summary').click();
+   assert.equal(await page.locator('#takeawayReplacementCost').isVisible(),true);
    assert.equal(await page.locator('#takeawayReplacementCost').inputValue(),'');
+   assert.match(await page.locator('section').last().innerText(),/we won't guess a saving/);
    await next(page);await next(page);
    assert.match(await page.locator('body').innerText(),/You can skip the home-meal cost/);
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
@@ -236,7 +239,7 @@ try{
    assert.equal(await page.locator('#restaurantOrder').inputValue(),'90');
    await page.locator('#restaurantOrdersPerWeek').fill('5');
    await page.locator('#restaurantSwapPerWeek').fill('2');
-   await page.locator('#restaurantReplacementCost').fill('20');
+   await page.locator('#restaurant-home-cost summary').click();await page.locator('#restaurantReplacementCost').fill('20');
    await next(page);await next(page);
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
    await page.waitForURL('**/plan-preview');
@@ -288,11 +291,11 @@ try{
       await page.locator('#takeawayOrder').fill('30');
       await page.locator('#takeawayOrdersPerWeek').fill('4');
       await page.locator('#takeawaySwapPerWeek').fill('1');
-      await page.locator('#takeawayReplacementCost').fill('10');
+      await page.locator('#takeaway-home-cost summary').click();await page.locator('#takeawayReplacementCost').fill('10');
       await page.locator('#restaurantOrdersPerWeek').fill('2');
       await page.locator('#restaurantOrder').fill('80');
       await page.locator('#restaurantSwapPerWeek').fill('1');
-      await page.locator('#restaurantReplacementCost').fill('20');
+      await page.locator('#restaurant-home-cost summary').click();await page.locator('#restaurantReplacementCost').fill('20');
     }
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
     if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),1);await page.locator('#convenienceOverlap').selectOption('no');assert.match(await page.locator('section').last().innerText(),/Do not count takeaway or restaurant meals here/);await page.locator('#convenienceGoalWeekly').fill('70');}
@@ -335,7 +338,7 @@ try{
    await page.locator('#takeawayOrder').fill('30');
    await page.locator('#takeawayOrdersPerWeek').fill('4');
    await page.locator('#takeawaySwapPerWeek').fill('1');
-   await page.locator('#takeawayReplacementCost').fill('10');
+   await page.locator('#takeaway-home-cost summary').click();await page.locator('#takeawayReplacementCost').fill('10');
    await next(page);
    assert.equal(await page.locator('#convenienceOverlap').inputValue(),'');
    await page.locator('#convenienceWeekly').fill('100');
@@ -507,11 +510,11 @@ try{
     await buyer.locator('#takeawayOrder').fill('30');
     await buyer.locator('#takeawayOrdersPerWeek').fill('4');
     await buyer.locator('#takeawaySwapPerWeek').fill('1');
-    await buyer.locator('#takeawayReplacementCost').fill('10');
+    await buyer.locator('#takeaway-home-cost summary').click();await buyer.locator('#takeawayReplacementCost').fill('10');
     await buyer.locator('#restaurantOrdersPerWeek').fill('2');
     await buyer.locator('#restaurantOrder').fill('80');
     await buyer.locator('#restaurantSwapPerWeek').fill('1');
-    await buyer.locator('#restaurantReplacementCost').fill('20');
+    await buyer.locator('#restaurant-home-cost summary').click();await buyer.locator('#restaurantReplacementCost').fill('20');
     await buyer.locator('#takeawayReason').selectOption('busy');
    }
    if(heading==='Subscriptions'){
