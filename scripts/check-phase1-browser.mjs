@@ -28,6 +28,18 @@ try{
    await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
    const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
   });
+  await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
+   await go(page,'/audit');
+   await page.getByRole('button',{name:'Less than once a week',exact:true}).click();
+   await page.getByRole('button',{name:'Next question',exact:true}).click();
+   for(const value of ['0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
+     await page.getByRole('button',{name:value,exact:true}).click();
+     await page.getByRole('button',{name:value==='Save more money'?'See my free results':'Next question',exact:true}).click();
+   }
+   await page.waitForURL('**/results');
+   assert.match(await page.locator('body').innerText(),/don't recommend buying a report/);
+   await noOverflow(page);
+  });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
    const paused=await page.request.post(base+'/api/checkout',{data:{answers:high,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}});assert.equal(paused.status(),403);
