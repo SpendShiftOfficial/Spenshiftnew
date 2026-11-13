@@ -56,7 +56,7 @@ check('using every subscription moves other bill checks ahead',()=>{const r=vali
 check('subscription cross-field limits',()=>{assert.throws(()=>validateRefinements({details:{subscriptionsMonthly:'70',unusedSubscriptionChoice:'yes',unusedSubscriptionMonthly:'75'}}));assert.throws(()=>validateRefinements({details:{unusedSubscriptionChoice:'no',unusedSubscriptionMonthly:'10'}}));assert.throws(()=>validateRefinements({details:{subscriptionsMonthly:'-1'}}));});
 const meal=validateRefinements({details:{takeawayOrder:'120',takeawayAmountPeriod:'order',takeawayOrdersPerWeek:'7',takeawaySwapPerWeek:'3',takeawayReplacementCost:'40'}});
 check('net meal maths uses the same group and replacement costs',()=>{const m=takeawayMath(meal);assert.equal(m.weeklyCost,840);assert.equal(m.weeklySaving,240);assert.equal(m.annualExample,12480);});
-check('weekly amount is never read as one order',()=>{const r=validateRefinements({details:{takeawayOrder:'120',takeawayAmountPeriod:'week',takeawayOrdersPerWeek:'6',takeawaySwapPerWeek:'2',takeawayReplacementCost:'10'}});assert.deepEqual(takeawayMath(r),{orderCost:20,weeklyCost:120,weeklySaving:20,annualExample:1040});});
+check('weekly amount is never read as one order',()=>{const r=validateRefinements({details:{takeawayOrder:'120',takeawayAmountPeriod:'week',takeawayOrdersPerWeek:'6',takeawaySwapPerWeek:'2',takeawayReplacementCost:'10'}});const m=takeawayMath(r);assert.equal(m.orderCost,20);assert.equal(m.weeklyCost,120);assert.equal(m.weeklySaving,20);assert.equal(m.annualExample,1040);assert.equal(m.parts[0].type,'combined');});
 check('unknown replacement, zero swaps, higher cost give no saving',()=>{for(const patch of [{takeawayReplacementCost:''},{takeawaySwapPerWeek:'0'},{takeawayReplacementCost:'130'}]){const r=validateRefinements({details:{takeawayOrder:'120',takeawayOrdersPerWeek:'7',takeawaySwapPerWeek:'3',takeawayReplacementCost:'40',...patch}});assert.equal(takeawayMath(r).weeklySaving,null);}});
 check('reject impossible weekly targets',()=>{assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'3',takeawaySwapPerWeek:'4'}}));assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'2.5'}}));assert.throws(()=>validateRefinements({details:{takeawayOrdersPerWeek:'22'}}));assert.throws(()=>validateRefinements({details:{convenienceWeekly:'50',convenienceGoalWeekly:'60'}}));});
 check('overlapping small buys are not added',()=>{for(const overlap of ['','yes','not_sure']){const r=validateRefinements({details:{...meal.details,convenienceWeekly:100,convenienceGoalWeekly:70,convenienceOverlap:overlap}});const a=analyseSavings(high,r);assert.equal(a.opportunities.find(o=>o.area==='convenience').scenarioSaving,null);assert.equal(a.estimatedAnnualScenario,12480);}});
@@ -102,10 +102,10 @@ check('three report actions are drawn from the same category steps in text and U
 check('takeaway stored text labels weekly and per-order costs correctly',()=>{
  const a=previewProfiles['takeaway-convenience'].answers;
  const weekly=validateRefinements({details:{takeawayAmountPeriod:'week',takeawayOrder:'120',takeawayOrdersPerWeek:'6'}});
- const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Your usual takeaway or eating-out spending: \$120 for a whole week/);
+ const weeklyText=makeReportMarkdown(a,weekly,analyseSavings(a,weekly));assert.match(weeklyText,/Takeaway and eating out:/);assert.match(weeklyText,/Usual spending: \$120 per week/);
  assert.doesNotMatch(weeklyText,/Your usual takeaway order: \$120/);
  const order=validateRefinements({details:{takeawayAmountPeriod:'order',takeawayOrder:'30',takeawayOrdersPerWeek:'6'}});
- const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Your usual takeaway or eating-out spending: \$30 for one order/);
+ const orderText=makeReportMarkdown(a,order,analyseSavings(a,order));assert.match(orderText,/Usual spending: \$30 per meal/);
 });
 check('electricity quote marks one-bill annualisation as an estimate',()=>{
  const src=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
@@ -198,7 +198,7 @@ check('report revisions require a paid session and store history atomically',()=
 check('free sample shows a calculation without claiming the customer savings',()=>{
   const results=fs.readFileSync('app/results/page.tsx','utf8');
   assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
-  assert.match(results,/sampleActions/);assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);assert.doesNotMatch(results,/\$40 less each week/);
+  assert.match(results,/previewExamples/);assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);assert.match(results,/Possible \$420 less in one year/);
   assert.match(results,/areas\.slice\(3\)/);
 });
 
@@ -341,7 +341,7 @@ check('plain-language questions distinguish costs, renewal and optional cover',(
  const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
  const css=fs.readFileSync('app/personalise/personalise.module.css','utf8');
- assert.ok(form.includes('About how much do you spend on one takeaway or eating-out meal?'));
+ assert.ok(form.includes('Which meals do you usually buy?'));assert.ok(form.includes('restaurantOrdersPerWeek'));
  assert.ok(form.includes('If you made one of those meals at home'));
  assert.ok(form.includes('Without it, we won\\\'t guess a saving'));
  assert.ok(form.includes('When is this policy due for renewal?'));
@@ -358,7 +358,7 @@ check('free audit separates meals from small treats, and goal drives free orderi
  const audit=fs.readFileSync('lib/audit-schema.ts','utf8');
  const areas=fs.readFileSync('lib/personalisation-questions.ts','utf8');
  const results=fs.readFileSync('app/results/page.tsx','utf8');
- assert.match(audit,/How often do you get takeaway or eat out/);
+ assert.match(audit,/How often do you buy takeaway or go out for a meal/);
  assert.match(audit,/coffee, snacks or other small treats/);
  assert.match(areas,/You get takeaway or eat out/);
  assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);
@@ -395,6 +395,60 @@ check('visible phone choices only expose matching bill amounts',()=>{
  assert.ok(ui.includes('Both mobile and home internet'));
  const draft=blankDraft(high);draft.details.phoneService='not_sure';draft.details.mobileMonthly='45';draft.details.internetMonthly='70';
  const clean=prepareDraft(draft);assert.equal(clean.details.mobileMonthly,null);assert.equal(clean.details.internetMonthly,null);
+});
+
+check('takeaway and restaurant prices are separate and both appear in the saved report',()=>{
+ const r=validateRefinements({details:{takeawayMealMode:'both',takeawayOrder:'25',takeawayOrdersPerWeek:'2',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10',restaurantOrder:'90',restaurantOrdersPerWeek:'1',restaurantSwapPerWeek:'1',restaurantReplacementCost:'20'}});
+ const m=takeawayMath(r);
+ assert.equal(m.parts.length,2);
+ assert.equal(m.parts[0].weeklyCost,50);assert.equal(m.parts[1].weeklyCost,90);
+ assert.equal(m.parts[0].netWeeklySaving,15);assert.equal(m.parts[1].netWeeklySaving,70);
+ assert.equal(m.weeklyCost,140);assert.equal(m.weeklySaving,85);assert.equal(m.annualExample,4420);
+ const a=analyseSavings(previewProfiles['takeaway-convenience'].answers,r);
+ assert.equal(a.opportunities.find(o=>o.area==='takeaway').scenarioSaving,4420);
+ assert.equal(a.opportunities.find(o=>o.area==='takeaway').annualSpend,7280);
+ const doc=makeReportMarkdown(previewProfiles['takeaway-convenience'].answers,r,a);
+ assert.match(doc,/Takeaway or delivery:/);assert.match(doc,/Cafés and restaurants:/);
+ assert.match(doc,/Combined weekly meal cost: \$140/);assert.match(doc,/Possible weekly reduction from the selected meal changes: \$85/);
+});
+check('restaurant-only meals never use stale takeaway bills',()=>{
+ const r=validateRefinements({details:{takeawayMealMode:'restaurant',takeawayOrder:'60',takeawayOrdersPerWeek:'3',takeawaySwapPerWeek:'2',takeawayReplacementCost:'10',restaurantOrder:'90',restaurantOrdersPerWeek:'1',restaurantSwapPerWeek:'1',restaurantReplacementCost:'20'}});
+ assert.equal(r.details.takeawayOrder,null);assert.equal(r.details.takeawayOrdersPerWeek,null);
+ assert.equal(takeawayMath(r).weeklyCost,90);assert.equal(takeawayMath(r).weeklySaving,70);assert.equal(takeawayMath(r).annualExample,3640);
+});
+check('unknown restaurant replacement costs block false combined saving',()=>{
+ const r=validateRefinements({details:{takeawayMealMode:'both',takeawayOrder:'25',takeawayOrdersPerWeek:'2',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10',restaurantOrder:'90',restaurantOrdersPerWeek:'1',restaurantSwapPerWeek:'1',restaurantReplacementCost:''}});
+ assert.equal(takeawayMath(r).weeklyCost,140);assert.equal(takeawayMath(r).weeklySaving,null);
+ const onlyTakeaway=validateRefinements({details:{takeawayMealMode:'both',takeawayOrder:'25',takeawayOrdersPerWeek:'2',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10',restaurantOrder:'',restaurantOrdersPerWeek:'',restaurantSwapPerWeek:'0'}});
+ assert.equal(takeawayMath(onlyTakeaway).weeklyCost,null);assert.equal(takeawayMath(onlyTakeaway).weeklySaving,15);
+});
+check('a restaurant home meal costing more cannot inflate combined savings',()=>{
+ const r=validateRefinements({details:{takeawayMealMode:'both',takeawayOrder:'25',takeawayOrdersPerWeek:'2',takeawaySwapPerWeek:'1',takeawayReplacementCost:'10',restaurantOrder:'90',restaurantOrdersPerWeek:'1',restaurantSwapPerWeek:'1',restaurantReplacementCost:'130'}});
+ assert.equal(takeawayMath(r).weeklySaving,null);
+ assert.throws(()=>validateRefinements({details:{takeawayMealMode:'both',restaurantOrdersPerWeek:'1',restaurantSwapPerWeek:'2'}}),/replace more restaurant meals/);
+});
+check('old combined meal drafts remain valid and new separate values survive revision',()=>{
+ const d=blankDraft(high);
+ d.details.takeawayMealMode='both';d.details.takeawayOrder='25';d.details.takeawayOrdersPerWeek='2';d.details.takeawaySwapPerWeek='1';d.details.takeawayReplacementCost='10';d.details.restaurantOrder='90';d.details.restaurantOrdersPerWeek='4';d.details.restaurantSwapPerWeek='1';d.details.restaurantReplacementCost='20';
+ const a=prepareDraft(d);assert.equal(a.details.restaurantOrder,90);assert.equal(a.details.takeawayMealMode,'both');
+ const restored=restoreDraft(high,a);assert.equal(prepareDraft(restored).details.restaurantOrder,90);
+ const old=validateRefinements({details:{takeawayOrder:'30',takeawayOrdersPerWeek:'4',takeawaySwapPerWeek:'2',takeawayReplacementCost:'10'}});
+ assert.equal(old.details.takeawayMealMode,'combined');assert.equal(takeawayMath(old).weeklySaving,40);
+ assert.equal(prepareDraft(restoreDraft(high,old)).details.takeawayMealMode,'combined');
+});
+check('free audit frequency checks combined weekly takeaway and restaurant visits',()=>{
+ const d=blankDraft(high);d.answers[0]='1–2 times/week';d.details.takeawayMealMode='both';d.details.takeawayOrdersPerWeek='2';d.details.restaurantOrdersPerWeek='3';
+ assert.equal(findAuditConflict(d)?.area,'takeaway');
+ const okay=blankDraft(high);okay.details.takeawayMealMode='both';okay.details.takeawayOrdersPerWeek='2';okay.details.restaurantOrdersPerWeek='3';assert.equal(findAuditConflict(okay),null);
+ const missing=blankDraft(high);missing.details.takeawayMealMode='both';missing.details.takeawayOrdersPerWeek='2';assert.equal(findAuditConflict(missing),null);
+});
+check('free results offer three main actions and relevant worked examples',()=>{
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(results,/firstChecks\[area\]/);assert.match(results,/previewExamples\[areas\[0\]\]/);
+ assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
+ assert.match(results,/Possible \$200 first-year price difference/);
+ assert.match(results,/Possible \$40 less each week/);
+ assert.match(results,/areas\.slice\(0,3\)/);assert.match(results,/areas\.slice\(3\)/);
 });
 
 console.log('Phase 1 package: '+cases+' test groups passed.');
