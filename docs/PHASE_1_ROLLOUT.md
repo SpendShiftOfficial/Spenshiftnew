@@ -1,5 +1,9 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
+## Launch price decision — 13 November 2026
+The agreed eventual first-product launch price is **A$29 once**. The current development checkout, Stripe payment check, marketing and emails still use **A$39** on purpose. Do not change any live or test price during this final audit. Before public launch, make one coordinated, separately approved pricing update (displayed price, Stripe amount, paid-session verification and marketing/receipt/email amounts) and verify it with a Stripe TEST purchase.
+
+
 ## Guided Phase 1 quality upgrade — 9 November 2026 (NOT LIVE)
 
 - All seven audit topics can be flagged if each answer suggests a meaningful area to review. No fixed top-three cutoff.
