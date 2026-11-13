@@ -221,3 +221,10 @@
 .previewNumbers dd { color: #21452b; font-weight: 800; font-size: 15px; margin: 0; text-align: right; }
 .miniPreview .previewResult { font-size: 21px; color: #17672e; background: #e8f5ea; padding: 10px 13px; border-radius: 9px; font-weight: 850; margin: 9px 0; }
 .miniPreview .previewCaution { color: #586e5e; font-size: 13px; line-height: 1.5; }
+
+/* Optional customer-chosen area: keep it small, honest and usable on mobile. */
+.extraChoice { display:grid; gap:8px; text-align:left; border:1px solid #dce9de; border-radius:13px; padding:15px 17px; margin:17px 0; background:#fff; }
+.extraChoice label { font-size:15px; font-weight:750; color:#274c31; }
+.extraChoice select { width:100%; min-height:46px; padding:10px 12px; font:inherit; font-size:16px; color:#183a24; border:1px solid #b9cdbd; border-radius:9px; background:#fff; }
+.extraChoice select:focus-visible { outline:3px solid #a2d0a9; outline-offset:2px; }
+.extraChoice p { margin:0; color:#5b6c5d; font-size:13px; line-height:1.45; }
