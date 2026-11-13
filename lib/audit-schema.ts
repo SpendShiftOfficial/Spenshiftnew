@@ -18,7 +18,7 @@ export function validateAuditAnswers(input:unknown):string[]{
   // Older saved purchases can still contain the original wording.
   if(!found && index===0 && normal(answer)==='Less than once a week') return 'Less than once a week';
   // Older saved purchases may use the previous combined 0–2 choice.
-  if(!found && index===1 && normal(answer)==='0–2') return '0–2';
+  if(!found && index===1 && normal(answer)==='0-2') return '0–2';
   if(!found) throw new Error('Please check question '+(index+1)+'.');
   return found;
  });
