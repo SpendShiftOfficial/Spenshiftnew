@@ -452,6 +452,9 @@ check('free results offer three main actions and relevant worked examples',()=>{
  assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
  assert.match(results,/Possible \$200 first-year price difference/);
  assert.match(results,/Possible \$40 less each week/);
+ assert.match(results,/In your paid plan: clear steps and useful links/);
+ assert.doesNotMatch(results,/What the customer would do:/);
+ assert.doesNotMatch(results,/steps:\[/);
  assert.match(results,/areas\.slice\(0,3\)/);assert.match(results,/areas\.slice\(3\)/);
 });
 
