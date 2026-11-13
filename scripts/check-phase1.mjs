@@ -382,6 +382,20 @@ check('paid first step explains why and has no Previous or free-audit escape',()
  const clean=prepareDraft(bill);assert.equal(clean.details.mobileMonthly,35);assert.equal(clean.details.internetMonthly,70);
 });
 
+check('final review uses per-area edit links without Previous and the paid report has no edit panel',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ const start=ui.indexOf("{review?<><h2>You're nearly done");
+ const end=ui.indexOf("<><h2>{areaNames[area]}",start);
+ assert.ok(start>=0 && end>start);
+ const summary=ui.slice(start,end);
+ assert.ok(summary.includes('Check or edit '));
+ assert.ok(!summary.includes('Previous question'));
+ assert.ok(ui.includes("draft.step>0&&<button className={styles.secondary} type='button' onClick={previous}>Previous question"));
+ const paid=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.ok(!paid.includes('ReportEditLink'));
+ assert.ok(paid.includes('<SavingsTracker reportId={reportId}'));
+ assert.ok(fs.existsSync('app/report/[id]/ReportEditLink.tsx'));
+});
 check('small buys only count separately and old overlapping values remain safe',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.ok(ui.includes("convenienceWeekly'?{convenienceOverlap:''}"));
