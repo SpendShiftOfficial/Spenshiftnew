@@ -281,7 +281,7 @@ check('questionnaire asks the time period before the bill amount',()=>{
  assert.ok(ui.indexOf("choice('gasPeriod'")<ui.indexOf("amount('gasMonthly'"));
  assert.ok(ui.indexOf("htmlFor={'policy-period-'+i}")<ui.indexOf("htmlFor={'policy-cost-'+i}"));
  assert.match(ui,/What insurance do you pay for/);
- assert.doesNotMatch(ui,/Does this amount also include takeaway food/);assert.match(ui,/Do not include takeaway, restaurant meals or lunch/);
+ assert.doesNotMatch(ui,/Does this amount also include takeaway food/);assert.match(ui,/Do not count takeaway or restaurant meals here/);
  assert.doesNotMatch(ui,/takeaway you already listed/);
 });
 
