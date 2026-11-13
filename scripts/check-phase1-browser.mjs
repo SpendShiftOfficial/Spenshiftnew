@@ -42,7 +42,10 @@ try{
      await page.getByRole('button',{name:value==='Save more money'?'See my free results':'Next question',exact:true}).click();
    }
    await page.waitForURL('**/results');
-   assert.match(await page.locator('body').innerText(),/don't recommend buying a report/);
+   assert.match(await page.locator('body').innerText(),/don't recommend paying based on these answers alone/);
+   await page.locator('#optional-extra-area').selectOption('subscriptions');
+   assert.match(await page.locator('body').innerText(),/You chose Subscriptions to check/);
+   assert.match(await page.locator('body').innerText(),/We have not confirmed a problem/);
    await noOverflow(page);
   });
   await test('older saved free answers reopen as Rarely '+viewport.width,async()=>{
@@ -56,6 +59,23 @@ try{
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
    const paused=await page.request.post(base+'/api/checkout',{data:{answers:high,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}});assert.equal(paused.status(),403);
+    const no=['Never','0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+    const requestId='11111111-1111-4111-8111-111111111111';
+    const missing=await page.request.post(base+'/api/checkout',{data:{answers:no,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:requestId}});assert.equal(missing.status(),400);
+    const invalid=await page.request.post(base+'/api/checkout',{data:{answers:no,additionalArea:'__proto__',acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:requestId}});assert.equal(invalid.status(),400);
+    const chosen=await page.request.post(base+'/api/checkout',{data:{answers:no,additionalArea:'subscriptions',acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:requestId}});assert.equal(chosen.status(),403);
+  });
+  await test('chosen overlooked area survives a simulated paid resume '+viewport.width,async()=>{
+    const extraContext=await browser.newContext({viewport});
+    const chosenPage=await extraContext.newPage();
+    const answers=['Never','0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+    const selectedDraft={version:1,answers,details:{},insurancePolicies:[],additionalUnusedSubscriptions:[],additionalArea:'subscriptions',step:0};
+    await chosenPage.route('**/api/payment-status?**',route=>route.fulfill({json:{paid:true,answers,status:'awaiting_details',reportId:null,refinements:{version:1,draft:selectedDraft},revision:'2026-11-13T00:00:00.000Z'}}));
+    await chosenPage.goto(base+'/personalise?session_id=cs_test_selectedarea00000000000',{waitUntil:'networkidle'});
+    assert.match(await chosenPage.locator('body').innerText(),/1 area to check/);
+    assert.match(await chosenPage.locator('body').innerText(),/Subscriptions/);
+    await noOverflow(chosenPage);
+    await extraContext.close();
   });
   await test('mobile money fields, progress spacing and visible logo '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
@@ -311,6 +331,21 @@ try{
    await next(page);
    await noOverflow(page);
   });
+  await test('known bills and missing amounts get useful paid actions '+viewport.width,async()=>{
+    await go(page,'/report-preview?customer=household-bills');
+    const known=await page.locator('body').innerText();
+    assert.match(known,/mobile at \$44\.9 a month and home internet at \$79\.95 a month/);
+    assert.match(known,/latest power bill was \$425\.5 for 3 months/);
+    await go(page,'/personalise');await page.locator('#demo').selectOption('household-bills');
+    await next(page);await next(page);
+    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
+    await page.waitForURL('**/plan-preview');
+    const sparse=await page.locator('body').innerText();
+    assert.match(sparse,/Don't know your bill amounts\?/);
+    assert.match(sparse,/provider's app or latest bill/);
+    assert.match(sparse,/units used \(kWh for power or MJ for gas\)/);
+    await noOverflow(page);
+  });
   await test('no-opportunity paid draft must choose one area before generating '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('few-opportunities');
    assert.match(await page.locator('body').innerText(),/Choose one area to check/);
@@ -381,6 +416,7 @@ try{
   customerCheckout++;
   const request=route.request().postDataJSON();
   assert.equal(request.answers.length,8);
+   assert.equal(request.additionalArea,null);
   assert.equal(request.acceptedTerms,true);
   await route.fulfill({json:{url:'https://checkout.stripe.com/c/pay/phase1_test_customer'}});
  });
