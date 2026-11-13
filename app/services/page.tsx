@@ -233,7 +233,7 @@ guide to saving money in Australia
                 Full personalised report
               </span>
 
-              <strong>A$39</strong>
+              <strong>A$29</strong>
 
               <p>One-time payment with no subscription or recurring fees.</p>
 
