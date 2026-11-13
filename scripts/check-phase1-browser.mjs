@@ -43,7 +43,10 @@ try{
    assert.ok(logoRect&&hintRect&&logoRect.x+logoRect.width+6<hintRect.x,'Logo and privacy hint must not overlap');
    assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
    const previous=page.getByRole('button',{name:'Previous question',exact:true});
-   assert.equal(await previous.count(),1);
+   assert.equal(await previous.count(),0);
+   assert.match(await page.locator('body').innerText(),/A few more details. A plan made for you./);
+   assert.match(await page.locator('body').innerText(),/Your first 8 answers showed us where to start/);
+   assert.match(await page.locator('body').innerText(),/A rough guess is fine/);
    const heading=await page.getByRole('heading',{name:'Make your plan fit you.'}).boundingBox();
    const progress=await page.getByText('Area 1 of 7',{exact:true}).boundingBox();
    assert.ok(heading&&progress&&progress.y>heading.y+heading.height,'Progress must sit below the introduction');
@@ -78,7 +81,7 @@ try{
   });
   await test('multiple unused subscriptions reach the same complete report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
-   assert.equal(await page.locator('section h2').first().innerText(),'Subscriptions');
+   assert.equal(await page.locator('section h2').last().innerText(),'Subscriptions');
    await page.locator('#subscriptionsMonthly').fill('80');
    await page.locator('#unusedSubscriptionChoice').selectOption('yes');
    await page.locator('#unusedSubscriptionName').fill('Stan');
@@ -117,18 +120,18 @@ try{
   });
   await test('takeaway wording supports skipping unknown home meal cost '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
-   assert.match(await page.locator('section').first().innerText(),/Which meals do you usually buy/);
+   assert.match(await page.locator('section').last().innerText(),/Which kinds of meals do you buy/);
    await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
    assert.equal(await page.locator('#takeawayAmountPeriod').count(),0);
    await page.locator('#takeawayOrder').fill('22');await page.getByRole('button',{name:'I only know my weekly total'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');await page.getByRole('button',{name:'Use the cost of one meal instead'}).click();assert.equal(await page.locator('#takeawayOrder').inputValue(),'');
    await page.locator('#takeawayOrder').fill('30');
    await page.locator('#takeawayOrdersPerWeek').fill('4');
    await page.locator('#takeawaySwapPerWeek').fill('1');
-   assert.match(await page.locator('section').first().innerText(),/About how much would one home meal cost for the same people/);
-   assert.match(await page.locator('section').first().innerText(),/We will not guess your saving/);
+   assert.match(await page.locator('section').last().innerText(),/About how much would it cost to make one of these meals at home/);
+   assert.match(await page.locator('section').last().innerText(),/we won't guess your saving/);
    assert.equal(await page.locator('#takeawayReplacementCost').inputValue(),'');
    await next(page);await next(page);
-   assert.match(await page.locator('body').innerText(),/A home-meal cost is missing/);
+   assert.match(await page.locator('body').innerText(),/You can skip the home-meal cost/);
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
    await page.waitForURL('**/plan-preview');
    const takeaway=page.locator('#area-takeaway');
@@ -163,32 +166,38 @@ try{
    await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
    await next(page);
    const screen=page.locator('section').first();
-   assert.match(await screen.innerText(),/When is this policy due for renewal/);
-   assert.match(await screen.innerText(),/It is different from how often you pay/);
+   assert.match(await screen.innerText(),/When does this insurance renew/);
+   assert.match(await screen.innerText(),/even if you pay monthly/);
    await page.getByText('Add insurer and cover details (optional)',{exact:true}).click();
    const cover=page.getByPlaceholder('e.g. comprehensive car cover');
    await cover.waitFor({state:'visible'});
-   assert.match(await screen.innerText(),/The insurance type above is the category/);
+   assert.match(await screen.innerText(),/This is not the insurance type you chose above/);
    const dimensions=await cover.evaluate(el=>({field:el.getBoundingClientRect().width,parent:el.parentElement.getBoundingClientRect().width}));
    assert.ok(dimensions.field>=dimensions.parent-3,'Optional cover input should fill its field');
    await noOverflow(page);
   });
-  await test('previous question opens one free answer without showing a large accordion '+viewport.width,async()=>{
+  await test('first paid area has no Previous; later Previous stays in the paid form '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
+   assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
    assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
+   assert.match(await page.locator('body').innerText(),/Your first 8 answers showed us where to start/);
+   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
+   await page.locator('#takeawayOrder').fill('32');
+   await page.locator('#takeawayOrdersPerWeek').fill('6');
+   await next(page);
+   assert.equal(await page.locator('section h2').last().innerText(),'Subscriptions');
+   assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),1);
    await page.getByRole('button',{name:'Previous question',exact:true}).click();
-   assert.match(await page.locator('h1').innerText(),/What would help you most/);
-   await page.getByRole('button',{name:'Previous question',exact:true}).click();
-   assert.match(await page.locator('h1').innerText(),/didn't plan to buy/);
-   await page.getByRole('button',{name:'Next question',exact:true}).click();
-   await page.getByRole('button',{name:'Back to my plan',exact:true}).click();
-   assert.match(await page.locator('h1').innerText(),/Make your plan fit you/);
+   assert.equal(await page.locator('section h2').last().innerText(),'Takeaway and eating out');
+   assert.equal(await page.locator('#takeawayOrder').inputValue(),'32');
+   assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
+   assert.match(await page.locator('body').innerText(),/A rough guess is fine/);
    await noOverflow(page);
   });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    for(let step=0;step<7;step++){
-    const heading=await page.locator('section h2').innerText();
+    const heading=await page.locator('section h2').last().innerText();
     if(heading==='Takeaway and eating out'){
       await page.locator('input[name=takeawayMealMode][value=both]').check();
       await page.locator('#takeawayOrder').fill('30');
@@ -201,8 +210,8 @@ try{
       await page.locator('#restaurantReplacementCost').fill('20');
     }
     if(heading==='Subscriptions'){await page.locator('#subscriptionsMonthly').fill('70');await page.locator('#unusedSubscriptionChoice').selectOption('no');assert.equal(await page.locator('#unusedSubscriptionMonthly').count(),0);}
-    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),0);assert.match(await page.locator('section').first().innerText(),/Do not include takeaway, restaurant meals or lunch/);await page.locator('#convenienceGoalWeekly').fill('70');}
-    if(heading==='Insurance'){assert.match(await page.locator('section').first().innerText(),/Which insurance policies do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
+    if(heading==='Small everyday buys'){await page.locator('#convenienceWeekly').fill('100');assert.equal(await page.locator('#convenienceOverlap').count(),0);assert.match(await page.locator('section').last().innerText(),/Do not count takeaway or restaurant meals here/);await page.locator('#convenienceGoalWeekly').fill('70');}
+    if(heading==='Insurance'){assert.match(await page.locator('section').last().innerText(),/What insurance do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
     if(heading==='Phone and internet'){await page.locator('input[name=phoneService][value=both]').check();await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('input[name=phoneService][value=not_sure]').check();assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('input[name=phoneService][value=mobile]').check();assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
     if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');assert.ok((await page.locator('#electricityPeriod').boundingBox()).y < (await page.locator('#electricityBill').boundingBox()).y);await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('yes');assert.ok((await page.locator('#gasPeriod').boundingBox()).y < (await page.locator('#gasMonthly').boundingBox()).y);await page.locator('#gasPeriod').selectOption('quarter');await page.locator('#gasMonthly').fill('300');}
     if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
@@ -258,24 +267,34 @@ try{
  const session='cs_test_automated_private_fixture12345';
  await page.route('**/api/payment-status?**',route=>route.fulfill({json:{paid:true,answers:saved?.answers||getAnswers(),status:'awaiting_details',reportId:null,refinements:saved?{version:1,draft:saved}:null,revision}}));
  await page.route('**/api/personalisation/draft',async route=>{const body=route.request().postDataJSON();if(body.revision!==revision){await route.fulfill({status:409,json:{error:'This plan changed in another tab. Reload before editing.'}});return;}saved=body.draft;calls++;revision=new Date(Date.UTC(2026,10,9,10,0,calls)).toISOString();await route.fulfill({json:{saved:true,revision}});});
- await test('paid drafts save, reload and edit safely using mocked providers',async()=>{
-  await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');await page.locator('input[name=takeawayMealMode][value=takeaway]').check();await page.locator('#takeawayOrder').fill('120');
-  await page.waitForTimeout(1300);await page.getByRole('status').filter({hasText:'Saved.'}).waitFor();assert.equal(saved.details.takeawayOrder,'120');
-  await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#takeawayOrder');assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
-  assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
+ await test('paid drafts save, reload and go back within paid questions',async()=>{
+  await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');
+  assert.match(await page.locator('body').innerText(),/You have already paid. There is no extra charge/);
+  assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
+  await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
+  await page.locator('#takeawayOrder').fill('120');
+  await page.waitForTimeout(1300);
+  await page.getByRole('status').filter({hasText:'Saved.'}).waitFor();
+  assert.equal(saved.details.takeawayOrder,'120');
+  await page.reload({waitUntil:'networkidle'});
+  await page.waitForSelector('#takeawayOrder');
+  assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
+  assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
+  await next(page);
+  assert.equal(await page.locator('section h2').last().innerText(),'Subscriptions');
+  assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),1);
   await page.getByRole('button',{name:'Previous question',exact:true}).click();
-  assert.match(await page.locator('h1').innerText(),/What would help you most/);
-  for(let i=0;i<7;i++)await page.getByRole('button',{name:'Previous question',exact:true}).click();
-  assert.match(await page.locator('h1').innerText(),/takeaway or go out for a meal/i);
-  await page.getByRole('button',{name:'Never',exact:true}).click();
-  await page.waitForTimeout(1300);assert.equal(saved.answers[0],'Never');
-  for(let i=0;i<7;i++)await page.getByRole('button',{name:'Next question',exact:true}).click();
-  await page.getByRole('button',{name:'Back to my plan',exact:true}).click();
-  assert.match(await page.locator('h1').innerText(),/Make your plan/);
+  assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
+  assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
+  await next(page);
+  assert.equal(await page.locator('section h2').last().innerText(),'Subscriptions');
  });
- await test('revision conflicts show a clear error',async()=>{revision='2026-11-10T10:00:00.000Z';await page.getByRole('button',{name:'Previous question',exact:true}).click();
-  await page.getByRole('button',{name:'Reduce stress',exact:true}).click();
-  await page.waitForTimeout(1300);assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);});
+ await test('revision conflicts show a clear error',async()=>{
+  revision='2026-11-10T10:00:00.000Z';
+  await page.locator('#subscriptionsMonthly').fill('70');
+  await page.waitForTimeout(1300);
+  assert.match(await page.locator('p[role="alert"]').innerText(),/another tab/);
+ });
  await context.close();
 
  // One fully unattended, first-time customer walkthrough. The payment screen
