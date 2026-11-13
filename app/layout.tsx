@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.spendshift.com.au"),
 
   title: {
-    default: "SpendShift | Find Hidden Money Leaks",
+    default: "SpendShift | See Where You Could Spend Less",
     template: "%s | SpendShift",
   },
 
   description:
-    "SpendShift helps Australians uncover hidden money leaks with a free money check and a clear, step-by-step savings plan.",
+    "Answer eight free spending questions. See what to check first, then choose an optional A$29 personalised savings plan with clear steps.",
 
   keywords: [
     "money saving",
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
     "budget audit",
     "financial health",
     "Australia",
-    "AI savings",
-    "expense tracker",
+    "free savings check",
+    "personalised savings plan",
     "SpendShift",
   ],
 
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "SpendShift",
     description:
-      "Find bills and spending worth checking, with clear steps to follow.",
+      "Answer eight free questions to see what to check first. A personalised savings plan costs A$29 once.",
     url: "https://www.spendshift.com.au",
     siteName: "SpendShift",
     locale: "en_AU",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SpendShift",
     description:
-      "Find hidden money leaks and save more with a step-by-step savings plan.",
+      "Start with free spending results. Get a personalised savings plan for A$29 once if you want more help.",
     images: ["/og-image.jpg"],
   },
 

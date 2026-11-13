@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Pricing - Free Audit & A$29 Savings Report",
   description:
-    "Start with SpendShift's free 2-minute savings audit,then unlock your full personalised savings report for A$29 - one-time payment, no subscription.",
+    "Answer eight questions and see free results. The personalised savings plan is A$29 once, with no subscription or recurring charge.",
 };
 
 export default function PricingLayout({ children }: { children: ReactNode }) {

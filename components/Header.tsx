@@ -3,10 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShieldCheck, Menu, X, Mail, Phone } from "lucide-react";
-import {
- Circle
-} from "lucide-react";
+import { ShieldCheck, Menu, X, Mail, Circle } from "lucide-react";
 export default function Header({ simple = false }: { simple?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -58,12 +55,16 @@ export default function Header({ simple = false }: { simple?: boolean }) {
             </nav>
 
             <Link className="btn desktop-only reveal-right" href="/audit">
-              Start Your Free Audit
+              Start my free savings check
             </Link>
 
             {/* Hamburger Button */}
             <button 
               className="hamburger-btn" 
+              type="button"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isOpen}
+              aria-controls="site-mobile-nav"
               onClick={toggleMenu}
               style={{
                 background: "none",
@@ -77,6 +78,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
 
             {/* Side Panel Drawer */}
             <div 
+              id="site-mobile-nav"
               className={`side-panel ${isOpen ? "open" : ""}`}
               style={{
                 position: "fixed",
@@ -105,7 +107,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
                 </nav>
                 
                 <Link className="btn" href="/audit" onClick={toggleMenu} style={{ textAlign: "center" }}>
-                  Start Your Free Audit
+                  Start my free savings check
                 </Link>
               </div>
 
@@ -140,6 +142,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
             {/* Backdrop Overlay */}
             {isOpen && (
               <div 
+                aria-hidden="true"
                 onClick={toggleMenu}
                 style={{
                   position: "fixed",

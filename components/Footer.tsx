@@ -2,10 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import ScrollReveal from "@/components/ScrollReveal";
-import {
-Circle,
- Mail, Phone
-} from "lucide-react";
+import { Circle, Mail } from "lucide-react";
 
 import { FaFacebook, FaInstagram } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa";
@@ -58,9 +55,8 @@ Cookie settings
           </div>
 
           <p>
-            SpendShift helps Australians uncover hidden money leaks, reduce
-            unnecessary spending and take practical action with personalised
-            AI-powered savings insights.
+            Answer eight free questions to see what spending is worth checking.
+            Get a personalised savings plan for A$29 once if you want clear next steps.
           </p>
 
           <div className="socials">
@@ -102,9 +98,9 @@ Cookie settings
 
         <div className="reveal-up">
           <h4>Services</h4>
-          <Link href="/#services"><Circle size={10} color="#fff" /> Free Savings Audit</Link>
-          <Link href="/#services"><Circle size={10} color="#fff" /> Personalised Savings Report</Link>
-          <Link href="/#services"><Circle size={10} color="#fff" /> 30-Day Savings Action Plan</Link>
+          <Link href="/audit"><Circle size={10} color="#fff" /> Free savings check</Link>
+          <Link href="/whats-included"><Circle size={10} color="#fff" /> A$29 savings plan</Link>
+          <Link href="/services"><Circle size={10} color="#fff" /> Our services</Link>
         </div>
 
         <div className="reveal-up">
