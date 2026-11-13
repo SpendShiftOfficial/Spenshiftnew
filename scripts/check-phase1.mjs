@@ -40,6 +40,19 @@ const high=previewProfiles['all-seven'].answers;
 const policies=[{type:'Car',premium:'1800',paymentPeriod:'year',renewal:'later'},{type:'Home or contents',premium:'240',paymentPeriod:'month',renewal:'soon'},{type:'Health',premium:'250',paymentPeriod:'month',renewal:'not_sure'}];
 const areas=new Set(['takeaway','subscriptions','insurance','convenience','phone','energy','unplanned']);
 check('strict eight-answer schema',()=>{assert.deepEqual(validateAuditAnswers(sample),sample);assert.throws(()=>validateAuditAnswers([]));assert.throws(()=>validateAuditAnswers([...sample,'extra']));assert.throws(()=>validateAuditAnswers('[]'));const wrong=[...sample];wrong[1]='999 subscriptions';assert.throws(()=>validateAuditAnswers(wrong));assert.equal(auditQuestions.length,8);});
+check('subscription counts distinguish None from 1–2 while retaining old 0–2 answers',()=>{
+ assert.deepEqual(auditQuestions[1].options,['None','1–2','3–5','6–10','10+','Not sure']);
+ const sample=previewProfiles['few-opportunities'].answers;
+ for(const answer of ['None','1–2','0–2']){
+  const answers=[...sample];answers[1]=answer;
+  assert.equal(validateAuditAnswers(answers)[1],answer);
+  assert.equal(selectPersonalisationAreas(answers).includes('subscriptions'),false);
+ }
+ const none=[...sample];none[1]='None';
+ assert.equal(reasonForArea('subscriptions',none),"You don't pay for any subscriptions.");
+ const more=[...sample];more[1]='3–5';
+ assert.equal(selectPersonalisationAreas(more).includes('subscriptions'),true);
+});
 check('old apostrophe forms stay readable',()=>{const old=['Never','0–2','I don’t currently have insurance','Rarely','I don’t pay either of these bills','I don’t pay these bills','Rarely','Save more money'];assert.equal(validateAuditAnswers(old)[4],"I don't pay either of these bills");assert.deepEqual(selectPersonalisationAreas(validateAuditAnswers(old)),[]);});
 check('all seven concerns survive selection',()=>{assert.equal(selectPersonalisationAreas(high).length,7);assert.deepEqual(new Set(selectPersonalisationAreas(high)),areas);assert.deepEqual(selectPersonalisationAreas(sample),['subscriptions','insurance']);});
 check('no clear area does not invent a problem',()=>{const none=previewProfiles['few-opportunities'].answers;assert.deepEqual(selectPersonalisationAreas(none),[]);assert.equal(analyseSavings(none,emptyRefinements()).estimatedAnnualScenario,null);});
@@ -558,7 +571,7 @@ check('occasional takeaway buyers can give a truthful answer',()=>{
  const optional='Rarely';
  assert.ok(auditQuestions[0].options.includes(optional));
  assert.equal(auditQuestions[0].options.includes('Less than once a week'),false);
- const answers=[optional,'0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+ const answers=[optional,'None','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
  assert.deepEqual(validateAuditAnswers(answers),answers);
  const historical=[...answers];historical[0]='Less than once a week';
  assert.deepEqual(validateAuditAnswers(historical),historical);
