@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     try {
       const { order } = await ensurePaidOrder(session);
       after(async () => {
-        try { await sendOrderConfirmationOnce(order); }
+        try { await sendOrderConfirmationOnce(order, session.amount_total); }
         catch (error) {
           console.error("Payment confirmation email failed:",
             error instanceof Error ? error.message : error);
