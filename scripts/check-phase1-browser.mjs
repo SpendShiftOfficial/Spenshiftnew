@@ -356,7 +356,7 @@ try{
   await buyer.getByRole('button',{name:'Complete test payment'}).click();
   await buyer.waitForURL('**/personalise?**');
   for(let i=0;i<7;i++){
-   const heading=await buyer.locator('section h2').first().innerText();
+   const heading=await buyer.locator('section h2').last().innerText();
    if(heading==='Takeaway and eating out'){
     await buyer.locator('input[name=takeawayMealMode][value=both]').check();
     await buyer.locator('#takeawayOrder').fill('30');
@@ -399,7 +399,8 @@ try{
    await buyer.getByRole('button',{name:'Next',exact:true}).click();
    // Save happens asynchronously; never read a previous question as the next one.
    await buyer.waitForFunction(previous=>{
-     const h=document.querySelector('section h2');
+     const heads=document.querySelectorAll('section h2');
+     const h=heads[heads.length-1];
      return Boolean(h && h.textContent?.trim()!==previous);
    },heading,{timeout:16000});
   }
