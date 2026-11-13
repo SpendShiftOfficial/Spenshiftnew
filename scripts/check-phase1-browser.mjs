@@ -266,7 +266,7 @@ try{
   await page.getByRole('button',{name:'Previous question',exact:true}).click();
   assert.match(await page.locator('h1').innerText(),/What would help you most/);
   for(let i=0;i<7;i++)await page.getByRole('button',{name:'Previous question',exact:true}).click();
-  assert.match(await page.locator('h1').innerText(),/takeaway or eat out/i);
+  assert.match(await page.locator('h1').innerText(),/takeaway or go out for a meal/i);
   await page.getByRole('button',{name:'Never',exact:true}).click();
   await page.waitForTimeout(1300);assert.equal(saved.answers[0],'Never');
   for(let i=0;i<7;i++)await page.getByRole('button',{name:'Next question',exact:true}).click();
