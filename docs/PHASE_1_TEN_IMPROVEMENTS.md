@@ -1,5 +1,8 @@
 # Phase 1: ten-improvement package — preview only
 
+## Price status — 14 November 2026
+The current development preview uses **A$29 once** for new purchases. Existing A$39 purchases remain valid. Legal documents and production remain unchanged. The legal Terms page still references AUD $39 and must be reviewed before public launch. The older A$39 references below are dated implementation history, not the current preview price.
+
 ## Implemented scope
 - Truthful shared offer across home, pricing, what is included and how it works. No unsupported dollar examples, old 30-day report promise or AI-generation claim.
 - Strict shared eight-answer validation before checkout, versioned terms, server-fixed AUD39 price, idempotent session creation and safe error responses.
