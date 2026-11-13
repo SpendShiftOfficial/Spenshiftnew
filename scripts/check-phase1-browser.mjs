@@ -20,12 +20,12 @@ try{
  for(const viewport of [{width:1280,height:900},{width:375,height:812}]){
   const context=await browser.newContext({viewport});const page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
   await test('truthful public pages '+viewport.width,async()=>{
-   for(const route of ['/','/pricing','/whats-included','/how-it-works']){await go(page,route);const text=await page.locator('body').innerText();assert.ok(!/3,050|30-day action plan|AI Powered/.test(text));await noOverflow(page);}
+   for(const route of ['/','/pricing','/whats-included','/how-it-works']){await go(page,route);const text=await page.locator('body').innerText();assert.ok(!/3,050|30-day action plan|AI Powered/.test(text));assert.match(text,/A\$29/);assert.doesNotMatch(text,/A\$39/);await noOverflow(page);}
   });
   await test('free eight-question journey '+viewport.width,async()=>{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
-   await page.waitForURL('**/results');assert.match(await page.locator('body').innerText(),/7 places to check/);await noOverflow(page);
+   await page.waitForURL('**/results');const freeText=await page.locator('body').innerText();assert.match(freeText,/7 places to check/);assert.match(freeText,/Get my savings plan — A\$29/);assert.doesNotMatch(freeText,/A\$39/);await noOverflow(page);
    assert.equal(await page.locator('#optional-extra-area').count(),0,'Seven flagged areas must not show an extra dropdown');
    assert.equal(await page.getByRole('button',{name:'Want to check another area?'}).count(),0,'Seven flagged areas must not show the optional link');
    const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
