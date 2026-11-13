@@ -477,4 +477,46 @@ check('paid questions use plain, specific wording and treat all figures as estim
  assert.match(ui,/count=\(key:string,label:string,hint=''/);
 });
 
+check('new bill amounts require a confirmed payment period',()=>{
+ const draft=blankDraft(high);
+ assert.equal(draft.details.electricityPeriod,'');
+ assert.equal(draft.details.gasPeriod,'');
+ assert.equal(draft.insurancePolicies[0].paymentPeriod,'');
+ draft.details.electricityBill='400';
+ assert.throws(()=>prepareDraft(draft),/power bill covers/);
+ draft.details.electricityPeriod='quarter';
+ draft.details.hasGas='yes';
+ draft.details.gasMonthly='100';
+ assert.throws(()=>prepareDraft(draft),/gas bill/);
+ draft.details.gasPeriod='month';
+ draft.insurancePolicies=[{type:'Car',premium:'120',paymentPeriod:'',insurer:'',coverDescription:'',renewal:''}];
+ assert.throws(()=>prepareDraft(draft),/insurance policy/);
+ draft.insurancePolicies[0].paymentPeriod='month';
+ const refined=prepareDraft(draft);
+ const analysed=analyseSavings(high,refined);
+ assert.equal(analysed.opportunities.find(op=>op.area==='energy').annualSpend,2800);
+ assert.equal(analysed.opportunities.find(op=>op.area==='insurance').annualSpend,1440);
+ const older=restoreDraft(high,{details:{electricityBill:100,electricityPeriod:'quarter',gasMonthly:75,gasPeriod:'month'},insurancePolicies:[{type:'Car',premium:120,paymentPeriod:'year'}]});
+ assert.equal(older.details.electricityPeriod,'quarter');
+ assert.equal(older.details.gasPeriod,'month');
+ assert.equal(older.insurancePolicies[0].paymentPeriod,'year');
+});
+check('small-buy overlap must be explicitly checked',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(ui,/choice\('convenienceOverlap'/);
+ assert.doesNotMatch(ui,/convenienceOverlap:'no'/);
+ const unknown=validateRefinements({details:{...meal.details,convenienceWeekly:100,convenienceGoalWeekly:70,convenienceOverlap:''}});
+ const op=analyseSavings(high,unknown).opportunities.find(x=>x.area==='convenience');
+ assert.equal(op.scenarioSaving,null);
+ assert.match(op.assumption,/may include takeaway/i);
+ const verified=validateRefinements({details:{...meal.details,convenienceWeekly:100,convenienceGoalWeekly:70,convenienceOverlap:'no'}});
+ assert.equal(analyseSavings(high,verified).opportunities.find(x=>x.area==='convenience').scenarioSaving,1560);
+});
+check('tracker only subtracts costs from a matching period',()=>{
+ const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+ assert.match(tracker,/Extra costs for that same week, month or year/);
+ assert.match(tracker,/For a one-off switching fee, choose Year/);
+ assert.equal(checkedDifference(1200,900,50),250);
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');
