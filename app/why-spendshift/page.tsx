@@ -6,7 +6,6 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 import {
   ArrowRight,
-  Bot,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
@@ -20,8 +19,8 @@ import {
 const benefits = [
   {
     icon: WalletCards,
-    title: "Unlike Budgeting Apps",
-    text: "SpendShift focuses on identifying money that could be quietly disappearing through everyday habits.",
+    title: "Simple by design",
+    text: "Start with a few answers instead of tracking every purchase or building a full budget.",
     points: [
       "No spreadsheets",
       "No detailed budgeting",
@@ -32,10 +31,10 @@ const benefits = [
   {
     icon: MapPin,
     title: "Built for Australians",
-    text: "Our recommendations are shaped around Australian pricing, providers and everyday spending habits.",
+    text: "Made for Australians, with useful checks for everyday household costs.",
     points: [
-      "Australian pricing context",
-      "Local providers and services",
+      "Australian spending topics",
+      "Useful comparison links",
       "Relevant spending categories",
     ],
   },
@@ -52,7 +51,7 @@ const benefits = [
   {
     icon: Clock3,
     title: "Fast",
-    text: "Complete your free savings audit in approximately two minutes.",
+    text: "Answer eight free questions about your spending.",
     points: [
       "Eight simple questions",
       "Immediate free results",
@@ -62,22 +61,19 @@ const benefits = [
   {
     icon: ClipboardCheck,
     title: "Actionable",
-    text: "Every recommendation explains what to do next and how long the action could take.",
+    text: "The paid plan helps you check costs and follow clear next steps.",
     points: [
       "Clear quick wins",
       "Practical next steps",
-      "Estimated completion times",
+      "A checklist to follow",
     ],
   },
   {
-    icon: Bot,
-    title: "AI Powered",
-    text: "Every report is generated specifically from the answers you provide during the audit.",
-    points: [
-      "Personalised report structure",
-      "Relevant savings opportunities",
-      "Tailored scripts and action plan",
-    ],
+    icon: ClipboardCheck,
+    title: "Based on your answers",
+    text: "The paid plan uses your answers and any extra costs you choose to share.",
+    points: ["Three priority actions", "Help for relevant spending areas", "A way to record real savings"],
+
   },
 ];
 
@@ -92,15 +88,15 @@ const differences = [
   },
   {
     traditional: "Manual transaction categorisation",
-    spendshift: "Automatic personalised insights",
+    spendshift: "Steps based on your answers",
   },
   {
     traditional: "Complex monthly budgeting",
     spendshift: "Clear savings opportunities",
   },
   {
-    traditional: "General financial advice",
-    spendshift: "Recommendations based on your answers",
+    traditional: "Generic savings tips",
+    spendshift: "Checks based on your answers",
   },
 ];
 
@@ -126,10 +122,10 @@ export default function WhySpendShiftPage() {
               </h1>
 
               <p>
-                Unlike traditional budgeting apps, SpendShift focuses on
-identifying practical savings opportunities without asking you
-to build spreadsheets, track every transaction or connect your
-bank account. For more ideas, explore our{" "}
+                You don't need to track every purchase to find a place to start.
+                Answer eight free questions, see what costs may be worth checking,
+                and choose an A$29 plan if you want more help.
+                For more ideas, explore our{" "}
 <Link
 href="/save-money-australia"
 style={{
@@ -161,7 +157,7 @@ Australian money-saving guide
               </div>
 
               <Link href="/audit" className="btn">
-                Start Your Free Audit
+                Start my free savings check
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -184,7 +180,7 @@ Australian money-saving guide
                   <Clock3 size={26} />
                   <span>
                     <strong>Fast</strong>
-                    Approximately two minutes
+                    Eight free questions
                   </span>
                 </div>
 
@@ -264,7 +260,7 @@ Australian money-saving guide
           <div className="container">
             <div className="sectionIntro reveal-up">
               <span className="sectionEyebrow">
-                SpendShift vs Traditional Budgeting
+                A simple way to start
               </span>
 
               <h2 className="sectionTitle">
@@ -274,14 +270,14 @@ Australian money-saving guide
               </h2>
 
               <p>
-                SpendShift removes the setup and tracking normally associated
-                with budgeting tools.
+                SpendShift starts with answers, not your bank account or a record
+                of every purchase.
               </p>
             </div>
 
             <div className="whyComparisonTable">
               <div className="whyComparisonHeader">
-                <span className="reveal-left">Traditional budgeting tools</span>
+                <span className="reveal-left">Tracking every expense</span>
                 <span className="reveal-right">SpendShift</span>
               </div>
 
@@ -313,20 +309,19 @@ Australian money-saving guide
               </h2>
 
               <p>
-                SpendShift uses Australian category averages, common local
-                providers and typical spending patterns to create estimates and
-                recommendations that better match the market you live in.
+                SpendShift is made for Australian households. It helps you check
+                your own bills. We don't search live prices or compare offers for you.
               </p>
 
               <div className="whyAustralianPoints">
                 <span>
                   <CheckCircle2 size={18} fill="#059625" stroke="white" />
-                  Australian dollars and pricing
+                  Australian dollars
                 </span>
 
                 <span>
                   <CheckCircle2 size={18} fill="#059625" stroke="white" />
-                  Relevant local providers
+                  Useful comparison links
                 </span>
 
                 <span>
@@ -347,13 +342,12 @@ Australian money-saving guide
               <span>Australian focused</span>
 
               <strong>
-                Local context creates more useful recommendations.
+                Practical checks for Australian costs.
               </strong>
 
               <p>
-                Your report is designed to provide general savings information
-                based on the answers you submit and spending patterns relevant
-                to Australian consumers.
+                Your plan gives general savings information based on your answers.
+                Always check real costs and terms yourself.
               </p>
             </div>
           </div>
@@ -383,9 +377,9 @@ Australian money-saving guide
               </h2>
 
               <p>
-                Your audit answers are used to generate your personalised
-                insights and report. Payment details are securely processed by
-                Stripe and are not stored by SpendShift.
+                Your free results use your eight answers. Your paid plan can use the
+                extra details you choose to share. Stripe handles card payments.
+                SpendShift doesn't store full card details.
               </p>
 
               <Link href="/privacy-policy">
@@ -401,21 +395,21 @@ Australian money-saving guide
           <div className="container">
             <div className="cta">
               <div className="reveal-left">
-                <h2>Find your biggest savings opportunities today.</h2>
+                <h2>See what may be worth checking.</h2>
 
                 <p>
-                  Complete the free audit in approximately two minutes. No bank
-                  connection or credit card required.
+                  Start with eight free questions. See your results before deciding
+                  whether to pay A$29 for the full plan.
                 </p>
               </div>
 
               <div className="reveal-right">
                 <Link href="/audit" className="btn white">
-                  Start Your Free Audit
+                  Start my free savings check
                   <ArrowRight size={18} />
                 </Link>
 
-                <p className="noCard">Free results. No signup required.</p>
+                <p className="noCard">No bank login. No card for free results.</p>
               </div>
             </div>
           </div>

@@ -175,7 +175,7 @@ answer:
 {
 question: "How does SpendShift help me find savings?",
 answer:
-"SpendShift asks eight simple questions about your everyday spending habits and identifies likely money leaks and practical savings opportunities. The free audit takes approximately two minutes and does not require a bank connection.",
+"SpendShift asks eight simple questions about spending and shows which areas may be worth checking and where to start. The free audit takes approximately two minutes and does not require a bank connection.",
 },
 ];
 
@@ -217,7 +217,7 @@ that are quietly costing you more than they should.
 
 <div className="heroActions">
 <Link href="/audit" className="primaryButton">
-Start your free audit
+Start my free savings check
 <ArrowRight size={18} />
 </Link>
 
@@ -370,8 +370,8 @@ return (
 <span className="ctaEyebrow">PERSONALISED TO YOU</span>
 <h2>Not sure which expense to tackle first?</h2>
 <p>
-SpendShift&apos;s free audit analyses your answers to identify
-likely money leaks and show you where practical savings
+SpendShift&apos;s free check uses your answers to show
+where you may want to check costs and where savings
 opportunities may exist.
 </p>
 </div>
@@ -518,11 +518,11 @@ and assess value for money.
 <p>
 Answer eight simple questions about your everyday spending
 habits. SpendShift will identify likely money leaks and show
-you your strongest savings opportunities.
+you the areas worth checking first.
 </p>
 
 <Link href="/audit" className="primaryButton finalButton">
-Start your free audit
+Start my free savings check
 <ArrowRight size={18} />
 </Link>
 

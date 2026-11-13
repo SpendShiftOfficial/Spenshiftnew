@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Why SpendShift - Find Hidden Money Leaks",
   description:
-    "Learn how SpendShift helps Australians identify potential money leaks and find practical ways to save without bank connections or complicated budgeting.",
+    "See why SpendShift starts with eight free questions, Australian spending checks and an optional A$29 personalised savings plan.",
 };
 
 export default function WhySpendShiftLayout({ children }: { children: ReactNode }) {
