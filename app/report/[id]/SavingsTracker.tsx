@@ -186,9 +186,10 @@ export default function SavingsTracker({
                 value={after} onChange={e => setAfter(e.target.value)} />
             </label>
             <label>
-              Extra fees or costs not included above ($)
+              Extra costs for that same week, month or year ($)
               <input type="number" min="0" max="100000" step="0.01" required
                 value={fees} onChange={e => setFees(e.target.value)} />
+               <small>Use the same time period for all amounts. For a one-off switching fee, choose Year and compare the full-year costs.</small>
             </label>
             <label>
               Date you checked
