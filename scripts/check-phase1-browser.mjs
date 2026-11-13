@@ -259,7 +259,7 @@ try{
  await page.route('**/api/payment-status?**',route=>route.fulfill({json:{paid:true,answers:saved?.answers||getAnswers(),status:'awaiting_details',reportId:null,refinements:saved?{version:1,draft:saved}:null,revision}}));
  await page.route('**/api/personalisation/draft',async route=>{const body=route.request().postDataJSON();if(body.revision!==revision){await route.fulfill({status:409,json:{error:'This plan changed in another tab. Reload before editing.'}});return;}saved=body.draft;calls++;revision=new Date(Date.UTC(2026,10,9,10,0,calls)).toISOString();await route.fulfill({json:{saved:true,revision}});});
  await test('paid drafts save, reload and edit safely using mocked providers',async()=>{
-  await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');await page.locator('#takeawayOrder').fill('120');
+  await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');await page.locator('input[name=takeawayMealMode][value=takeaway]').check();await page.locator('#takeawayOrder').fill('120');
   await page.waitForTimeout(1300);await page.getByRole('status').filter({hasText:'Saved.'}).waitFor();assert.equal(saved.details.takeawayOrder,'120');
   await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#takeawayOrder');assert.equal(await page.locator('#takeawayOrder').inputValue(),'120');
   assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
