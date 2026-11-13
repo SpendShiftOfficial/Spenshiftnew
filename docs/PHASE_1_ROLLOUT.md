@@ -1,7 +1,9 @@
 # SpendShift Phase 1 — pre-launch checklist (NOT YET LIVE)
 
-## Launch price decision — 13 November 2026
-The agreed eventual first-product launch price is **A$29 once**. The current development checkout, Stripe payment check, marketing and emails still use **A$39** on purpose. Do not change any live or test price during this final audit. Before public launch, make one coordinated, separately approved pricing update (displayed price, Stripe amount, paid-session verification and marketing/receipt/email amounts) and verify it with a Stripe TEST purchase.
+## A$29 price implementation — 14 November 2026 (PREVIEW ONLY)
+The Phase 1 development branch now displays **A$29 once** on the offer, pricing and free-results screens, and creates **A$29 (2,900 cents)** Stripe checkout sessions in TEST mode. Analytics use A$29, and confirmation emails reflect the amount actually charged. Prior A$39 (3,900 cents) purchases remain valid for access, fulfilment and report corrections.
+
+This change has **not** been merged to production, and a real Stripe sandbox purchase and email delivery still require acceptance testing. **Legal documents have not been changed.** The Terms page still refers to AUD $39; this mismatch must be reviewed and corrected before launching to the public or charging real customers. References to A$39 in the dated historical sections below describe earlier implementation stages.
 
 
 ## Guided Phase 1 quality upgrade — 9 November 2026 (NOT LIVE)
