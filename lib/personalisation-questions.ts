@@ -19,7 +19,7 @@ const rules: Record<PersonalisationArea, Rule> = {
     "Never": 0, "Rarely": 1, "Less than once a week": 1, "1–2 times/week": 2, "3–5 times/week": 3, "Almost daily": 4,
   }},
   subscriptions: { index: 1, signals: {
-    "0–2": 0, "3–5": 2, "6–10": 3, "10+": 4, "Not sure": 2,
+    "None": 0, "1–2": 0, "0–2": 0, "3–5": 2, "6–10": 3, "10+": 4, "Not sure": 2,
   }},
   insurance: { index: 2, signals: {
     "I don’t currently have insurance": 0, "Within 6 months": 0,
@@ -86,7 +86,7 @@ export function selectPersonalisationAreas(auditAnswers: string[]): Personalisat
 export function reasonForArea(area: PersonalisationArea, answers: string[]): string {
   switch (area) {
     case "subscriptions":
-      return answers[1] === "Not sure" ? "You're not sure how many you pay for." : "You pay for " + answers[1] + " subscriptions.";
+      return answers[1] === "Not sure" ? "You're not sure how many you pay for." : answers[1] === "None" ? "You don't pay for any subscriptions." : "You pay for " + answers[1] + " subscriptions.";
     case "insurance":
       return answers[2] === "Never / not sure" || answers[2] === "Not sure"
         ? "You're not sure when you last checked your insurance."
@@ -123,7 +123,7 @@ export const previewProfiles: Record<
     label: "Takeaway + convenience purchases",
     answers: [
       "Almost daily",
-      "0–2",
+      "1–2",
       "Within 6 months",
       "Daily",
       "Within 6 months",
@@ -136,7 +136,7 @@ export const previewProfiles: Record<
     label: "Internet + energy bills",
     answers: [
       "Never",
-      "0–2",
+      "1–2",
       "Within 6 months",
       "Rarely",
       "Over a year ago",
@@ -162,7 +162,7 @@ export const previewProfiles: Record<
     label: "Few obvious opportunities",
     answers: [
       "Never",
-      "0–2",
+      "None",
       "Within 6 months",
       "Rarely",
       "Within 6 months",
