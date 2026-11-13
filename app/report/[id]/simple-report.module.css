@@ -463,3 +463,15 @@
   font-size: 15px;
   line-height: 1.55;
 }
+
+/* Each food category has its own costs, while the area remains one report card. */
+.mealSummary {
+  display: grid; gap: 8px;
+  padding: 16px 17px;
+  margin-bottom: 12px;
+  border: 1px solid #dbe9dd;
+  border-radius: 13px;
+  background: #f8fbf8;
+}
+.mealSummary > strong { color: #23442b; font-size: 17px; }
+.mealSummary p { margin: 0; color: #3d5544; font-size: 15px; line-height: 1.5; }

@@ -33,30 +33,35 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
     ];
   }
   if (op.area === "takeaway") {
-    if (d.takeawaySwapPerWeek === 0) return [
-      "Keep your usual meals out if that is what works for you.",
-      "Check the full cost, including delivery fees, before your next order.",
+    const mode = d.takeawayMealMode || "combined";
+    const selected=[
+      ...(["takeaway","both","combined"].includes(mode)?[{name:mode==="combined"?"meal out":"takeaway meal",n:d.takeawaySwapPerWeek,orders:d.takeawayOrdersPerWeek}]:[]),
+      ...(["restaurant","both"].includes(mode)?[{name:"restaurant meal",n:d.restaurantSwapPerWeek,orders:d.restaurantOrdersPerWeek}]:[]),
+    ];
+    if(selected.length&&selected.every(s=>s.n===0))return [
+      "Keep your usual meals out if that's what works for you.",
+      "Check the full price before you order, including any fees.",
       "Only make a change if it suits your needs and costs less.",
     ];
-    const n = d.takeawaySwapPerWeek;
     const relevant =
-      d.takeawayReason === "busy" ? "For busy nights, choose food you can make quickly, like wraps, eggs or a simple rice bowl. Buy what you need ahead of time."
-      : d.takeawayReason === "tired" ? "Make an extra meal when you have more energy. Keep it ready in the fridge or freezer for a tiring day."
-      : d.takeawayReason === "enjoy" ? "Keep your favourite meal out. Choose less important meals to replace so the plan feels worth keeping."
-      : d.takeawayReason === "family" ? "Pick easy meals that feed everyone, such as pasta or wraps. Work out the full cost for the same number of people."
-      : "Choose a home meal that you enjoy and can make on a normal week. Buy the food ahead of time.";
-    if (d.takeawayOrdersPerWeek !== null && n !== null &&
-        n > 0 && n <= d.takeawayOrdersPerWeek) {
+      d.takeawayReason === "busy" ? "For busy nights, choose food you can make quickly, like wraps, eggs or a rice bowl. Buy what you need ahead of time."
+      : d.takeawayReason === "tired" ? "Make an extra meal when you have more energy. Keep it ready for a tiring day."
+      : d.takeawayReason === "enjoy" ? "Keep your favourite meal out. Pick less important meals to replace."
+      : d.takeawayReason === "family" ? "Choose easy meals that feed everyone. Work out the total cost for the same people."
+      : "Choose a home meal you enjoy and can make in a normal week. Buy the food ahead of time.";
+    const changed=selected.filter(s=>s.n!==null&&s.n>0&&s.orders!==null&&s.n<=s.orders);
+    if(changed.length){
+      const summary=changed.map(s=>s.n+" "+s.name+(s.n===1?"":"s")).join(" and ");
       return [
-        "Pick " + n + (n === 1 ? " takeaway or eating-out meal" : " takeaway or eating-out meals") + " you could replace next week.",
+        "Choose "+summary+" to replace next week.",
         relevant,
-        "Check the full cost of each home meal for the same people. Count the difference, including any extra travel.",
+        "Compare the full costs for the same people, including groceries, drinks and any extra travel.",
       ];
     }
     return [
-      "Count how many times you get takeaway or eat out in a normal week.",
+      "Count your takeaway and restaurant meals separately for a normal week.",
       relevant,
-      "Choose a change you could keep doing and compare the full cost of both meals.",
+      "Choose one change you could keep doing. Compare the real cost of both meals.",
     ];
   }
   if (op.area === "convenience") {

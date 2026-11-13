@@ -101,8 +101,11 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       const math=takeawayMath(refinements);
       annualSpend=math.weeklyCost===null?null:Math.round(math.weeklyCost*52*100)/100;
       scenarioSaving=math.annualExample;
-      assumption=math.weeklySaving===null?'We need both meal costs and a realistic change before showing a saving.':'This is a weekly goal after paying for food at home. It is not money saved yet.';
-      firstAction=d.takeawaySwapPerWeek===0?'Keep your routine for now. Check the full cost before your next meal out.':d.takeawaySwapPerWeek!==null?'Choose '+d.takeawaySwapPerWeek+' meals out to replace next week.':'Count your takeaway or eating-out meals in a normal week before choosing a change.';
+      assumption=math.weeklySaving===null?'We need the cost of each meal you plan to replace and the food made at home before showing a saving. We do not assume takeaway and restaurants cost the same.':'This is the combined weekly goal for the meal changes you chose, after paying for food at home. It is not money saved yet.';
+      const mealSwaps=math.parts.filter(part=>part.swaps!==null&&part.swaps>0);
+      firstAction=mealSwaps.length? 'Choose '+mealSwaps.map(p=>p.swaps+' '+p.label.toLowerCase()+(p.swaps===1?' meal':' meals')).join(' and ')+' to replace next week.' :
+        math.parts.length&&math.parts.every(p=>p.swaps===0)? 'Keep the meals you enjoy. Check the total cost before buying again.' :
+        'Count takeaway and restaurant visits separately before choosing a change.';
       verification='Compare both costs for the same people, including food, delivery and extra travel.';
     } else if (area === "convenience") {
       if (d.convenienceWeekly !== null) annualSpend = cents(d.convenienceWeekly * 52);

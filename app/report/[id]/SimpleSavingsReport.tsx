@@ -70,11 +70,39 @@ function AreaNumbers({ op, refinements: r }: { op: SavingsOpportunity; refinemen
   }
   if (op.area === "takeaway") {
     const m=takeawayMath(r);
+    const selected=m.parts.filter(p=>p.swaps!==null&&p.swaps>0);
     return <>
-      {d.takeawayOrder!==null&&<div className={styles.costLine}><strong>{money(d.takeawayOrder)} <small>/ {d.takeawayAmountPeriod==='week'?'week':'order'}</small></strong><span>Your usual takeaway or eating-out spending</span></div>}
-      {m.weeklyCost!==null&&<p className={styles.costExplanation}>About {money(m.weeklyCost)} each week for {d.takeawayOrdersPerWeek??'your usual'} meals out.</p>}
-      {m.weeklySaving!==null&&<div className={styles.possible}><strong>Your goal: {money(m.weeklySaving)} less a week</strong><p>Replace {d.takeawaySwapPerWeek} meals out. Each meal at home costs {money(d.takeawayReplacementCost??0)} for the same people.</p><p>Your new weekly food cost for these meals would be about {money((m.weeklyCost??0)-m.weeklySaving)}.</p><details><summary>See the yearly example</summary><p>Keeping this change for 52 weeks could save {money(m.annualExample??0)}. Holidays, prices and extra costs may change the result.</p></details><small>This is a goal, not money saved yet.</small></div>}
-      {m.weeklySaving===null&&<p className={styles.smallNote}>{d.takeawaySwapPerWeek===0?'You chose not to replace any orders. We have not added a saving.':d.takeawayReplacementCost!==null&&m.orderCost!==null&&d.takeawayReplacementCost>=m.orderCost?'Your home meal costs as much or more than the order. There is no saving from that swap.':'Check both costs for the same people before counting a saving.'}</p>}
+      {m.parts.map(item=><div className={styles.mealSummary} key={item.type}>
+        <strong>{item.label}</strong>
+        {item.amount!==null&&<div className={styles.costLine}>
+          <strong>{money(item.amount)} <small>/ {item.amountPeriod==="week"?"week":"meal"}</small></strong>
+          <span>Your usual cost for this kind of meal</span>
+        </div>}
+        {item.orders!==null&&<p>{item.orders} {item.orders===1?"meal":"meals"} each week.</p>}
+        {item.swaps!==null&&item.swaps>0&&<p>Plan: replace {item.swaps} {item.swaps===1?"meal":"meals"} a week.</p>}
+        {item.homeCost!==null&&item.swaps!==null&&item.swaps>0&&<p>Food at home for the same people: {money(item.homeCost)} a meal.</p>}
+        {item.netWeeklySaving!==null&&<p>{item.netWeeklySaving>0
+          ?"Possible reduction for these meals: "+money(item.netWeeklySaving)+" a week."
+          :item.netWeeklySaving===0?"These meals would cost the same at home."
+          :"These meals could cost "+money(-item.netWeeklySaving)+" more a week at home."}</p>}
+      </div>)}
+      {m.weeklyCost!==null&&<p className={styles.costExplanation}>Total usual weekly cost for the meals you listed: {money(m.weeklyCost)}.</p>}
+      {m.weeklySaving!==null&&
+        <div className={styles.possible}>
+          <strong>Possible total reduction: {money(m.weeklySaving)} a week</strong>
+          <p>This includes the meals you chose to replace, after allowing for their different home-meal costs.</p>
+          {m.weeklyCost!==null&&<p>Your new weekly cost for these meals could be about {money(m.weeklyCost-m.weeklySaving)}.</p>}
+          <details><summary>See the yearly example</summary><p>Keeping this change for 52 weeks could mean {money(m.annualExample??0)} less spent. Holidays, prices and extra costs may change the result.</p></details>
+          <small>This is a plan, not money already saved. Check your actual spending.</small>
+        </div>}
+      {m.weeklySaving===null&&<p className={styles.smallNote}>
+        {selected.length===0&&m.parts.length>0&&m.parts.every(p=>p.swaps===0)
+          ?"You chose not to replace any meals. We have not added a saving."
+          :selected.some(p=>p.netWeeklySaving!==null&&p.netWeeklySaving<=0)&&
+            selected.every(p=>p.netWeeklySaving!==null)
+            ?"Your replacement meals would not cost less overall, so we have not claimed a saving."
+            :"Enter the cost of the meals you plan to replace and food at home to work out a reliable reduction. We won't assume that restaurant and takeaway prices are the same."}
+      </p>}
     </>;
   }
   if (op.area === "convenience") return (

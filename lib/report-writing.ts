@@ -2,6 +2,7 @@ import type { ReportRefinements } from "./report-refinements";
 import type { SavingsAnalysis } from "./savings-engine";
 import { reasonForArea } from "./personalisation-questions";
 import {checklistTasks} from "./report-steps";
+import {takeawayMath} from "./savings-math";
 import {annualisePayment,periodLabel} from "./payment-periods";
 
 function money(amount: number): string {
@@ -51,10 +52,21 @@ export function makeReportMarkdown(
           ". These are costs, not savings.",
       );
     } else if (op.area === "takeaway") {
-      if (d.takeawayOrder !== null) lines.push("Your usual takeaway or eating-out spending: " + money(d.takeawayOrder) + (d.takeawayAmountPeriod === "week" ? " for a whole week." : " for one order."));
-      if (d.takeawayOrdersPerWeek !== null) lines.push("You get takeaway or eat out " + d.takeawayOrdersPerWeek + " times each week.");
-      if (d.takeawaySwapPerWeek !== null) lines.push("Your goal is to replace " + d.takeawaySwapPerWeek + " orders a week.");
-      if (d.takeawayReplacementCost !== null) lines.push("Food from home for the same people: " + money(d.takeawayReplacementCost) + ".");
+      const meals=takeawayMath(refinements);
+      for(const item of meals.parts){
+        lines.push(item.label + ":");
+        if(item.amount!==null)lines.push("Usual spending: "+money(item.amount)+
+          (item.amountPeriod==="week"?" per week.":" per meal."));
+        if(item.orders!==null)lines.push("Number of meals each week: "+item.orders+".");
+        if(item.swaps!==null)lines.push("Meals you may replace each week: "+item.swaps+".");
+        if(item.homeCost!==null)lines.push("Home meal for the same people: "+money(item.homeCost)+".");
+        if(item.netWeeklySaving!==null)lines.push(
+          "Possible weekly cost change for these meals: "+money(item.netWeeklySaving)+
+          " less if positive. This is not a recorded saving."
+        );
+      }
+      if(meals.weeklyCost!==null)lines.push("Combined weekly meal cost: "+money(meals.weeklyCost)+".");
+      if(meals.weeklySaving!==null)lines.push("Possible weekly reduction from the selected meal changes: "+money(meals.weeklySaving)+".");
     } else if (op.area === "convenience") {
       if (d.convenienceWeekly !== null) lines.push("You spend " + money(d.convenienceWeekly) + " a week on small buys.");
       if (d.convenienceGoalWeekly !== null) lines.push("Your weekly goal: " + money(d.convenienceGoalWeekly) + ".");
