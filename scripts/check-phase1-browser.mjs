@@ -37,7 +37,7 @@ try{
    assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await page.getByRole('button',{name:'Rarely',exact:true}).click();
    await page.getByRole('button',{name:'Next question',exact:true}).click();
-   for(const value of ['0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
+   for(const value of ['None','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
      await page.getByRole('button',{name:value,exact:true}).click();
      await page.getByRole('button',{name:value==='Save more money'?'See my free results':'Next question',exact:true}).click();
    }
@@ -56,10 +56,26 @@ try{
    assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await noOverflow(page);
   });
+  await test('subscription choices and saved older free answers '+viewport.width,async()=>{
+   await go(page,'/audit');
+   await page.getByRole('button',{name:'Never',exact:true}).click();
+   await page.getByRole('button',{name:'Next question',exact:true}).click();
+   const choices=await page.locator('[role="group"] button').allTextContents();
+   assert.deepEqual(choices,['None','1–2','3–5','6–10','10+','Not sure']);
+   await page.getByRole('button',{name:'1–2',exact:true}).click();
+   assert.equal(await page.getByRole('button',{name:'1–2',exact:true}).getAttribute('aria-pressed'),'true');
+   await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Never','0–2'],index:1})));
+   await page.reload({waitUntil:'networkidle'});
+   assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).getAttribute('aria-pressed'),'true');
+   await page.getByRole('button',{name:'None',exact:true}).click();
+   assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).count(),0);
+   assert.equal(await page.getByRole('button',{name:'None',exact:true}).getAttribute('aria-pressed'),'true');
+   await noOverflow(page);
+  });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
    for(const body of [{answers:[]},{answers:high,acceptedTerms:false,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}]){const response=await page.request.post(base+'/api/checkout',{data:body});assert.equal(response.status(),400);}
    const paused=await page.request.post(base+'/api/checkout',{data:{answers:high,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:'11111111-1111-4111-8111-111111111111'}});assert.equal(paused.status(),403);
-    const no=['Never','0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+    const no=['Never','None','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
     const requestId='11111111-1111-4111-8111-111111111111';
     const missing=await page.request.post(base+'/api/checkout',{data:{answers:no,acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:requestId}});assert.equal(missing.status(),400);
     const invalid=await page.request.post(base+'/api/checkout',{data:{answers:no,additionalArea:'__proto__',acceptedTerms:true,termsVersion:'2026-11-phase1',checkoutRequestId:requestId}});assert.equal(invalid.status(),400);
@@ -68,7 +84,7 @@ try{
   await test('chosen overlooked area survives a simulated paid resume '+viewport.width,async()=>{
     const extraContext=await browser.newContext({viewport});
     const chosenPage=await extraContext.newPage();
-    const answers=['Never','0–2','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+    const answers=['Never','None','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
     const selectedDraft={version:1,answers,details:{},insurancePolicies:[],additionalUnusedSubscriptions:[],additionalArea:'subscriptions',step:0};
     await chosenPage.route('**/api/payment-status?**',route=>route.fulfill({json:{paid:true,answers,status:'awaiting_details',reportId:null,refinements:{version:1,draft:selectedDraft},revision:'2026-11-13T00:00:00.000Z'}}));
     await chosenPage.goto(base+'/personalise?session_id=cs_test_selectedarea00000000000',{waitUntil:'networkidle'});
