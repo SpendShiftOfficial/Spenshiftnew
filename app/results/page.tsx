@@ -176,6 +176,9 @@ export default function Results() {
               <p className={styles.subhead}>
                 {areas.length ? "Your answers point to places worth reviewing. This doesn't prove you're overpaying, and we haven't checked prices for you." : "Your eight answers did not flag this as a concern, but you asked to check it. We cannot promise a saving."}
               </p>
+              {answers[7]==="Save more money" && <p className={styles.freeGoalNote}>
+                <strong>Your goal: Save more money.</strong> We put concrete opportunities, such as unused subscriptions, ahead of less certain checks where possible. Without bill amounts, we can't rank these by dollars saved.
+              </p>}
               <div className={styles.planShortcut} aria-label="Optional paid savings plan">
                 <div>
                   <strong>Want a plan for these checks?</strong>
@@ -195,7 +198,9 @@ export default function Results() {
                   <div className={styles.areaCopy}>
                     <h2>{areaNames[area]}</h2>
                     <p>{areas.includes(area) ? reasonForArea(area, answers) : "You chose this area. We have not confirmed a problem."}</p>
-                    <p className={styles.freeAction}><strong>First step:</strong> {firstChecks[area]}</p>
+                    <p className={styles.freeAction}><strong>First step:</strong> {area==="subscriptions"&&answers[1]==="Yes — at least one unused"
+                        ? "Check the latest charge for the unused subscription and whether you still need it."
+                        : firstChecks[area]}</p>
                   </div>
                   <CheckCircle2 className={styles.areaIcon} size={23} aria-hidden="true" />
                 </article>
