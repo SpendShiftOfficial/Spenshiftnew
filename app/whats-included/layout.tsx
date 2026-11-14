@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "What’s Included - Free Audit & Savings Report",
-  description:
-    "See what's included in SpendShift's free savings audit and A$29 one-time savings plan, with three priority actions, comparison help and a savings tracker.",
+  title: "What's Included in Your Savings Plan",
+  description: "See what your A$29 SpendShift plan includes: 3 priority actions, help comparing costs, a clear checklist and a way to record real savings.",
+  alternates: { canonical: "https://www.spendshift.com.au/whats-included" },
 };
 
 export default function WhatsIncludedLayout({ children }: { children: ReactNode }) {

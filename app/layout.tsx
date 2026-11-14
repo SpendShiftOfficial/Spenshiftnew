@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.spendshift.com.au"),
 
   title: {
-    default: "SpendShift | See Where You Could Spend Less",
+    default: "Free Savings Check for Australians | SpendShift",
     template: "%s | SpendShift",
   },
 
   description:
-    "Answer eight free spending questions. See what to check first, then choose an optional A$29 personalised savings plan with clear steps.",
+    "Answer 8 free questions about your spending. See bills and everyday costs worth checking, then choose an optional A$29 savings plan with clear next steps.",
 
   keywords: [
     "money saving",
@@ -59,9 +59,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/save-money-australia.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
+        alt: "SpendShift — Free savings check for Australians",
       },
     ],
   },
@@ -71,7 +72,7 @@ export const metadata: Metadata = {
     title: "SpendShift",
     description:
       "Start with free spending results. Get a personalised savings plan for A$29 once if you want more help.",
-    images: ["/save-money-australia.png"],
+    images: ["/opengraph-image"],
   },
 
   icons: {
