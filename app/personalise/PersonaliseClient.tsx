@@ -11,6 +11,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  const router=useRouter();const [sessionId,setSessionId]=useState('');const [isRevision,setIsRevision]=useState(false);const [draft,setDraft]=useState<PlanDraft>(blankDraft(previewProfiles['subscriptions-insurance'].answers));
  const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);
  const revision=useRef('');const lastSaved=useRef('');const queue=useRef<Promise<void>>(Promise.resolve());const latest=useRef(draft);latest.current=draft;
+ const areaHeading=useRef<HTMLHeadingElement>(null);const lastShownStep=useRef<number|null>(null);
  const signature=JSON.stringify(draft);const areas=selectedDraftAreas(draft);const review=draft.step>=areas.length;const area=areas[draft.step];const d=draft.details;
  const mealMode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
  const listedPolicies=draft.insurancePolicies.filter(p=>p.type||p.premium||p.insurer||p.coverDescription);
@@ -28,6 +29,8 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  }
  useEffect(()=>{if(!ready||!sessionId||reportId||submitting||signature===lastSaved.current)return;setSaving('Changes not saved yet…');const timer=setTimeout(()=>persist(latest.current).catch(e=>setError(e.message)),800);return()=>clearTimeout(timer);},[signature,ready,sessionId,reportId,submitting]);
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(ready&&sessionId&&!reportId&&JSON.stringify(latest.current)!==lastSaved.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[ready,sessionId,reportId]);
+ // Keep each new paid area visible after long sections, without scrolling while typing.
+ useEffect(()=>{if(!ready)return;if(lastShownStep.current===null){lastShownStep.current=draft.step;return;}if(lastShownStep.current!==draft.step){lastShownStep.current=draft.step;areaHeading.current?.scrollIntoView({behavior:'auto',block:'start'});}},[ready,draft.step]);
  function update(key:string,value:string){setError('');setDraft(prev=>({...prev,details:{...prev.details,[key]:value,...(key==='unusedSubscriptionChoice'&&value!=='yes'?{unusedSubscriptionMonthly:'',unusedSubscriptionName:''}:{}),...(key==='hasGas'&&value!=='yes'?{gasMonthly:''}:{}),...(key==='convenienceWeekly'?{convenienceOverlap:''}:{}),...(key==='phoneService'?(value==='both'?{}:value==='mobile'?{internetMonthly:''}:value==='internet'?{mobileMonthly:''}:{mobileMonthly:'',internetMonthly:''}):{})},additionalUnusedSubscriptions:key==='unusedSubscriptionChoice'&&value!=='yes'?[]:prev.additionalUnusedSubscriptions}));}
  function updateExtra(index:number,patch:Partial<RawUnusedSubscription>){setError('');setDraft(prev=>({...prev,additionalUnusedSubscriptions:prev.additionalUnusedSubscriptions.map((item,i)=>i===index?{...item,...patch}:item)}));}
  function setMealMode(value:string){
@@ -77,9 +80,11 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  function missingDetail(a:PersonalisationArea):string {
    if(a==='subscriptions'){
      const entries=[{name:d.unusedSubscriptionName,monthly:d.unusedSubscriptionMonthly},...draft.additionalUnusedSubscriptions];
-     return d.unusedSubscriptionChoice==='yes'&&entries.some(p=>(p.name||p.monthly)&&(!p.name.trim()||!p.monthly))
-       ? 'Add a service name and monthly price for each unused subscription you want counted in a possible saving.'
-       : !d.unusedSubscriptionChoice ? 'Check your bank statements or app subscriptions if you are unsure.' : '';
+     if(d.unusedSubscriptionChoice==='yes'){
+       if(entries.some(p=>(p.name||p.monthly)&&(!p.name.trim()||!p.monthly)))return 'Add a service name and monthly price for each unused subscription you want counted in a possible saving.';
+       if(!entries.some(p=>p.name.trim()&&p.monthly))return 'You mentioned an unused subscription. Its name and monthly price would help us calculate a possible saving. You can still finish without them.';
+     }
+     return !d.unusedSubscriptionChoice ? 'Check your bank statements or app subscriptions if you are unsure.' : '';
    }
    if(a==='takeaway'){
      const mode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
@@ -135,7 +140,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
       ['Restaurant visits to replace',d.restaurantSwapPerWeek||'Not provided'],
       ['Home cost for restaurant meals',money(d.restaurantReplacementCost,'per meal')]
      );
-     facts.push(['Main challenge',({busy:'Not much time',tired:'Too tired to cook',enjoy:'I enjoy eating out',family:'Cooking for other people',other:'Other'})[d.takeawayReason]||'Not provided']);
+     facts.push(['Main reason',({busy:'Not much time',tired:'Too tired to cook',enjoy:'I enjoy eating out',family:'Cooking for other people',other:'Other'})[d.takeawayReason]||'Not provided']);
      return facts;
    }
    if(a==='convenience')return [['Current cost',money(d.convenienceWeekly,'a week')],['Weekly goal',money(d.convenienceGoalWeekly,'a week')],['Includes takeaway?',d.convenienceOverlap==='no'?'No':d.convenienceOverlap==='yes'?'Yes':'Not sure']];
@@ -165,15 +170,15 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
   
   <div className={styles.progressTop}><strong>{review?'Check your answers':'Area '+(draft.step+1)+' of '+areas.length}</strong></div><div className={styles.track} role='progressbar' aria-label='Your progress' aria-valuenow={review?100:Math.round(draft.step/areas.length*100)} aria-valuemin={0} aria-valuemax={100}><div style={{width:(review?100:draft.step/areas.length*100)+'%'}}/></div>
   <section className={styles.panel}>
-   {review?<><h2>You're nearly done</h2><p>{areas.length===0?'Your first answers no longer show a clear place to start. Choose one area below and we will make a focused plan for it. There is no extra charge.':'We can make your plan with what you shared. Adding a missing amount may make it more useful. You can still skip anything you don\'t know.'}</p>{areas.map((a,i)=><div className={styles.reviewExtra} key={a}><strong>{areaNames[a]}</strong>{missingDetail(a)&&<p className={styles.reviewHint}>{missingDetail(a)}</p>}<dl>{reviewFacts(a).map(([label,value],n)=><div key={n}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><button className={styles.extraLink} type='button' onClick={()=>setDraft(p=>({...p,step:i}))}>Check or edit {areaNames[a].toLowerCase()}</button></div>)}
+   {review?<><h2 ref={areaHeading}>You're nearly done</h2><p>{areas.length===0?'Your first answers no longer show a clear place to start. Choose one area below and we will make a focused plan for it. There is no extra charge.':'We can make your plan with what you shared. Adding a missing amount may make it more useful. You can still skip anything you don\'t know.'}</p>{areas.map((a,i)=><div className={styles.reviewExtra} key={a}><strong>{areaNames[a]}</strong>{missingDetail(a)&&<p className={styles.reviewHint}>{missingDetail(a)}</p>}<dl>{reviewFacts(a).map(([label,value],n)=><div key={n}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><button className={styles.extraLink} type='button' onClick={()=>setDraft(p=>({...p,step:i}))}>Check or edit {areaNames[a].toLowerCase()}</button></div>)}
     {draft.additionalArea&&<button type='button' className={styles.extraLink} onClick={()=>{setShowExtra(false);setDraft(p=>({...p,additionalArea:'',step:selectedDraftAreas({...p,additionalArea:''}).length}));}}>Remove the extra area</button>}
     {areas.length===0&&!draft.additionalArea&&<div className={styles.field}><label htmlFor='required-area'>Choose one area to check</label><select id='required-area' defaultValue='' onChange={e=>{if(e.target.value)setDraft(p=>({...p,additionalArea:e.target.value,step:0}));}}><option value=''>Choose an area</option>{Object.entries(areaNames).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></div>}
     {areas.length>0&&areas.length<7&&!draft.additionalArea&&<><button className={styles.extraLink} type='button' onClick={()=>setShowExtra(!showExtra)}>Want to check another area?</button>{showExtra&&<select aria-label='Extra area' defaultValue='' onChange={e=>setDraft(p=>({...p,additionalArea:e.target.value,step:areas.length}))}><option value=''>Choose an area</option>{Object.entries(areaNames).filter(([key])=>!areas.includes(key as PersonalisationArea)).map(([key,name])=><option key={key} value={key}>{name}</option>)}</select>}</>}
     <div className={styles.actions}><button className={styles.primary} type='button' disabled={submitting||areas.length===0} onClick={finish}>{submitting?'Saving your plan…':isRevision?'Save my updated plan':'Make my plan'}</button></div></>:
-    <><h2>{areaNames[area]}</h2><div className={styles.fields}>
+    <><h2 ref={areaHeading}>{areaNames[area]}</h2><div className={styles.fields}>
      {area==='subscriptions'&&<>
       {amount('subscriptionsMonthly','About how much do you pay for all your subscriptions each month?','Look at your bank app, app store or receipts. A rough total is fine.')}
-      {choice('unusedSubscriptionChoice',"Do you still pay for any subscriptions you don't use?",[['yes','Yes'],['no','No — I use them all'],['not_sure','Not sure']],"Not sure? Check your bank app for regular charges from apps or services you don't use.")}
+      {choice('unusedSubscriptionChoice',draft.answers[1]==='Yes — at least one unused'?"You mentioned an unused subscription. Is that still right?":"Do you still pay for any subscriptions you don't use?",[['yes','Yes'],['no','No — I use them all'],['not_sure','Not sure']],"Not sure? Check your bank app for regular charges from apps or services you don't use.")}
       {d.unusedSubscriptionChoice==='yes'&&<>
         <div className={styles.field}><label htmlFor='unusedSubscriptionName'>What is the name of the first unused service?</label><input id='unusedSubscriptionName' maxLength={60} placeholder='e.g. Stan' value={d.unusedSubscriptionName||''} onChange={e=>update('unusedSubscriptionName',e.target.value)}/></div>
         {amount('unusedSubscriptionMonthly','About how much do you pay for this service each month?','Look at your bank app or a receipt. A rough amount is fine, or you can skip it.')}
@@ -231,7 +236,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
             {amount('restaurantReplacementCost','About how much would it cost to make that meal at home?', "Count food for everyone you pay for. A rough amount is fine if you know it.")}
           </details>}
         </div>}
-      {mealMode&&choice('takeawayReason','What makes it hard to eat out less?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
+      {mealMode&&choice('takeawayReason','What is the main reason you choose these meals?',[['busy','I do not have much time'],['tired','I feel too tired to cook'],['enjoy','I enjoy eating out'],['family','Cooking for other people is hard'],['other','Something else']])}
       <small>Count each meal once. If you know the home-meal cost, we can work out a possible saving. If not, we'll show the steps without guessing.</small>
     </>}
      {area==='convenience'&&<>
