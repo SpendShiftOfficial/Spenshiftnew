@@ -142,7 +142,7 @@ check('electricity quote marks one-bill annualisation as an estimate',()=>{
 });
 
 check('checked results subtract fees and preserve losses',()=>{assert.equal(checkedDifference(100,70,5),25);assert.equal(checkedDifference(70,100,5),-35);assert.equal(checkedDifference(0,0,0),0);assert.throws(()=>checkedDifference(10,Infinity,0));assert.throws(()=>checkedDifference(10,-1,0));});
-check('equal quote and tracker results never say lower',()=>{assert.match(fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8'),/Both prices are the same/);assert.match(fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8'),/no change in cost/);});
+check('equal quote and tracker results never say lower',()=>{assert.match(fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8'),/Both prices are the same/);assert.match(fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8'),/No change/);});
 check('quote comparison is first-year only',()=>{assert.equal(quoteDifference(1200,80,'month',20),220);assert.equal(quoteDifference(1200,1300,'year',0),-100);});
 check('A$29 checkout, displayed prices and analytics preserve older A$39 purchases',()=>{
  assert.equal(PLAN_PRICE_CENTS,2900);
@@ -663,10 +663,13 @@ check('small-buy overlap must be explicitly checked',()=>{
  const verified=validateRefinements({details:{...meal.details,convenienceWeekly:100,convenienceGoalWeekly:70,convenienceOverlap:'no'}});
  assert.equal(analyseSavings(high,verified).opportunities.find(x=>x.area==='convenience').scenarioSaving,1560);
 });
-check('tracker only subtracts costs from a matching period',()=>{
+check('tracker separates recurring reductions from one-off fees and avoids duplicate areas',()=>{
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
- assert.match(tracker,/Extra costs for that same week, month or year/);
- assert.match(tracker,/For a one-off switching fee, choose Year/);
+ assert.match(tracker,/feeMode === "upfront" \? 0 : e\.fees/);
+ assert.match(tracker,/annualPace\(e\) - \(e\.feeMode === "upfront" \? e\.fees : 0\)/);
+ assert.match(tracker,/if \(seen\.has\(entry\.key\)\) return false/);
+ assert.match(tracker,/entries\.some\(entry => entry\.key === itemKey && entry\.id !== editId\)/);
+ assert.match(tracker,/Saved only in this browser/);
  assert.equal(checkedDifference(1200,900,50),250);
 });
 
