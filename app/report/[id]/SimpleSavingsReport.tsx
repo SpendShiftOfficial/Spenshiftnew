@@ -201,23 +201,23 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
   if (area === "insurance" || area === "phone") {
     const guides: Record<string, { label: string; url: string }> = {
       "Car": {
-        label: "Check car insurance — MoneySmart",
+        label: "Check car insurance (MoneySmart)",
         url: "https://moneysmart.gov.au/car-insurance/how-to-save-money-on-car-insurance",
       },
       "Home or contents": {
-        label: "Check home and contents insurance — MoneySmart",
+        label: "Check home and contents insurance (MoneySmart)",
         url: "https://moneysmart.gov.au/home-insurance/choosing-home-insurance",
       },
       "Health": {
-        label: "Compare health policies — Australian Government",
+        label: "Compare health policies (Australian Government)",
         url: "https://www.privatehealth.gov.au/dynamic/search/",
       },
       "Life or income protection": {
-        label: "Read about life and income cover — MoneySmart",
+        label: "Read about life and income cover (MoneySmart)",
         url: "https://moneysmart.gov.au/how-life-insurance-works",
       },
       "Travel": {
-        label: "Check travel insurance — MoneySmart",
+        label: "Check travel insurance (MoneySmart)",
         url: "https://moneysmart.gov.au/other-types-of-insurance/travel-insurance",
       },
     };
@@ -226,7 +226,7 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
       (entry): entry is { label: string; url: string } => Boolean(entry),
     );
     const generalGuide = {
-      label: "How to check insurance — MoneySmart",
+      label: "How to check insurance (MoneySmart)",
       url: "https://moneysmart.gov.au/insurance",
     };
     return (
@@ -241,7 +241,7 @@ function UsefulHelp({ op, r }: { op: SavingsOpportunity; r: ReportRefinements })
         </details>
         <p className={styles.guide}>
           {(area === "phone"
-            ? [{ label: "Free phone and internet switching guide — ACMA", url: "https://www.acma.gov.au/switch-your-phone-or-internet-provider" }]
+            ? [{ label: "Free phone and internet switching guide (ACMA)", url: "https://www.acma.gov.au/switch-your-phone-or-internet-provider" }]
             : specificGuides.length ? specificGuides : [generalGuide]).map(guide => (
             <a key={guide.url} href={guide.url} target="_blank" rel="noopener noreferrer">{guide.label}</a>
           ))}
