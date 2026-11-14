@@ -376,7 +376,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           </div>
         </section>}
 
-        <SavingsTracker reportId={reportId} options={trackerOptions} />
+        {trackerOptions.length > 0 && <SavingsTracker reportId={reportId} options={trackerOptions} />}
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
