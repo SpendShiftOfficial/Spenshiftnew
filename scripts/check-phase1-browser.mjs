@@ -584,6 +584,54 @@ try{
   await next(page);
   assert.equal(await page.locator('section h2').last().innerText(),'Subscriptions');
  });
+ await test('paid Next is immediate even when saving is blocked, and answers survive reload',async()=>{
+  const slowContext=await browser.newContext({viewport:{width:375,height:812}});
+  const slowPage=await slowContext.newPage();
+  slowPage.setDefaultTimeout(10000);
+  const slowSession='cs_test_slow_draft_navigation_fixture';
+  let slowRevision='2026-11-14T12:00:00.000Z',slowSaved=null,slowWrites=0;
+  let releaseFirstSave=()=>{};
+  const firstSaveGate=new Promise(resolve=>{releaseFirstSave=resolve;});
+  await slowPage.route('**/api/payment-status?**',route=>route.fulfill({json:{
+   paid:true,answers:getAnswers(),status:'awaiting_details',reportId:null,
+   refinements:slowSaved?{version:1,draft:slowSaved}:null,revision:slowRevision,
+  }}));
+  await slowPage.route('**/api/personalisation/draft',async route=>{
+   const body=route.request().postDataJSON();
+   if(body.revision!==slowRevision){
+    await route.fulfill({status:409,json:{error:'This plan changed in another tab. Reload before editing.'}});
+    return;
+   }
+   slowWrites++;
+   if(slowWrites===1)await firstSaveGate;
+   slowSaved=body.draft;
+   slowRevision=new Date(Date.UTC(2026,10,14,12,0,slowWrites)).toISOString();
+   await route.fulfill({json:{saved:true,revision:slowRevision}});
+  });
+  try{
+   await go(slowPage,'/personalise?session_id='+slowSession);
+   await slowPage.locator('input[name=takeawayMealMode][value=takeaway]').check();
+   await slowPage.locator('#takeawayOrder').fill('120');
+   await slowPage.getByRole('button',{name:'Next',exact:true}).click();
+   await slowPage.locator('#subscriptionsMonthly').waitFor({timeout:1500});
+   assert.equal(slowSaved,null,'Question navigation must not wait for a network save');
+   await slowPage.locator('#subscriptionsMonthly').fill('75');
+   await slowPage.getByRole('button',{name:'Next',exact:true}).click();
+   await slowPage.locator('#convenienceWeekly').waitFor({timeout:1500});
+   assert.equal(slowSaved,null,'A second Next must also work while the first save is pending');
+   releaseFirstSave();
+   await slowPage.getByRole('status').filter({hasText:'Saved.'}).waitFor({timeout:12000});
+   assert.equal(slowSaved.details.takeawayOrder,'120');
+   assert.equal(slowSaved.details.subscriptionsMonthly,'75');
+   assert.equal(slowSaved.step,2);
+   await slowPage.reload({waitUntil:'networkidle'});
+   await slowPage.locator('#convenienceWeekly').waitFor();
+   await slowPage.getByRole('button',{name:'Previous question',exact:true}).click();
+   assert.equal(await slowPage.locator('#subscriptionsMonthly').inputValue(),'75');
+   await slowPage.getByRole('button',{name:'Previous question',exact:true}).click();
+   assert.equal(await slowPage.locator('#takeawayOrder').inputValue(),'120');
+  }finally{releaseFirstSave();await slowContext.close();}
+ });
  await test('revision conflicts show a clear error',async()=>{
   revision='2026-11-10T10:00:00.000Z';
   await page.locator('#subscriptionsMonthly').fill('70');
