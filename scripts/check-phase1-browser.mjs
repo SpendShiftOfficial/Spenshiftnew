@@ -9,6 +9,7 @@ let logs='';for(const stream of [server.stdout,server.stderr])stream.on('data',x
 fs.mkdirSync('test-artifacts',{recursive:true});
 const high=['Almost daily','Yes — at least one unused','Never','Daily',"I honestly don't know","I honestly don't know",'Almost daily','Lower my bills'];
 const getAnswers=()=>high.slice();
+const auditLabel=answer=>answer==='Yes — at least one unused'?'Yes, at least one is unused':answer==='No — I use them all'?'No, I use them all':answer;
 let tests=0;let browser;
 async function test(name,fn){await fn();tests++;console.log('PASS '+name);}
 async function noOverflow(page){const details=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,oversized:[...document.querySelectorAll('*')].map(el=>({tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,75):'',right:Math.round(el.getBoundingClientRect().right),left:Math.round(el.getBoundingClientRect().left)})).filter(x=>x.right>innerWidth+2||x.left < -2).slice(0,12)}));assert.ok(details.scrollWidth<=details.width+2,'Page overflows the viewport at '+page.url()+' '+JSON.stringify(details));}
@@ -172,8 +173,8 @@ try{
   });
   await test('free eight-question journey '+viewport.width,async()=>{
    await go(page,'/audit');
-   for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
-   await page.waitForURL('**/results');const freeText=await page.locator('body').innerText();assert.match(freeText,/7 places to check/);assert.match(freeText,/Get my savings plan — A\$29/);assert.doesNotMatch(freeText,/A\$39/);await noOverflow(page);
+   for(let i=0;i<high.length;i++){await page.getByRole('button',{name:auditLabel(high[i]),exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
+   await page.waitForURL('**/results');const freeText=await page.locator('body').innerText();assert.match(freeText,/7 places to check/);assert.match(freeText,/Get my savings plan for A\$29/);assert.doesNotMatch(freeText,/A\$39/);await noOverflow(page);
    assert.equal(await page.locator('#optional-extra-area').count(),0,'Seven flagged areas must not show an extra dropdown');
    assert.equal(await page.getByRole('button',{name:'Want to check another area?'}).count(),0,'Seven flagged areas must not show the optional link');
    const preview=page.locator('#plan-example');
@@ -181,7 +182,7 @@ try{
    assert.equal(await page.getByLabel('Example of a possible savings action').isVisible(),false,'Illustration starts collapsed');
    await preview.locator('summary').click();
    const example=page.getByLabel('Example of a possible savings action');
-   assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
+   assert.match(await example.innerText(),/EXAMPLE ONLY. NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
    assert.match(await example.innerText(),/In your paid plan: clear steps and useful links/);
    assert.equal(await example.locator('ol').count(),0,'The free example must not give away the full three-step guide');
    await noOverflow(page);
@@ -201,7 +202,7 @@ try{
    for(const phrase of ['Your top 3 actions','Clear steps for each area','Help comparing costs','optional savings tracker','What happens after payment?','A$29','no subscription','Payment handled by Stripe']){
     assert.ok(copy.includes(phrase),'Missing upgrade reassurance: '+phrase);
    }
-   const buy=offer.getByRole('button',{name:'Get my savings plan — A$29'});
+   const buy=offer.getByRole('button',{name:'Get my savings plan for A$29'});
    assert.equal(await buy.isDisabled(),true,'Checkout must require accepted terms');
    await offer.locator('input[type=checkbox]').check();
    assert.equal(await buy.isEnabled(),true,'Terms acceptance must enable checkout');
@@ -251,7 +252,7 @@ try{
    await free.goto(base+'/audit',{waitUntil:'networkidle'});
    const answers=['Never','Yes — at least one unused','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
    for(let i=0;i<answers.length;i++){
-    await free.getByRole('button',{name:answers[i],exact:true}).click();
+    await free.getByRole('button',{name:auditLabel(answers[i]),exact:true}).click();
     await free.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
    }
    await free.waitForURL('**/results');
@@ -269,7 +270,7 @@ try{
    await free.goto(base+'/audit',{waitUntil:'networkidle'});
    const answers=['1–2 times/week','No — I use them all','Within 6 months','1–2 times/week','Within 6 months','Within 6 months','1–2 times/week','Save more money'];
    for(let i=0;i<answers.length;i++){
-    await free.getByRole('button',{name:answers[i],exact:true}).click();
+    await free.getByRole('button',{name:auditLabel(answers[i]),exact:true}).click();
     await free.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
    }
    await free.waitForURL('**/results');
@@ -292,16 +293,16 @@ try{
    await page.getByRole('button',{name:'Never',exact:true}).click();
    await page.getByRole('button',{name:'Next question',exact:true}).click();
    const choices=await page.locator('[role="group"] button').allTextContents();
-   assert.deepEqual(choices,["I don't have any subscriptions","Yes — at least one unused","No — I use them all","Not sure"]);
+   assert.deepEqual(choices,["I don't have any subscriptions","Yes, at least one is unused","No, I use them all","Not sure"]);
    assert.match(await page.locator('body').innerText(),/paid apps, streaming services and memberships/);
-   await page.getByRole('button',{name:'Yes — at least one unused',exact:true}).click();
-   assert.equal(await page.getByRole('button',{name:'Yes — at least one unused',exact:true}).getAttribute('aria-pressed'),'true');
+   await page.getByRole('button',{name:'Yes, at least one is unused',exact:true}).click();
+   assert.equal(await page.getByRole('button',{name:'Yes, at least one is unused',exact:true}).getAttribute('aria-pressed'),'true');
    await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Never','0–2'],index:1})));
    await page.reload({waitUntil:'networkidle'});
    assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).getAttribute('aria-pressed'),'true');
-   await page.getByRole('button',{name:'No — I use them all',exact:true}).click();
+   await page.getByRole('button',{name:'No, I use them all',exact:true}).click();
    assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).count(),0);
-   assert.equal(await page.getByRole('button',{name:'No — I use them all',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.equal(await page.getByRole('button',{name:'No, I use them all',exact:true}).getAttribute('aria-pressed'),'true');
    await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Never','3–5'],index:1})));
    await page.reload({waitUntil:'networkidle'});
    assert.equal(await page.getByRole('button',{name:'3–5',exact:true}).getAttribute('aria-pressed'),'true');
@@ -577,7 +578,7 @@ try{
    await form.getByLabel('Which part of your plan changed?').selectOption('subscriptions');
    await form.getByLabel('Before ($)',{exact:true}).fill('70');
    await form.getByLabel('Now ($)',{exact:true}).fill('50');
-   await form.getByLabel('One-off switching or cancellation fees ($) — if any').fill('5');
+   await form.getByLabel('One-off switching or cancellation fees ($), if any').fill('5');
    await form.locator('input[type=date]').fill('2026-11-01');
    await form.locator('input[type=checkbox]').check();
    await form.getByRole('button',{name:'Save my change'}).click();
@@ -620,7 +621,7 @@ try{
    assert.equal(await form.getByLabel('How often are these costs paid?').count(),0,'One-off shopping must not ask for a recurring frequency');
    await form.getByLabel('Price of the purchase ($)').fill('60');
    await form.getByLabel('What you spent instead ($)').fill('0');
-   await form.getByLabel('Other one-off costs ($) — if any').fill('0');
+   await form.getByLabel('Other one-off costs ($), if any').fill('0');
    await form.locator('input[type=date]').fill('2026-11-01');
    await form.locator('input[type=checkbox]').check();
    await form.getByRole('button',{name:'Save my change'}).click();
@@ -880,7 +881,7 @@ try{
  await test('uncoached first-time customer: audit to simulated upgrade to personalised report',async()=>{
   await go(buyer,'/audit');
   for(let i=0;i<high.length;i++){
-   await buyer.getByRole('button',{name:high[i],exact:true}).click();
+   await buyer.getByRole('button',{name:auditLabel(high[i]),exact:true}).click();
    await buyer.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
   }
   await buyer.waitForURL('**/results');
