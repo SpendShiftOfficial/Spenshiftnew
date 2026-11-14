@@ -1451,7 +1451,6 @@ padding: 40px 21px;
 font-size: 36px;
 }
 }
-`}
 .editorialNote {
   padding: 42px 0;
   background: #f1f8f0;
@@ -1497,6 +1496,7 @@ font-size: 36px;
   .jumpNav { justify-content: flex-start; margin: 26px auto 35px; }
 }
 
+`}
 </style>
  
 </div>
