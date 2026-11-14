@@ -7,7 +7,7 @@ const base='http://127.0.0.1:3000';
 const server=spawn('npm',['run','start','--','--hostname','127.0.0.1'],{stdio:['ignore','pipe','pipe'],env:{...process.env,PORT:'3000'}});
 let logs='';for(const stream of [server.stdout,server.stderr])stream.on('data',x=>{logs+=x.toString();if(logs.length>120000)logs=logs.slice(-120000);});
 fs.mkdirSync('test-artifacts',{recursive:true});
-const high=['Almost daily','10+','Never','Daily',"I honestly don't know","I honestly don't know",'Almost daily','Lower my bills'];
+const high=['Almost daily','Yes — at least one unused','Never','Daily',"I honestly don't know","I honestly don't know",'Almost daily','Lower my bills'];
 const getAnswers=()=>high.slice();
 let tests=0;let browser;
 async function test(name,fn){await fn();tests++;console.log('PASS '+name);}
@@ -234,7 +234,7 @@ try{
    assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await page.getByRole('button',{name:'Rarely',exact:true}).click();
    await page.getByRole('button',{name:'Next question',exact:true}).click();
-   for(const value of ['None','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
+   for(const value of ["I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money']){
      await page.getByRole('button',{name:value,exact:true}).click();
      await page.getByRole('button',{name:value==='Save more money'?'See my free results':'Next question',exact:true}).click();
    }
@@ -246,6 +246,39 @@ try{
    assert.match(await page.locator('body').innerText(),/We have not confirmed a problem/);
    await noOverflow(page);
   });
+  await test('one unused subscription appears in free results without invented savings '+viewport.width,async()=>{
+   const context=await browser.newContext({viewport});const free=await context.newPage();
+   await free.goto(base+'/audit',{waitUntil:'networkidle'});
+   const answers=['Never','Yes — at least one unused','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+   for(let i=0;i<answers.length;i++){
+    await free.getByRole('button',{name:answers[i],exact:true}).click();
+    await free.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
+   }
+   await free.waitForURL('**/results');
+   const body=await free.locator('body').innerText();
+   assert.match(body,/We found 1 place to check/);
+   assert.match(body,/at least one subscription goes unused/);
+   assert.match(body,/Your goal: Save more money/);
+   assert.match(body,/we can't rank these by dollars saved/);
+   assert.match(body,/Check the latest charge for the unused subscription/);
+   assert.doesNotMatch(body,/Your estimated savings: \$[0-9]/);
+   await noOverflow(free);await context.close();
+  });
+  await test('light spending and used subscriptions do not trigger a paid recommendation '+viewport.width,async()=>{
+   const context=await browser.newContext({viewport});const free=await context.newPage();
+   await free.goto(base+'/audit',{waitUntil:'networkidle'});
+   const answers=['1–2 times/week','No — I use them all','Within 6 months','1–2 times/week','Within 6 months','Within 6 months','1–2 times/week','Save more money'];
+   for(let i=0;i<answers.length;i++){
+    await free.getByRole('button',{name:answers[i],exact:true}).click();
+    await free.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
+   }
+   await free.waitForURL('**/results');
+   const body=await free.locator('body').innerText();
+   assert.match(body,/We didn't find a clear place to start/);
+   assert.match(body,/We don't recommend paying based on these answers alone/);
+   assert.equal(await free.locator('#optional-extra-area').count(),1);
+   await noOverflow(free);await context.close();
+  });
   await test('older saved free answers reopen as Rarely '+viewport.width,async()=>{
    await go(page,'/audit');
    await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Less than once a week'],index:0})));
@@ -254,20 +287,24 @@ try{
    assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await noOverflow(page);
   });
-  await test('subscription choices and saved older free answers '+viewport.width,async()=>{
+  await test('subscription choice directly identifies unused services and reopens old drafts '+viewport.width,async()=>{
    await go(page,'/audit');
    await page.getByRole('button',{name:'Never',exact:true}).click();
    await page.getByRole('button',{name:'Next question',exact:true}).click();
    const choices=await page.locator('[role="group"] button').allTextContents();
-   assert.deepEqual(choices,['None','1–2','3–5','6–10','10+','Not sure']);
-   await page.getByRole('button',{name:'1–2',exact:true}).click();
-   assert.equal(await page.getByRole('button',{name:'1–2',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.deepEqual(choices,["I don't have any subscriptions","Yes — at least one unused","No — I use them all","Not sure"]);
+   assert.match(await page.locator('body').innerText(),/paid apps, streaming services and memberships/);
+   await page.getByRole('button',{name:'Yes — at least one unused',exact:true}).click();
+   assert.equal(await page.getByRole('button',{name:'Yes — at least one unused',exact:true}).getAttribute('aria-pressed'),'true');
    await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Never','0–2'],index:1})));
    await page.reload({waitUntil:'networkidle'});
    assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).getAttribute('aria-pressed'),'true');
-   await page.getByRole('button',{name:'None',exact:true}).click();
+   await page.getByRole('button',{name:'No — I use them all',exact:true}).click();
    assert.equal(await page.getByRole('button',{name:'0–2',exact:true}).count(),0);
-   assert.equal(await page.getByRole('button',{name:'None',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.equal(await page.getByRole('button',{name:'No — I use them all',exact:true}).getAttribute('aria-pressed'),'true');
+   await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({answers:['Never','3–5'],index:1})));
+   await page.reload({waitUntil:'networkidle'});
+   assert.equal(await page.getByRole('button',{name:'3–5',exact:true}).getAttribute('aria-pressed'),'true');
    await noOverflow(page);
   });
   await test('checkout rejects bad input without creating a payment '+viewport.width,async()=>{
