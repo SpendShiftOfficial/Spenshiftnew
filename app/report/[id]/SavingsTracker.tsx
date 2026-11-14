@@ -294,10 +294,10 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
               {itemKey !== "unplanned" && <p className={styles.trackerFormHint}>Compare the same service or spending area over the same length of time. For power, compare similar usage as well.</p>}
               <label>
                 {itemKey === "unplanned"
-                  ? "Other one-off costs ($) — if any"
+                  ? "Other one-off costs ($), if any"
                   : editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
                     ? "Extra costs in that same time period ($)"
-                    : "One-off switching or cancellation fees ($) — if any"}
+                    : "One-off switching or cancellation fees ($), if any"}
                 <input type="number" min="0" max="100000" step="0.01" inputMode="decimal"
                   value={fees} onChange={e => setFees(e.target.value)} />
               </label>
@@ -348,7 +348,7 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
                 {entry.fees > 0 && <small>{money(entry.fees)} {isOneOff
                   ? "other one-time costs included once"
                   : entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the comparison</small>}
-                {isDuplicate && <p className={styles.trackerDuplicate}>Older record — not included in the combined figures, to avoid counting this area twice.</p>}
+                {isDuplicate && <p className={styles.trackerDuplicate}>Older record. Not included in the combined figures, to avoid counting this area twice.</p>}
                 <div className={styles.trackerRowActions}>
                   {currentOption && <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
                   <button type="button" onClick={() => {
