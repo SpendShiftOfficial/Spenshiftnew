@@ -1,7 +1,7 @@
 /** Shared, server-validated audit choices. Keep old paid answers readable. */
 export const auditQuestions = [
  {q:'How often do you buy takeaway or go out for a meal?', options:['Never','Rarely','1–2 times/week','3–5 times/week','Almost daily']},
- {q:'How many subscriptions do you pay for?', options:['None','1–2','3–5','6–10','10+','Not sure']},
+ {q:"Do you pay for any subscriptions you don't use?", options:["I don't have any subscriptions","Yes — at least one unused","No — I use them all","Not sure"]},
  {q:'When did you last check your insurance price?', options:['I don’t currently have insurance','Within 6 months','6–12 months ago','1–2 years ago','Over 2 years ago','Never','Not sure','Never / not sure']},
  {q:'How often do you buy coffee, snacks or other small treats?', options:['Rarely','1–2 times/week','3–5 times/week','Daily']},
  {q:'When did you last check your phone or internet price?', options:['Within 6 months','6-12 months ago','Over a year ago',"I honestly don't know","I don't pay either of these bills"]},
@@ -17,8 +17,13 @@ export function validateAuditAnswers(input:unknown):string[]{
   const found=auditQuestions[index].options.find(option=>normal(option)===normal(answer));
   // Older saved purchases can still contain the original wording.
   if(!found && index===0 && normal(answer)==='Less than once a week') return 'Less than once a week';
-  // Older saved purchases may use the previous combined 0–2 choice.
-  if(!found && index===1 && normal(answer)==='0-2') return '0–2';
+  // Keep older purchases and saved free audits using the original count-based question valid.
+  // These values remain accepted, but are no longer shown to new customers.
+  if(!found && index===1){
+    const oldChoices=['None','1–2','3–5','6–10','10+','0–2'];
+    const old=oldChoices.find(choice=>normal(choice)===normal(answer));
+    if(old)return old;
+  }
   if(!found) throw new Error('Please check question '+(index+1)+'.');
   return found;
  });
