@@ -750,7 +750,7 @@ check('paid tracker does not annualise a single unplanned purchase or invent unu
  assert.match(report,/service === "internet" \? \[\] :/);
  assert.match(report,/service === "mobile" \? \[\] :/);
  assert.match(report,/details\.hasGas === "yes" \|\| refinements\.details\.gasMonthly !== null/);
- assert.match(report,/key: "unplanned"/);
+ assert.match(report,/return \[\{ key: op\.area, title: op\.title \}\]/);
 });
 
 console.log('Phase 1 package: '+cases+' test groups passed.');
