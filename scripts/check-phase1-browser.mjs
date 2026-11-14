@@ -300,16 +300,17 @@ try{
    await assertCurrencySpacing('#subscriptionsMonthly');
    await noOverflow(page);
   });
-  await test('savings tracker help has breathing room '+viewport.width,async()=>{
+  await test('optional tracker stays compact until opened and has good spacing '+viewport.width,async()=>{
    await go(page,'/report-preview?customer=all-seven');
-   const details=page.locator('details').filter({has:page.getByText("I've made a change — compare my costs",{exact:true})}).first();
-   assert.equal(await details.getAttribute('open'),null);
-   assert.match(await page.locator('body').innerText(),/This is for later/);
-   assert.match(await page.locator('body').innerText(),/Nothing recorded yet/);
-   assert.match(await page.locator('body').innerText(),/If you cancel a \$20-a-month subscription/);
-   const note=page.getByText(/saved only in this browser, not on other devices/i);
-   const a=await details.boundingBox(),b=await note.boundingBox();
-   assert.ok(a&&b&&b.y-(a.y+a.height)>=14,'Saved results note must sit below its button without overlap');
+   const tracker=page.getByRole('region',{name:'See what your changes are worth'});
+   assert.equal(await tracker.locator('form').count(),0,'Cost entry must be collapsed until requested');
+   assert.match(await tracker.innerText(),/This is for later/);
+   assert.match(await tracker.innerText(),/Nothing recorded yet/);
+   assert.equal(await tracker.getByText(/subscription you cancelled went from/).count(),0,'Example lives inside the optional form');
+   const button=tracker.getByRole('button',{name:'Record my first change'});
+   const note=tracker.getByText(/Saved only in this browser/i);
+   const top=await button.boundingBox(),bottom=await note.boundingBox();
+   assert.ok(top&&bottom&&bottom.y-(top.y+top.height)>=14,'Privacy note must sit below the optional action with breathing room');
    await noOverflow(page);
   });
   await test('multiple unused subscriptions reach the same complete report '+viewport.width,async()=>{
