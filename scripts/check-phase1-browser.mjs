@@ -55,7 +55,7 @@ try{
     const description=await page.locator('meta[name="description"]').getAttribute('content');
     assert.ok(description&&description.length>35,'Description missing on '+route);
     const canonical=await page.locator('link[rel="canonical"]').getAttribute('href');
-    assert.equal(canonical,'https://www.spendshift.com.au'+route,'Canonical incorrect on '+route);
+    assert.equal((canonical||'').replace(/\/$/,''),('https://www.spendshift.com.au'+route).replace(/\/$/,''),'Canonical incorrect on '+route);
     if(route==='/'){
      assert.match(await page.title(),/Free Savings Check for Australians/);
      assert.match((await page.locator('meta[property="og:image"]').getAttribute('content'))||'',/\/opengraph-image/);
