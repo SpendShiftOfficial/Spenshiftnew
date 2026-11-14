@@ -476,6 +476,46 @@ try{
    assert.ok(dimensions.field>=dimensions.parent-3,'Optional cover input should fill its field');
    await noOverflow(page);
   });
+  await test('paid questions remember unused services and warn without blocking report '+viewport.width,async()=>{
+   const extraContext=await browser.newContext({viewport});const paid=await extraContext.newPage();
+   const answers=['Never','Yes — at least one unused','Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
+   await paid.goto(base+'/audit',{waitUntil:'networkidle'});
+   await paid.evaluate(answers=>localStorage.setItem('spendshift_answers',JSON.stringify(answers)),answers);
+   await paid.goto(base+'/personalise',{waitUntil:'networkidle'});
+   await paid.getByRole('heading',{name:'Subscriptions'}).waitFor();
+   assert.equal(await paid.locator('#unusedSubscriptionChoice').inputValue(),'yes','Free answer should already be selected');
+   assert.match(await paid.locator('body').innerText(),/You mentioned an unused subscription\. Is that still right\?/);
+   assert.match(await paid.locator('body').innerText(),/no extra charge/i);
+   await paid.getByRole('button',{name:'Next',exact:true}).click();
+   await paid.getByRole('heading',{name:"You're nearly done"}).waitFor();
+   assert.match(await paid.locator('body').innerText(),/Its name and monthly price would help us calculate a possible saving/);
+   assert.equal(await paid.getByRole('button',{name:'Make my plan'}).isEnabled(),true,'Unknown amounts must remain optional');
+   await noOverflow(paid);
+   await extraContext.close();
+  });
+  await test('next paid area remains in view after a long insurance form '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
+   await next(page);
+   await page.getByRole('heading',{name:'Insurance',exact:true}).waitFor();
+   for(let i=0;i<4;i++)await page.getByRole('button',{name:'Add another policy'}).click();
+   await page.getByRole('button',{name:'Next',exact:true}).click();
+   const heading=page.getByRole('heading',{name:"You're nearly done"});
+   await heading.waitFor();
+   await page.waitForTimeout(120);
+   const box=await heading.boundingBox();
+   assert.ok(box&&box.y>=-2&&box.y<viewport.height/2,'After a long area the review heading must be visible on screen: '+JSON.stringify(box));
+   await noOverflow(page);
+  });
+  await test('meal motivation is neutral and does not assume overspending '+viewport.width,async()=>{
+   await go(page,'/personalise');await page.locator('#demo').selectOption('takeaway-convenience');
+   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
+   assert.equal(await page.getByLabel('What is the main reason you choose these meals?').count(),1);
+   assert.equal(await page.getByText('What makes it hard to eat out less?',{exact:true}).count(),0);
+   await page.locator('#takeawayReason').selectOption('enjoy');
+   assert.equal(await page.locator('#takeawayReason').inputValue(),'enjoy');
+   await next(page);
+   await noOverflow(page);
+  });
   await test('first paid area has no Previous; later Previous stays in the paid form '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
