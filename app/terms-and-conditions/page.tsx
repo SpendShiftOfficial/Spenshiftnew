@@ -42,10 +42,7 @@ export default function TermsAndConditions() {
               <h3>1. Acceptance of these Terms</h3>
 
               <p>
-                These Website Terms and Conditions (“Terms”) govern access to
-                and use of www.spendshift.com.au, the free audit, free results,
-                paid personalised reports, saved report URLs and related
-                services (“Service”).
+                These Terms and Conditions (“Terms”) govern use of www.spendshift.com.au, the eight-question free savings check, free results, optional paid personalised savings plans, private plan links and related services (“Service”).
               </p>
 
               <p>
@@ -78,35 +75,21 @@ export default function TermsAndConditions() {
               <h3>3. What SpendShift provides</h3>
 
               <p>
-                SpendShift provides a questionnaire-based spending audit and,
-                where purchased, an AI-assisted personalised report containing
-                estimated savings opportunities, explanations, quick wins,
-                suggested next steps, scripts, a 30-day action plan and related
-                general information.
+                SpendShift provides an eight-question free savings check showing areas worth reviewing and where to start. The optional paid plan uses your answers and further details you choose to add. It includes three priority actions, guidance for relevant spending areas, help comparing bills and plans, a checklist and a way to record savings you actually achieve. You may skip costs you do not know.
               </p>
 
               <p>
-                The paid report is a digital service delivered electronically
-                and may be made available immediately after payment through a
-                saved report URL and by email.
+                The paid plan is a digital service. After payment, you can answer or skip additional questions about relevant spending areas. When those questions are completed or skipped, your plan is prepared and can be accessed through a private saved link, which may also be emailed to the checkout address.
               </p>
 
               <h3>4. Important limitations</h3>
 
               <p>
-                SpendShift does not access bank account(s) and does not
-                independently verify audit answers, actual transactions, income,
-                expenses, debts, contracts, insurance policies,
-                telecommunications plan, subscriptions or personal
-                circumstances.
+                SpendShift does not connect to bank accounts, independently check live provider prices, switch services for you or verify your transactions, income, bills, contracts, insurance, debts or personal circumstances.
               </p>
 
               <p>
-                The quality and relevance of the output depends on the
-                completeness and accuracy of the information provided. Savings
-                figures are estimates based on reported habits, assumptions,
-                typical spending patterns, category averages and conservative
-                reduction targets. They are not guaranteed.
+                The usefulness of your plan depends on your answers. Possible savings figures are calculated only when enough relevant costs and details are known. They are conditional estimates, not guaranteed savings or money already saved. If important amounts are missing, the plan gives steps to check instead of guessing a saving.
               </p>
 
               <p>
@@ -169,35 +152,24 @@ export default function TermsAndConditions() {
                 </li>
               </ul>
 
-              <h3>6. AI-generated and automated content</h3>
+              <h3>6. Automated and earlier AI-assisted content</h3>
 
               <p>
-                The Service uses Anthropic’s Claude Application Programming
-                Interface (“API”) and automated logic. AI-generated content may
-                be incomplete, inaccurate, outdated, repetitive, inconsistent
-                or unsuitable for your circumstances.
+                The current personalised savings plan uses automated rules, calculations and prepared guidance. It does not call Anthropic’s Claude API to generate new plans. Earlier versions of SpendShift may have included AI-assisted text. Automated or earlier AI-generated material may be incomplete, inaccurate, outdated or unsuitable for your circumstances.
               </p>
 
               <p>
-                You remain responsible for decisions made using the report. You
-                should not act solely on an AI-generated statement where the
-                decision could materially affect your finances, legal rights,
-                insurance, credit, tax position, health or safety.
+                Review your plan and verify important information independently. Do not rely only on automated or earlier AI-generated information when making decisions that could materially affect your financial, legal, insurance, credit, tax, health or safety position.
               </p>
 
               <p>
-                We may modify prompts, models, calculation logic, assumptions,
-                report structure and providers at any time to improve or
-                maintain the Service.
+                We may update the rules, calculations, guidance and systems used for future services. This does not remove your rights relating to previous purchases under applicable law.
               </p>
 
               <h3>7. Price, GST and payment</h3>
 
               <p>
-                The current price for a paid personalised report is AUD $39.
-                Prices for SpendShift Services may be subject to change at the
-                discretion of SpendShift. Prices are inclusive of GST where GST
-                is legally applicable, unless clearly stated otherwise.
+                The current price for the optional personalised savings plan is AUD $29 once. There is no subscription or recurring charge. This applies to new orders and does not change previous purchases or amounts paid. Prices for future purchases may change, but the applicable price is shown before checkout. Prices include GST where legally applicable unless stated otherwise.
               </p>
 
               <p>
@@ -222,19 +194,11 @@ export default function TermsAndConditions() {
               <h3>8. Digital delivery and report access</h3>
 
               <p>
-                After successful payment, we will generate or unlock the report
-                and email a link to the email address associated with the
-                transaction. Delivery times may vary due to payment
-                verification, AI processing, internet connectivity,
-                maintenance or third-party outages.
+                After payment is confirmed, you can answer or skip extra questions about relevant spending areas. Your plan is prepared after that step and available through a private link, which may also be emailed to the checkout address. Processing and delivery may be delayed by payment verification, connectivity, maintenance or third-party outages.
               </p>
 
               <p>
-                Each report may be stored and accessed using a unique saved
-                report URL. No login is required. Anyone with the URL may be
-                able to view the report. SpendShift is not responsible for any
-                external or third-party access of the report once the unique
-                URL has been provided to you.
+                A private report link may allow access without a separate login. Anyone with the link may be able to view the plan, so keep it confidential. Contact us if you think it has been disclosed or accessed without permission. Our privacy and legal obligations continue to apply to how we handle your information.
               </p>
 
               <p>
@@ -314,11 +278,7 @@ export default function TermsAndConditions() {
               <h3>11. Third-party services and links</h3>
 
               <p>
-                The Service relies on third parties, including Anthropic,
-                Stripe, Apple Pay, Supabase, Resend, Vercel and Google
-                Analytics. It may also link to comparison sites, providers,
-                banks, telecommunications companies, insurers or other third
-                parties.
+                The Service uses Stripe, Supabase, Resend and Vercel. Earlier versions may have used Anthropic for AI-assisted content. Subject to cookie consent, some public marketing pages may use Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel. We also link to external providers and comparison resources.
               </p>
 
               <p>
@@ -432,11 +392,7 @@ export default function TermsAndConditions() {
               <h3>19. Changes to these Terms</h3>
 
               <p>
-                We may update these Terms by publishing the revised version on
-                the website. Changes apply from the stated date of
-                commencement. Your continued use of the Service after that date
-                constitutes acceptance of the revised Terms, except where
-                further consent is required by law.
+                We may update these Terms by publishing a revised version and its update date. Changes apply prospectively where permitted by law and do not remove mandatory consumer rights or retrospectively change the price or terms agreed for an earlier purchase without a lawful basis or required consent.
               </p>
 
               <h3>20. General</h3>
@@ -489,7 +445,7 @@ export default function TermsAndConditions() {
               </p>
 
               <p>
-                <strong>Last updated: 14 July 2026</strong>
+                <strong>Last updated: 14 November 2026</strong>
               </p>
 
             </div>

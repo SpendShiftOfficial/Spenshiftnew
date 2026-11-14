@@ -45,8 +45,7 @@ export default function RefundPolicy() {
               <h3>1. Overview</h3>
 
               <p>
-                This Refund Policy applies to paid SpendShift personalised
-                reports purchased through www.spendshift.com.au.
+                This Refund Policy applies to personalised savings plans and earlier paid SpendShift reports purchased through www.spendshift.com.au. The current plan costs AUD $29 once, with no subscription. Earlier purchases are assessed by reference to the amount actually paid.
               </p>
 
               <p>
@@ -58,10 +57,7 @@ export default function RefundPolicy() {
               <h3>2. 30-day money-back guarantee</h3>
 
               <p>
-                You may request a refund within 30 calendar days after the
-                purchase date if you are not satisfied with the paid report or
-                you reasonably believe it did not identify a useful potential
-                saving or practical action for you.
+                You may request a refund within 30 calendar days of purchase if you are not satisfied with the paid plan or reasonably believe it did not identify a useful potential saving or practical action for you.
               </p>
 
               <p>
@@ -161,7 +157,7 @@ export default function RefundPolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 14 July 2026</strong>
+                <strong>Last updated: 14 November 2026</strong>
               </p>
             </div>
           </div>
