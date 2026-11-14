@@ -9,7 +9,7 @@ import styles from './personalise.module.css';
 import {paymentPeriodOptions,annualisePayment,isPaymentPeriod,periodLabel} from '@/lib/payment-periods';
 export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:boolean;hasPaidSession:boolean}){
  const router=useRouter();const [sessionId,setSessionId]=useState('');const [isRevision,setIsRevision]=useState(false);const [draft,setDraft]=useState<PlanDraft>(blankDraft(previewProfiles['subscriptions-insurance'].answers));
- const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [moving,setMoving]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);
+ const [ready,setReady]=useState(false);const [error,setError]=useState('');const [saving,setSaving]=useState('');const [submitting,setSubmitting]=useState(false);const [reportId,setReportId]=useState('');const [showExtra,setShowExtra]=useState(false);
  const revision=useRef('');const lastSaved=useRef('');const queue=useRef<Promise<void>>(Promise.resolve());const latest=useRef(draft);latest.current=draft;
  const signature=JSON.stringify(draft);const areas=selectedDraftAreas(draft);const review=draft.step>=areas.length;const area=areas[draft.step];const d=draft.details;
  const mealMode=d.takeawayMealMode||(d.takeawayOrder||d.takeawayOrdersPerWeek?'combined':'');
@@ -24,7 +24,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  function persist(snapshot:PlanDraft,complete=false){
   if(!sessionId)return Promise.resolve();
   const operation=queue.current.catch(()=>{}).then(async()=>{if(!complete&&JSON.stringify(snapshot)===lastSaved.current)return;setSaving('Saving…');
-   const r=await fetch('/api/personalisation/draft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId,revision:revision.current,draft:snapshot,complete,revise:isRevision})});const p=await r.json();if(!r.ok){setSaving('Not saved. Keep this page open.');throw new Error(p.error||'Could not save. Please try again.');}revision.current=p.revision;lastSaved.current=JSON.stringify(snapshot);setSaving('Saved. You can return with your purchase link.');});queue.current=operation;return operation;
+   const r=await fetch('/api/personalisation/draft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId,revision:revision.current,draft:snapshot,complete,revise:isRevision})});const p=await r.json();if(!r.ok){setSaving('Not saved. Keep this page open.');throw new Error(p.error||'Could not save. Please try again.');}revision.current=p.revision;lastSaved.current=JSON.stringify(snapshot);setSaving(JSON.stringify(latest.current)===lastSaved.current?'Saved. You can return with your purchase link.':'Changes not saved yet…');});queue.current=operation;return operation;
  }
  useEffect(()=>{if(!ready||!sessionId||reportId||submitting||signature===lastSaved.current)return;setSaving('Changes not saved yet…');const timer=setTimeout(()=>persist(latest.current).catch(e=>setError(e.message)),800);return()=>clearTimeout(timer);},[signature,ready,sessionId,reportId,submitting]);
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(ready&&sessionId&&!reportId&&JSON.stringify(latest.current)!==lastSaved.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[ready,sessionId,reportId]);
@@ -47,7 +47,19 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  function previous(){if(draft.step===0)return;setError('');setDraft(prev=>({...prev,step:prev.step-1}));}
  function policy(index:number,patch:Partial<RawPolicy>){setDraft(prev=>({...prev,insurancePolicies:prev.insurancePolicies.map((p,i)=>i===index?{...p,...patch}:p)}));}
  function checkCurrent(){try{const test=cleanDraft(draft);const others=areas.filter(a=>a!==area);for(const a of others)for(const key of sectionKeys[a])test.details[key]='';if(area!=='insurance')test.insurancePolicies=[];if(area!=='subscriptions')test.additionalUnusedSubscriptions=[];prepareDraft(test);return '';}catch(e){return e instanceof Error?e.message:'Please check these amounts.';}}
- async function next(){if(moving||submitting)return;setError('');const snapshot=cleanDraft(draft);const issue=checkCurrent();if(issue){setError(issue);return;}snapshot.step=Math.min(snapshot.step+1,areas.length);setMoving(true);try{await persist(snapshot);setDraft(snapshot);}catch(e){setError(e instanceof Error?e.message:'Your answers were not saved.');}finally{setMoving(false);}}
+ function next(){
+  if(submitting)return;
+  setError('');
+  let snapshot:PlanDraft;
+  try{snapshot=cleanDraft(draft);}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');return;}
+  const issue=checkCurrent();
+  if(issue){setError(issue);return;}
+  snapshot.step=Math.min(snapshot.step+1,areas.length);
+  // Do not block the next question on Stripe/Supabase. Writes stay in order;
+  // finish() still waits for every pending save before generating the report.
+  setDraft(snapshot);
+  void persist(snapshot).catch(e=>setError(e instanceof Error?e.message:'Your answers were not saved. Please try again.'));
+ }
  async function finish(){setError('');let snapshot:PlanDraft;try{snapshot=cleanDraft(draft);prepareDraft(snapshot);}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');return;}setSubmitting(true);try{
     if(isRevision&&sessionId){
       await persist(snapshot);
@@ -138,7 +150,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  if(!ready)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>{error?'We could not open your plan':'Opening your plan'}</h1><p role={error?'alert':undefined}>{error||'Checking your purchase…'}</p></main></div>;
  if(reportId)return <div className={styles.page}><Header simple/><main className={styles.wrap}><h1>Your plan is ready.</h1><a className={styles.primary} href={'/report/'+encodeURIComponent(reportId)}>Open my plan</a></main></div>;
 
- return <div className={styles.page}><Header simple/><main className={styles.wrap}><fieldset className={styles.journeyFieldset} disabled={moving||submitting}>
+ return <div className={styles.page}><Header simple/><main className={styles.wrap}><fieldset className={styles.journeyFieldset} disabled={submitting}>
   <h1>{isRevision?'Update your savings plan.':'Make your plan fit you.'}</h1>
    {isRevision&&<p className={styles.intro}>You can change any answer in your plan. Your old report stays safe until you save. You will not pay again.</p>}
    {!isRevision&&draft.step===0&&!review&&<section className={styles.introPanel} aria-label="Why we ask for more details">
