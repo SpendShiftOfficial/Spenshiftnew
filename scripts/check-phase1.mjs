@@ -498,8 +498,8 @@ check('paid first step explains why and has no Previous or free-audit escape',()
 
 check('final review uses per-area edit links without Previous and the paid report has no edit panel',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
- const start=ui.indexOf("{review?<><h2>You're nearly done");
- const end=ui.indexOf("<><h2>{areaNames[area]}",start);
+ const start=ui.indexOf("{review?<><h2 ref={areaHeading}>You're nearly done");
+ const end=ui.indexOf("<><h2 ref={areaHeading}>{areaNames[area]}",start);
  assert.ok(start>=0 && end>start);
  const summary=ui.slice(start,end);
  assert.ok(summary.includes('Check or edit '));
