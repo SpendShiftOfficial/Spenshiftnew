@@ -192,7 +192,7 @@ check('A$29 checkout, displayed prices and analytics preserve older A$39 purchas
  assert.doesNotMatch(paid,/Your \$39 payment is confirmed/);
  assert.match(fs.readFileSync('app/api/stripe/webhook/route.ts','utf8'),/sendOrderConfirmationOnce\(order, session\.amount_total\)/);
  const results=fs.readFileSync('app/results/page.tsx','utf8');
- assert.match(results,/Get my savings plan — A\$29/);
+ assert.match(results,/Get my savings plan for A\$29/);
  assert.match(results,/value: PLAN_PRICE_CENTS \/ 100/);
  assert.match(results,/price: PLAN_PRICE_CENTS \/ 100/);
  for(const file of ['components/SavingsOffer.tsx','app/services/page.tsx','app/pricing/layout.tsx','app/results/page.tsx']){
@@ -210,8 +210,8 @@ check('free results make the A$29 upgrade clear without hiding the free check',(
   assert.ok(results.includes(phrase),'Missing concrete paid value: '+phrase);
  }
  assert.match(results,/disabled=\{!acceptedTerms \|\| busy\}/);
- assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
- assert.ok(results.indexOf('<details className={styles.previewDetails}') > results.indexOf('Get my savings plan — A$29'),'Optional illustration must not delay the checkout decision');
+ assert.match(results,/EXAMPLE ONLY. NOT YOUR ESTIMATE/);
+ assert.ok(results.indexOf('<details className={styles.previewDetails}') > results.indexOf('Get my savings plan for A$29'),'Optional illustration must not delay the checkout decision');
  assert.match(results,/We don't recommend paying based on these answers alone/);
  assert.match(results,/We don't check live prices or promise savings/);
  assert.doesNotMatch(results,/setTimeout\(resolve, 350\)/);
@@ -294,9 +294,27 @@ check('report revisions require a paid session and store history atomically',()=
   assert.match(sql,/REVOKE ALL/);
   assert.match(sql,/service_role/);
 });
+check('customer-visible dash punctuation is removed without changing stored subscription codes',()=>{
+ const audit=fs.readFileSync('app/audit/page.tsx','utf8');
+ assert.match(audit,/Yes, at least one is unused/);
+ assert.match(audit,/No, I use them all/);
+ assert.match(audit,/Count coffee, snacks and small treats, not full meals/);
+ const paid=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(paid,/No, only small buys/);
+ assert.match(paid,/Yes, some meals are included/);
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.doesNotMatch(report,/—/);
+ const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+ assert.doesNotMatch(tracker,/—/);
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(results,/Get my savings plan for A\$29/);
+ // Existing database answers keep the original enum for paid drafts and ranking.
+ const schema=fs.readFileSync('lib/audit-schema.ts','utf8');
+ assert.match(schema,/Yes — at least one unused/);
+});
 check('free sample shows a calculation without claiming the customer savings',()=>{
   const results=fs.readFileSync('app/results/page.tsx','utf8');
-  assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
+  assert.match(results,/EXAMPLE ONLY. NOT YOUR ESTIMATE/);
   assert.match(results,/previewExamples/);assert.match(results,/analyseSavings\(answers, emptyRefinements\(\)\)/);assert.match(results,/Possible \$420 less in one year/);
   assert.match(results,/areas\.slice\(3\)/);
 });
@@ -604,7 +622,7 @@ check('extra-area choice is hidden for seven, optional for one to six, and visib
 check('free results offer three main actions and relevant worked examples',()=>{
  const results=fs.readFileSync('app/results/page.tsx','utf8');
  assert.match(results,/firstChecks\[area\]/);assert.match(results,/previewExamples\[previewArea\]/);
- assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
+ assert.match(results,/EXAMPLE ONLY. NOT YOUR ESTIMATE/);
  assert.match(results,/Possible \$200 first-year price difference/);
  assert.match(results,/Possible \$40 less each week/);
  assert.match(results,/In your paid plan: clear steps and useful links/);
