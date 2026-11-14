@@ -572,7 +572,7 @@ check('old combined meal drafts remain valid and new separate values survive rev
  assert.equal(prepareDraft(restoreDraft(high,old)).details.takeawayMealMode,'combined');
 });
 check('free audit frequency checks combined weekly takeaway and restaurant visits',()=>{
- const d=blankDraft(high);d.answers[0]='1–2 times/week';d.details.takeawayMealMode='both';d.details.takeawayOrdersPerWeek='2';d.details.restaurantOrdersPerWeek='3';
+ const d=blankDraft(high);d.answers[0]='1–2 times/week';d.additionalArea='takeaway';d.details.takeawayMealMode='both';d.details.takeawayOrdersPerWeek='2';d.details.restaurantOrdersPerWeek='3';
  assert.equal(findAuditConflict(d)?.area,'takeaway');
  const okay=blankDraft(high);okay.details.takeawayMealMode='both';okay.details.takeawayOrdersPerWeek='2';okay.details.restaurantOrdersPerWeek='3';assert.equal(findAuditConflict(okay),null);
  const missing=blankDraft(high);missing.details.takeawayMealMode='both';missing.details.takeawayOrdersPerWeek='2';assert.equal(findAuditConflict(missing),null);
