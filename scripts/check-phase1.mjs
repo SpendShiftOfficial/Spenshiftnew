@@ -40,18 +40,52 @@ const high=previewProfiles['all-seven'].answers;
 const policies=[{type:'Car',premium:'1800',paymentPeriod:'year',renewal:'later'},{type:'Home or contents',premium:'240',paymentPeriod:'month',renewal:'soon'},{type:'Health',premium:'250',paymentPeriod:'month',renewal:'not_sure'}];
 const areas=new Set(['takeaway','subscriptions','insurance','convenience','phone','energy','unplanned']);
 check('strict eight-answer schema',()=>{assert.deepEqual(validateAuditAnswers(sample),sample);assert.throws(()=>validateAuditAnswers([]));assert.throws(()=>validateAuditAnswers([...sample,'extra']));assert.throws(()=>validateAuditAnswers('[]'));const wrong=[...sample];wrong[1]='999 subscriptions';assert.throws(()=>validateAuditAnswers(wrong));assert.equal(auditQuestions.length,8);});
-check('subscription counts distinguish None from 1–2 while retaining old 0–2 answers',()=>{
- assert.deepEqual(auditQuestions[1].options,['None','1–2','3–5','6–10','10+','Not sure']);
+check('unused subscriptions are flagged by use, not total count; legacy answers still work',()=>{
+ assert.deepEqual(auditQuestions[1].options,[
+  "I don't have any subscriptions","Yes — at least one unused","No — I use them all","Not sure"
+ ]);
  const sample=previewProfiles['few-opportunities'].answers;
- for(const answer of ['None','1–2','0–2']){
-  const answers=[...sample];answers[1]=answer;
-  assert.equal(validateAuditAnswers(answers)[1],answer);
-  assert.equal(selectPersonalisationAreas(answers).includes('subscriptions'),false);
+ const selected=(value)=>{const a=[...sample];a[1]=value;return a;};
+ const yes=selected('Yes — at least one unused');
+ assert.deepEqual(selectPersonalisationAreas(yes),['subscriptions']);
+ assert.equal(analyseSavings(yes,emptyRefinements()).estimatedAnnualScenario,null);
+ assert.match(reasonForArea('subscriptions',yes),/at least one subscription goes unused/);
+ assert.equal(blankDraft(yes).details.unusedSubscriptionChoice,'yes');
+ assert.equal(blankDraft(selected('No — I use them all')).details.unusedSubscriptionChoice,'no');
+ assert.equal(blankDraft(selected('Not sure')).details.unusedSubscriptionChoice,'not_sure');
+ for(const value of ["I don't have any subscriptions","No — I use them all"]){
+  assert.equal(selectPersonalisationAreas(selected(value)).includes('subscriptions'),false);
  }
- const none=[...sample];none[1]='None';
- assert.equal(reasonForArea('subscriptions',none),"You don't pay for any subscriptions.");
- const more=[...sample];more[1]='3–5';
- assert.equal(selectPersonalisationAreas(more).includes('subscriptions'),true);
+ assert.equal(selectPersonalisationAreas(selected('Not sure')).includes('subscriptions'),true);
+ for(const value of ['None','1–2','0–2','3–5','6–10','10+']){
+  assert.equal(validateAuditAnswers(selected(value))[1],value,'Old saved count still validates: '+value);
+ }
+ for(const value of ['None','1–2','0–2'])assert.equal(selectPersonalisationAreas(selected(value)).includes('subscriptions'),false);
+ assert.equal(selectPersonalisationAreas(selected('3–5')).includes('subscriptions'),true);
+});
+check('normal-frequency lifestyle spending does not automatically imply a problem',()=>{
+ const base=previewProfiles['few-opportunities'].answers;
+ const light=[...base];light[0]='1–2 times/week';light[3]='1–2 times/week';light[6]='1–2 times/week';
+ assert.deepEqual(selectPersonalisationAreas(light),[]);
+ for(const index of [0,3,6]){
+  const regular=[...base];regular[index]='3–5 times/week';
+  assert.equal(selectPersonalisationAreas(regular).length,1);
+ }
+});
+check('Save more money prioritizes unused charges but never guesses dollars',()=>{
+ const base=[...previewProfiles['all-seven'].answers];
+ base[1]='Yes — at least one unused';
+ const savings=[...base];savings[7]='Save more money';
+ const bills=[...base];bills[7]='Lower my bills';
+ const savedPlan=analyseSavings(savings,emptyRefinements());
+ assert.equal(savedPlan.opportunities[0].area,'subscriptions');
+ assert.equal(savedPlan.estimatedAnnualScenario,null);
+ assert.ok(savedPlan.opportunities.every(x=>x.scenarioSaving===null));
+ assert.notDeepEqual(savedPlan.opportunities.map(x=>x.area),analyseSavings(bills,emptyRefinements()).opportunities.map(x=>x.area));
+ const free=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(free,/Your goal: Save more money/);
+ assert.match(free,/we can't rank these by dollars saved/);
+ assert.match(free,/latest charge for the unused subscription/);
 });
 check('old apostrophe forms stay readable',()=>{const old=['Never','0–2','I don’t currently have insurance','Rarely','I don’t pay either of these bills','I don’t pay these bills','Rarely','Save more money'];assert.equal(validateAuditAnswers(old)[4],"I don't pay either of these bills");assert.deepEqual(selectPersonalisationAreas(validateAuditAnswers(old)),[]);});
 check('all seven concerns survive selection',()=>{assert.equal(selectPersonalisationAreas(high).length,7);assert.deepEqual(new Set(selectPersonalisationAreas(high)),areas);assert.deepEqual(selectPersonalisationAreas(sample),['subscriptions','insurance']);});
