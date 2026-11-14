@@ -47,10 +47,16 @@ function validEntry(value: unknown): value is Entry {
 
 // An older record's "fees" were costs for every stated period.
 // New records specify up-front fees, paid only once.
+function oneOffDifference(e: Entry): number {
+  return checkedDifference(e.before, e.after, e.fees);
+}
 function annualPace(e: Entry): number {
+  // A single avoided unplanned purchase is not a repeatable yearly saving.
+  if (e.key === "unplanned") return 0;
   return roundMoney(checkedDifference(e.before, e.after, e.feeMode === "upfront" ? 0 : e.fees) * factors[e.period]);
 }
 function firstYear(e: Entry): number {
+  if (e.key === "unplanned") return 0;
   return roundMoney(annualPace(e) - (e.feeMode === "upfront" ? e.fees : 0));
 }
 function impact(n: number): string {
@@ -160,9 +166,9 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
       before: Number(before),
       after: Number(after),
       fees: Number(fees || "0"),
-      period,
+      period: itemKey === "unplanned" ? "year" : period,
       date,
-      feeMode: editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
+      feeMode: itemKey !== "unplanned" && editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
         ? "per_period" : "upfront",
     };
     if ([before, after, fees || "0"].some(n => n.trim() === "" || !/^(?:0|[1-9]\d{0,5})(?:\.\d{1,2})?$/.test(n))) {
@@ -197,9 +203,12 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
     return true;
   });
   const duplicateIds = new Set(entries.filter(entry => !current.includes(entry)).map(entry => entry.id));
-  const annualTotal = roundMoney(current.reduce((sum, entry) => sum + annualPace(entry), 0));
-  const firstYearTotal = roundMoney(current.reduce((sum, entry) => sum + firstYear(entry), 0));
+  const recurring = current.filter(entry => entry.key !== "unplanned");
+  const oneOff = current.filter(entry => entry.key === "unplanned");
+  const annualTotal = roundMoney(recurring.reduce((sum, entry) => sum + annualPace(entry), 0));
+  const firstYearTotal = roundMoney(recurring.reduce((sum, entry) => sum + firstYear(entry), 0));
   const monthlyTotal = roundMoney(annualTotal / 12);
+  const oneOffTotal = roundMoney(oneOff.reduce((sum, entry) => sum + oneOffDifference(entry), 0));
 
   return (
     <section className={styles.trackerShell} aria-labelledby="savings-progress-title">
@@ -211,20 +220,25 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
 
       {loaded && current.length > 0 ? (
         <>
-          <div className={styles.trackerMetrics} aria-label="Your recorded spending changes">
+          {recurring.length > 0 && <div className={styles.trackerMetrics} aria-label="Your recorded spending changes">
             <div className={styles.trackerMetric}>
               <span>Ongoing change per month</span>
               <strong>{impact(monthlyTotal)}</strong>
-              <small>From {current.length} {current.length === 1 ? "area" : "areas"} you recorded</small>
+              <small>From {recurring.length} ongoing {recurring.length === 1 ? "area" : "areas"} you recorded</small>
             </div>
             <div className={styles.trackerMetric}>
               <span>Possible effect over 12 months</span>
               <strong>{impact(firstYearTotal)}</strong>
               <small>After any fees you entered</small>
             </div>
-          </div>
+          </div>}
+          {oneOff.length > 0 && <div className={styles.trackerOneOff} aria-label="One-time spending change">
+            <span>One-time spending change</span>
+            <strong>{impact(oneOffTotal)}</strong>
+            <small>From an unplanned purchase you chose not to make, or replaced more cheaply. Not projected into monthly or yearly totals.</small>
+          </div>}
           <p className={styles.trackerExplanation}>
-            These figures show a change in spending, not money already in your bank. The 12-month figure assumes the same costs continue. We have not checked your bills.
+            These figures show a change in spending, not money already in your bank. The 12-month figure assumes ongoing costs stay the same. One-time choices are counted once. We have not checked your figures.
           </p>
         </>
       ) : (
@@ -246,49 +260,57 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
           {formOpen && (
             <form id="savings-progress-form" ref={formRef} className={styles.trackerFormV2} onSubmit={submit}>
               <h3>{editId ? "Update this cost change" : "Record a real cost change"}</h3>
-              <p>Example: A subscription you cancelled went from $20 to $0 a month. Only add it when the charge has actually stopped.</p>
+              <p>{itemKey === "unplanned"
+                ? "For a one-time purchase you decided not to make, enter its price and what you actually spent instead (if anything). Don't count a wish or hypothetical purchase."
+                : "Example: A subscription you cancelled went from $20 to $0 a month. Only add it when the charge has actually stopped."}</p>
               <label>
                 Which part of your plan changed?
                 <select value={itemKey} onChange={e => setItemKey(e.target.value)}>
                   {options.map(item => <option key={item.key} value={item.key}>{item.title}</option>)}
                 </select>
               </label>
-              <label>
-                How often are these costs paid?
-                <select value={period} onChange={e => setPeriod(e.target.value as Period)}>
-                  <option value="month">Each month</option>
-                  <option value="week">Each week</option>
-                  <option value="year">Each year</option>
-                </select>
-              </label>
+              {itemKey === "unplanned"
+                ? <p className={styles.trackerFormHint}>One-time purchase. We'll record this once, not multiply it across weeks or months.</p>
+                : <label>
+                    How often are these costs paid?
+                    <select value={period} onChange={e => setPeriod(e.target.value as Period)}>
+                      <option value="month">Each month</option>
+                      <option value="week">Each week</option>
+                      <option value="year">Each year</option>
+                    </select>
+                  </label>}
               <div className={styles.trackerFormGrid}>
                 <label>
-                  Before ($)
+                  {itemKey === "unplanned" ? "Price of the purchase ($)" : "Before ($)"}
                   <input type="number" min="0" max="100000" step="0.01" inputMode="decimal" required
                     value={before} onChange={e => setBefore(e.target.value)} placeholder="e.g. 70" />
                 </label>
                 <label>
-                  Now ($)
+                  {itemKey === "unplanned" ? "What you spent instead ($)" : "Now ($)"}
                   <input type="number" min="0" max="100000" step="0.01" inputMode="decimal" required
                     value={after} onChange={e => setAfter(e.target.value)} placeholder="e.g. 50" />
                 </label>
               </div>
-              <p className={styles.trackerFormHint}>Compare the same service or spending area over the same length of time. For power, compare similar usage as well.</p>
+              {itemKey !== "unplanned" && <p className={styles.trackerFormHint}>Compare the same service or spending area over the same length of time. For power, compare similar usage as well.</p>}
               <label>
-                {editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
-                  ? "Extra costs in that same time period ($)"
-                  : "One-off switching or cancellation fees ($) — if any"}
+                {itemKey === "unplanned"
+                  ? "Other one-off costs ($) — if any"
+                  : editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
+                    ? "Extra costs in that same time period ($)"
+                    : "One-off switching or cancellation fees ($) — if any"}
                 <input type="number" min="0" max="100000" step="0.01" inputMode="decimal"
                   value={fees} onChange={e => setFees(e.target.value)} />
               </label>
               <label>
-                Date you checked your new cost
+                {itemKey === "unplanned" ? "Date you decided not to buy it" : "Date you checked your new cost"}
                 <input type="date" max={localToday || undefined} value={date}
                   onChange={e => setDate(e.target.value)} required />
               </label>
               <label className={styles.trackerConfirmation}>
                 <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />
-                <span>I checked a real change, used the same time period, and haven't counted this spending elsewhere.</span>
+                <span>{itemKey === "unplanned"
+                  ? "I really chose not to make this purchase, or bought something cheaper, and haven't counted it elsewhere."
+                  : "I checked a real change, used the same time period, and haven't counted this spending elsewhere."}</span>
               </label>
               {formError && <p className={styles.trackerFormError} role="alert">{formError}</p>}
               <div className={styles.trackerFormActions}>
@@ -305,9 +327,10 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
       {loaded && entries.length > 0 && (
         <div className={styles.trackerHistory}>
           <h3>Your recorded changes</h3>
-          <p>Keep one result per area. If you make another change there, edit the existing figures to reflect the new total.</p>
+          <p>Keep one result per area. For recurring costs, edit the current total after another change. For one-time shopping choices, record only one specific decision.</p>
           {entries.map(entry => {
             const isDuplicate = duplicateIds.has(entry.id);
+            const isOneOff = entry.key === "unplanned";
             const ongoing = roundMoney(annualPace(entry) / 12);
             const currentOption = options.find(option => option.key === entry.key);
             return (
@@ -316,9 +339,15 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
                   <strong>{currentOption?.title || entry.label || "Spending area"}</strong>
                   <span>{entry.date}</span>
                 </div>
-                <p>Before {money(entry.before)} → now {money(entry.after)} / {periodLabel[entry.period]}</p>
-                <strong className={styles.trackerResultAmount}>{impact(ongoing)} per month</strong>
-                {entry.fees > 0 && <small>{money(entry.fees)} {entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the 12-month calculation</small>}
+                <p>{isOneOff
+                  ? "Planned purchase " + money(entry.before) + " → spent " + money(entry.after) + " once"
+                  : "Before " + money(entry.before) + " → now " + money(entry.after) + " / " + periodLabel[entry.period]}</p>
+                <strong className={styles.trackerResultAmount}>{isOneOff
+                  ? impact(oneOffDifference(entry)) + " from this one-time choice"
+                  : impact(ongoing) + " per month"}</strong>
+                {entry.fees > 0 && <small>{money(entry.fees)} {isOneOff
+                  ? "other one-time costs included once"
+                  : entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the comparison</small>
                 {isDuplicate && <p className={styles.trackerDuplicate}>Older record — not included in the combined figures, to avoid counting this area twice.</p>}
                 <div className={styles.trackerRowActions}>
                   {currentOption && <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
