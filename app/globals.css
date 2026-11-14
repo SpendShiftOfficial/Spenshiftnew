@@ -4864,3 +4864,65 @@ text-align: left !important;
   .topbar-simple .container { gap: 8px; padding-inline: 14px; }
   .topbar-simple .mini { font-size: 12px; }
 }
+
+
+/* Phase 1 marketing-header spacing: prevent desktop link/CTA wrapping. */
+@media (min-width: 1025px) {
+  header.topbar:not(.topbar-simple) {
+    height: 92px;
+  }
+  header.topbar:not(.topbar-simple) > .container {
+    max-width: 1480px;
+    padding-inline: clamp(24px, 3vw, 52px);
+    gap: clamp(18px, 2vw, 32px);
+  }
+  header.topbar:not(.topbar-simple) .logo {
+    flex: 0 0 auto;
+  }
+  header.topbar:not(.topbar-simple) .logo img {
+    display: block;
+    width: clamp(155px, 13.5vw, 185px);
+    height: auto;
+  }
+  header.topbar:not(.topbar-simple) .nav.desktop-only {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(14px, 1.9vw, 27px);
+  }
+  header.topbar:not(.topbar-simple) .nav.desktop-only a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: clamp(13px, 1.13vw, 15px);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  header.topbar:not(.topbar-simple) a.btn.desktop-only {
+    flex: 0 0 auto;
+    min-height: 48px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-align: center;
+  }
+}
+@media (min-width: 1025px) and (max-width: 1150px) {
+  header.topbar:not(.topbar-simple) > .container {
+    padding-inline: 22px;
+    gap: 14px;
+  }
+  header.topbar:not(.topbar-simple) .nav.desktop-only {
+    gap: 14px;
+  }
+  header.topbar:not(.topbar-simple) .logo img {
+    width: 155px;
+  }
+  header.topbar:not(.topbar-simple) a.btn.desktop-only {
+    padding-inline: 15px;
+    font-size: 13px;
+  }
+}

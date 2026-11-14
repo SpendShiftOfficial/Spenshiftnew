@@ -104,6 +104,48 @@ try{
     await page.screenshot({path:'test-artifacts/legal-'+route.slice(1)+'-'+viewport.width+'.png',fullPage:true});
    }
   });
+  await test('marketing header has clean spacing at desktop and phone widths '+viewport.width,async()=>{
+   const widths=viewport.width>600?[1600,1440,1366,1280,1150,1100,1025]:[1024,768,390,375];
+   for(const width of widths){
+    await page.setViewportSize({width,height:900});
+    await go(page,'/');
+    const layout=await page.evaluate(()=>{
+     const header=document.querySelector('header.topbar:not(.topbar-simple)');
+     const logo=header?.querySelector('.logo');
+     const nav=header?.querySelector('nav.nav.desktop-only');
+     const cta=header?.querySelector('a.btn.desktop-only');
+     const menu=header?.querySelector('button.hamburger-btn');
+     const rect=el=>{const r=el?.getBoundingClientRect();return r?{left:r.left,right:r.right,top:r.top,bottom:r.bottom}:null;};
+     return {
+      viewport:innerWidth,
+      pageScrollWidth:document.documentElement.scrollWidth,
+      logo:rect(logo),nav:rect(nav),cta:rect(cta),
+      navVisible:!!nav&&getComputedStyle(nav).display!=='none',
+      ctaVisible:!!cta&&getComputedStyle(cta).display!=='none',
+      menuVisible:!!menu&&getComputedStyle(menu).display!=='none',
+      links:[...(nav?.querySelectorAll('a')||[])].map(el=>({text:el.textContent?.trim(),rect:rect(el),nowrap:getComputedStyle(el).whiteSpace==='nowrap'})),
+      ctaNoWrap:!!cta&&getComputedStyle(cta).whiteSpace==='nowrap'
+     };
+    });
+    assert.ok(layout.pageScrollWidth<=width+2,'Header/page overflows at '+width+': '+JSON.stringify(layout));
+    assert.ok(layout.logo,'Logo missing at '+width);
+    if(width>=1025){
+     assert.ok(layout.navVisible&&layout.ctaVisible&&!layout.menuVisible,'Desktop header missing navigation at '+width+': '+JSON.stringify(layout));
+     assert.equal(layout.links.length,5,'Desktop navigation count at '+width);
+     assert.ok(layout.links.every(l=>l.nowrap),'A navigation label can wrap at '+width);
+     assert.ok(layout.ctaNoWrap,'Main header CTA can wrap at '+width);
+     assert.ok(layout.logo.right+8<=layout.links[0].rect.left,'Logo and first link too close at '+width+': '+JSON.stringify(layout));
+     assert.ok(layout.links.at(-1).rect.right+8<=layout.cta.left,'Last link and CTA too close at '+width+': '+JSON.stringify(layout));
+     assert.ok(layout.cta.right<=width-12,'CTA extends beyond screen at '+width);
+     const mid=layout.links.map(x=>(x.rect.top+x.rect.bottom)/2);
+     assert.ok(Math.max(...mid)-Math.min(...mid)<=2,'Links are not on one row at '+width);
+    }else{
+     assert.ok(!layout.navVisible&&!layout.ctaVisible&&layout.menuVisible,'Phone/tablet header did not switch to menu at '+width+': '+JSON.stringify(layout));
+    }
+    await page.screenshot({path:'test-artifacts/header-'+width+'.png',clip:{x:0,y:0,width,height:110}});
+   }
+   await page.setViewportSize(viewport);
+  });
   await test('free eight-question journey '+viewport.width,async()=>{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
