@@ -119,7 +119,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
        .filter(item=>item.name||item.monthly);
      return [
        ['Total',money(d.subscriptionsMonthly,'a month')],
-       ['Unused services?',d.unusedSubscriptionChoice==='no'?'No — I use them all':d.unusedSubscriptionChoice==='yes'?'Yes':'Not sure'],
+       ['Unused services?',d.unusedSubscriptionChoice==='no'?'No, I use them all':d.unusedSubscriptionChoice==='yes'?'Yes':'Not sure'],
        ...(d.unusedSubscriptionChoice==='yes'
          ? entries.map(item=>[item.name||'Name missing',money(item.monthly,'a month')] as [string,string])
          : []),
@@ -166,7 +166,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
    </section>}
    <p className={styles.intro}>{areas.length===0?'Your new answers do not point to a clear place to start. Pick one area you want help with.':areas.length+(areas.length===1?' area':' areas')+' to check. We’ll go through them one at a time.'}</p>
   {sessionId&&<p role='status' aria-live='polite' className={styles.selectionNote}>{saving}</p>}
-  {!sessionId&&<div className={styles.demoPanel}><label htmlFor='demo'>Test customer — no payment or saved customer data</label><select id='demo' onChange={e=>setDraft(blankDraft(previewProfiles[e.target.value].answers))}>{Object.entries(previewProfiles).map(([key,p])=><option key={key} value={key}>{p.label}</option>)}</select></div>}
+  {!sessionId&&<div className={styles.demoPanel}><label htmlFor='demo'>Test customer (no payment or saved customer data)</label><select id='demo' onChange={e=>setDraft(blankDraft(previewProfiles[e.target.value].answers))}>{Object.entries(previewProfiles).map(([key,p])=><option key={key} value={key}>{p.label}</option>)}</select></div>}
   
   <div className={styles.progressTop}><strong>{review?'Check your answers':'Area '+(draft.step+1)+' of '+areas.length}</strong></div><div className={styles.track} role='progressbar' aria-label='Your progress' aria-valuenow={review?100:Math.round(draft.step/areas.length*100)} aria-valuemin={0} aria-valuemax={100}><div style={{width:(review?100:draft.step/areas.length*100)+'%'}}/></div>
   <section className={styles.panel}>
@@ -178,7 +178,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
     <><h2 ref={areaHeading}>{areaNames[area]}</h2><div className={styles.fields}>
      {area==='subscriptions'&&<>
       {amount('subscriptionsMonthly','About how much do you pay for all your subscriptions each month?','Look at your bank app, app store or receipts. A rough total is fine.')}
-      {choice('unusedSubscriptionChoice',draft.answers[1]==='Yes — at least one unused'?"You mentioned an unused subscription. Is that still right?":"Do you still pay for any subscriptions you don't use?",[['yes','Yes'],['no','No — I use them all'],['not_sure','Not sure']],"Not sure? Check your bank app for regular charges from apps or services you don't use.")}
+      {choice('unusedSubscriptionChoice',draft.answers[1]==='Yes — at least one unused'?"You mentioned an unused subscription. Is that still right?":"Do you still pay for any subscriptions you don't use?",[['yes','Yes'],['no','No, I use them all'],['not_sure','Not sure']],"Not sure? Check your bank app for regular charges from apps or services you don't use.")}
       {d.unusedSubscriptionChoice==='yes'&&<>
         <div className={styles.field}><label htmlFor='unusedSubscriptionName'>What is the name of the first unused service?</label><input id='unusedSubscriptionName' maxLength={60} placeholder='e.g. Stan' value={d.unusedSubscriptionName||''} onChange={e=>update('unusedSubscriptionName',e.target.value)}/></div>
         {amount('unusedSubscriptionMonthly','About how much do you pay for this service each month?','Look at your bank app or a receipt. A rough amount is fine, or you can skip it.')}
@@ -241,7 +241,7 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
     </>}
      {area==='convenience'&&<>
       {amount('convenienceWeekly','About how much do you spend on coffee, snacks and small treats each week?', 'Do not count takeaway or restaurant meals here. Check your bank app, or make a rough guess.')}
-      {areas.includes('takeaway')&&choice('convenienceOverlap','Does this total include takeaway or meals at cafés or restaurants?', [['no','No — only small buys'],['yes','Yes — some meals are included'],['not_sure','Not sure']], "If yes or not sure, we won't count another possible saving until you check the amount.")}
+      {areas.includes('takeaway')&&choice('convenienceOverlap','Does this total include takeaway or meals at cafés or restaurants?', [['no','No, only small buys'],['yes','Yes, some meals are included'],['not_sure','Not sure']], "If yes or not sure, we won't count another possible saving until you check the amount.")}
        {areas.includes('takeaway')&&d.convenienceOverlap!=='no'&&d.convenienceWeekly!==''&&<p className={styles.reviewHint}>Check your small buys without takeaway or full meals. We won't count this goal as a separate saving yet.</p>}
       {amount('convenienceGoalWeekly','About how much would you like to spend each week instead?', 'Choose a goal that feels possible for you. Skip it if you are not sure.')}
     </>}
