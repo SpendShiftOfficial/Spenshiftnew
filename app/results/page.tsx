@@ -1,1263 +1,254 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
 import Header from "@/components/Header";
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { trackTikTok } from "@/lib/tiktok";
-import {
-  trackMeta,
-  trackMetaStandard,
-} from "@/lib/meta";
-import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/gtag";
+import { trackTikTok } from "@/lib/tiktok";
+import { trackMeta, trackMetaStandard } from "@/lib/meta";
+import { areaNames, reasonForArea, type PersonalisationArea } from "@/lib/personalisation-questions";
+import { analyseSavings } from "@/lib/savings-engine";
+import { emptyRefinements } from "@/lib/report-refinements";
+import styles from "./results.module.css";
+import {TERMS_VERSION,PLAN_PRICE_CENTS} from "@/lib/audit-schema";
 
-import {
-  CheckCircle,
-  Lock,
-  ShieldCheck,
-  Circle,
-  LoaderCircle,
-  Wallet,
-  BarChart3,
-  Search,
-  Info,
-  FileClock,
-  Lightbulb,
-  Zap,
-  ChartNoAxesCombined,
-} from "lucide-react";
-
-import { BsCheckCircleFill } from "react-icons/bs";
-
-type Leak = {
-  impact: string;
-  title: string;
-  amount: number;
-  min: number;
-  max: number;
-  answer: string;
-  insight: string;
+const firstChecks:Record<PersonalisationArea,string>={
+ takeaway:"Check how much your takeaway and restaurant meals cost in a normal week.",
+ subscriptions:"Open your bank app and look for regular app, streaming and membership charges.",
+ insurance:"Find one policy's renewal date and the cost of keeping the same cover.",
+ convenience:"Add up a week's coffee, snack and small-treat purchases, excluding meals.",
+ phone:"Find your latest phone or internet bill and check its monthly price.",
+ energy:"Find your latest power bill and see what you pay for the electricity you use.",
+ unplanned:"Write down your next unplanned purchase and wait one day before deciding.",
 };
-
-function money(n: number) {
-  return `$${Math.round(n).toLocaleString()}`;
-}
-
-function midpoint(
-  min: number,
-  max: number
-) {
-  return (
-    Math.round(
-      (min + max) / 2 / 50
-    ) * 50
-  );
-}
-
-function impact(amount: number) {
-  if (amount >= 1000) {
-    return "HIGH IMPACT";
-  }
-
-  if (amount >= 400) {
-    return "MEDIUM IMPACT";
-  }
-
-  return "LOW IMPACT";
-}
-
-function rangeFor(
-  answer: string,
-  map: Record<string, [number, number]>
-) {
-  return map[answer] || [0, 0];
-}
-
-function getSavingsComparison(
-  amount: number
-) {
-  if (amount >= 4000) {
-    return "That could be enough for a family holiday, several weeks of groceries, or a meaningful emergency buffer.";
-  }
-
-  if (amount >= 2500) {
-    return "That could cover several weeks of groceries or multiple household bills.";
-  }
-
-  if (amount >= 1500) {
-    return "That could cover multiple utility bills or give your savings buffer a real boost.";
-  }
-
-  if (amount >= 500) {
-    return "That could still make a meaningful difference across the year with only a few small changes.";
-  }
-
-  return "Small changes can still create useful savings over time.";
-}
-
-function buildLeaks(
-  answers: string[]
-): Leak[] {
-  const takeaway = answers[0] || "";
-  const subscriptions = answers[1] || "";
-  const insurance = answers[2] || "";
-  const convenience = answers[3] || "";
-  const mobile = answers[4] || "";
-  const recurring = answers[5] || "";
-  const unplanned = answers[6] || "";
-
-  function createLeak({
-    title,
-    answer,
-    range,
-    copy,
-  }: {
-    title: string;
-    answer: string;
-    range: [number, number];
-    copy: (amount: number) => string;
-  }): Leak {
-    const amount = midpoint(
-      range[0],
-      range[1]
-    );
-
-    return {
-      title,
-      answer,
-      min: range[0],
-      max: range[1],
-      amount,
-      impact: impact(amount),
-      insight: copy(amount),
-    };
-  }
-
-  const leaks: Leak[] = [
-    createLeak({
-      title:
-        "Takeaway & Food Delivery",
-
-      answer: takeaway,
-
-      range: rangeFor(takeaway, {
-        Never: [0, 0],
-        "1–2 times/week": [600, 1000],
-        "3–5 times/week": [
-          1200,
-          2000,
-        ],
-        "Almost daily": [2500, 4000],
-      }),
-
-      copy: (amount) =>
-        takeaway === "Never"
-          ? "You said you do not rely on takeaway often, so this is unlikely to be your biggest leak."
-          : `You said you order takeaway ${takeaway}. Reducing just part of that habit could save approximately ${money(
-              amount
-            )} per year.`,
-    }),
-
-    createLeak({
-      title: "Subscriptions",
-
-      answer: subscriptions,
-
-      range: rangeFor(
-        subscriptions,
-        {
-          "0–2": [0, 100],
-          "3–5": [400, 700],
-          "6–10": [800, 1400],
-          "10+": [1500, 2500],
-          "Not sure": [800, 1400],
-        }
-      ),
-
-      copy: (amount) =>
-        subscriptions === "0–2"
-          ? "You have a low subscription count, so there may only be a small saving here."
-          : `You told us you pay for ${subscriptions} subscriptions. A quick cleanup could save approximately ${money(
-              amount
-            )} per year.`,
-    }),
-
-    createLeak({
-      title: "Insurance Overpayment",
-
-      answer: insurance,
-
-      range: rangeFor(insurance, {
-        "Within 6 months": [0, 200],
-        "6–12 months ago": [
-          150,
-          400,
-        ],
-        "1–2 years ago": [
-          300,
-          700,
-        ],
-        "Over 2 years ago": [
-          500,
-          1200,
-        ],
-        "Never / not sure": [
-          600,
-          1500,
-        ],
-        "I don’t currently have insurance":
-          [0, 0],
-      }),
-
-      copy: (amount) =>
-        insurance ===
-        "I don’t currently have insurance"
-          ? "You said you do not currently have insurance, so this area has been excluded from your savings estimate."
-          : insurance ===
-              "Within 6 months"
-          ? "You reviewed insurance recently, so this may not be your highest opportunity."
-          : `You said you last compared insurance ${insurance}. That could mean approximately ${money(
-              amount
-            )} per year in potential overpayment.`,
-    }),
-
-    createLeak({
-      title: "Convenience Spending",
-
-      answer: convenience,
-
-      range: rangeFor(
-        convenience,
-        {
-          Rarely: [0, 200],
-          "1–2 times/week": [
-            400,
-            700,
-          ],
-          "3–5 times/week": [
-            800,
-            1400,
-          ],
-          Daily: [1500, 2500],
-        }
-      ),
-
-      copy: (amount) =>
-        convenience === "Rarely"
-          ? "Convenience spending looks fairly controlled from your answer."
-          : `You said you buy convenience items ${convenience}. Small repeat purchases could add up to approximately ${money(
-              amount
-            )} per year.`,
-    }),
-
-    createLeak({
-      title:
-        "Internet & Mobile Plan",
-
-      answer: mobile,
-
-      range: rangeFor(mobile, {
-"Within 6 months": [0, 100],
-"6-12 months ago": [100, 200],
-"Over a year ago": [150, 400],
-"I honestly don't know": [150, 400],
-"I don’t pay either of these bills": [0, 0],
-}),
-
-copy: (amount) =>
-mobile === "I don’t pay either of these bills"
-? "You told us you don’t pay the household internet or mobile bills, so we’ve excluded this area from your savings estimate."
-: mobile === "Within 6 months"
-? "Your plan was reviewed recently, so the saving may be smaller here."
-: `You said you last compared your plan ${mobile}. Older plans could be costing around ${money(
-amount
-)} per year more than newer offers.`,
-}),
-
-    createLeak({
-title: "Energy Plan Comparison",
-
-answer: recurring,
-
-range: rangeFor(recurring, {
-"Within 6 months": [0, 100],
-"6-12 months ago": [100, 200],
-"Over a year ago": [150, 350],
-"I honestly don't know": [150, 350],
-"I don’t pay these bills": [0, 0],
-}),
-
-copy: (amount) =>
-recurring === "I don’t pay these bills"
-? "You told us you don’t pay the household energy bills, so we’ve excluded this area from your savings estimate."
-: recurring === "Within 6 months"
-? "You compared your energy plan recently, so there may be less room to save here."
-: recurring === "I honestly don't know"
-? `You’re not sure when you last compared your energy plan. A quick comparison could potentially uncover around ${money(
-amount
-)} per year in savings.`
-: `You said you last compared your energy plan ${recurring.toLowerCase()}. A quick comparison could potentially uncover around ${money(
-amount
-)} per year in savings.`,
-}),
-
-    createLeak({
-      title: "Unplanned Purchases",
-
-      answer: unplanned,
-
-      range: rangeFor(
-        unplanned,
-        {
-          Rarely: [0, 200],
-          "1–2 times/week": [
-            300,
-            600,
-          ],
-          "3–5 times/week": [
-            600,
-            1200,
-          ],
-          "Almost daily": [
-            1000,
-            2000,
-          ],
-        }
-      ),
-
-      copy: (amount) =>
-        unplanned === "Rarely"
-          ? "Unplanned purchases do not look like a major leak from your answer."
-          : `You said you make unplanned purchases ${unplanned}. Adding a little friction could save approximately ${money(
-              amount
-            )} per year.`,
-    }),
-  ];
-
-  return leaks
-    .filter(
-      (item) => item.amount > 0
-    )
-    .sort(
-      (a, b) =>
-        b.amount - a.amount
-    );
-}
-
+type PreviewExample={story:string;costs:{label:string;value:string}[];outcome:string;note:string};
+const previewExamples:Record<PersonalisationArea,PreviewExample>={
+ subscriptions:{
+  story:"Example: two streaming services are no longer used.",
+  costs:[{label:"Stan",value:"$20/month"},{label:"Netflix",value:"$15/month"},{label:"Total unused charges",value:"$35/month"}],
+  outcome:"Possible $420 less in one year",
+  note:"Only if both are cancelled, not replaced and stop billing for 12 months.",
+ },
+ takeaway:{
+  story:"Example: swap two takeaway orders for home meals each week.",
+  costs:[{label:"Two takeaway meals",value:"$60/week"},{label:"Two home meals",value:"$20/week"}],
+  outcome:"Possible $40 less each week",
+  note:"For the same people, with all extra costs included. Not saved yet.",
+ },
+ insurance:{
+  story:"Example: compare a car policy with an illustrative quote.",
+  costs:[{label:"Current policy",value:"$1,500/year"},{label:"Example new quote",value:"$1,300/year"}],
+  outcome:"Possible $200 first-year price difference",
+  note:"Not a live quote. Check the same cover, claim costs and fees.",
+ },
+ phone:{
+  story:"Example: compare a mobile plan with an illustrative alternative.",
+  costs:[{label:"Current mobile plan",value:"$70/month"},{label:"Example new plan",value:"$55/month"}],
+  outcome:"Possible $180 difference in one year",
+  note:"Not live prices. Check data, coverage, fees and the full-year cost.",
+ },
+ energy:{
+  story:"Example: compare yearly power costs for the same usage.",
+  costs:[{label:"Current yearly electricity cost",value:"$2,000"},{label:"Example yearly quote",value:"$1,800"}],
+  outcome:"Possible $200 first-year price difference",
+  note:"Not live prices. Assumes the same usage and all charges.",
+ },
+ convenience:{
+  story:"Example: set a lower weekly limit for coffee and snacks.",
+  costs:[{label:"Current small buys",value:"$50/week"},{label:"New weekly goal",value:"$35/week"}],
+  outcome:"Possible $15 less each week",
+  note:"A goal, not money saved yet. Meals aren't included.",
+ },
+ unplanned:{
+  story:"Example: skip an unplanned $60 purchase.",
+  costs:[{label:"Unplanned item",value:"$60"},{label:"If they skip it",value:"$0 spent"}],
+  outcome:"Possible $60 not spent once",
+  note:"Only if it's not bought or replaced. One-off, not yearly.",
+ },
+};
 export default function Results() {
-  const [loading, setLoading] =
-    useState(true);
-
-  const [busy, setBusy] =
-    useState(false);
-
-  const [progress, setProgress] =
-    useState(0);
-
-  const [answers, setAnswers] =
-    useState<string[]>([]);
-
-  const [
-    acceptedTerms,
-    setAcceptedTerms,
-  ] = useState(false);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const checkoutAttempt=useRef({answers:"",id:""});
+  const [loaded, setLoaded] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [additionalArea, setAdditionalArea] = useState<PersonalisationArea | "">("");
+  const [showExtraArea, setShowExtraArea] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const stored =
-      localStorage.getItem(
-        "spendshift_answers"
-      );
-
-    if (stored) {
-      try {
-        setAnswers(
-          JSON.parse(stored)
-        );
-      } catch {
-        setAnswers([]);
+    try {
+      const stored = JSON.parse(localStorage.getItem("spendshift_answers") || sessionStorage.getItem("spendshift_answers") || "null");
+      if (Array.isArray(stored) && stored.length === 8 &&
+          stored.every(answer => typeof answer === "string")) {
+        setAnswers(stored);
       }
+    } catch {
+      // Never invent answers when the browser has none.
     }
+    setLoaded(true);
+    try { if (!sessionStorage.getItem("free_results_view_tracked")) {
+      trackEvent("free_results_view", { source: "free_results" });
+      trackTikTok("free_results_view");
+      trackMeta("free_results_view");
+      sessionStorage.setItem("free_results_view_tracked", "1");
+    } } catch {}
   }, []);
 
-  useEffect(() => {
-    let current = 0;
-
-    const progressTimer =
-      setInterval(() => {
-        current += 3;
-
-        if (current >= 72) {
-          current = 72;
-
-          clearInterval(
-            progressTimer
-          );
-        }
-
-        setProgress(current);
-      }, 70);
-
-    const loadingTimer =
-      setTimeout(() => {
-        setLoading(false);
-      }, 2300);
-
-    return () => {
-      clearInterval(
-        progressTimer
-      );
-
-      clearTimeout(
-        loadingTimer
-      );
-    };
-  }, []);
-
-  // GA4 + TikTok: FREE RESULTS VIEW
-useEffect(() => {
-  if (
-    !loading &&
-    !sessionStorage.getItem(
-      "free_results_view_tracked"
-    )
-  ) {
-    // GA4
-    trackEvent(
-      "free_results_view",
-      {
-        page_location:
-          window.location.href,
-      }
-    );
-
-    // TikTok
-    trackTikTok("free_results_view");
-    trackMeta("free_results_view");
-
-    sessionStorage.setItem(
-      "free_results_view_tracked",
-      "1"
-    );
-  }
-}, [loading]);
-
-  const leaks = useMemo(
-    () => buildLeaks(answers),
+  const areas = useMemo(() =>
+    analyseSavings(answers, emptyRefinements()).opportunities.map(item=>item.area),
     [answers]
   );
 
-  const totalMin =
-    leaks.reduce(
-      (sum, item) =>
-        sum + item.min,
-      0
-    );
-
-  const totalMax =
-    leaks.reduce(
-      (sum, item) =>
-        sum + item.max,
-      0
-    );
-
-  const totalMid =
-    leaks.reduce(
-      (sum, item) =>
-        sum + item.amount,
-      0
-    );
-
-  const topLeaks =
-    leaks.slice(0, 3);
-
-  const savingsComparison =
-    getSavingsComparison(
-      totalMid
-    );
-
-  async function pay() {
-    if (!acceptedTerms) {
-      alert(
-        "Please accept the Terms & Conditions, Privacy Policy and Financial Information & AI Disclaimer before continuing."
-      );
-
-      return;
-    }
-
-    if (busy) return;
-
-    try {
-      setBusy(true);
-
-      const storedAnswers =
-        localStorage.getItem(
-          "spendshift_answers"
-        ) || "[]";
-
-      const res = await fetch(
-        "/api/checkout",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            answers:
-              storedAnswers,
-          }),
-        }
-      );
-
-      const data =
-        await res.json();
-
-      if (data.url) {
-  // GA4: BEGIN CHECKOUT
-  trackEvent(
-    "begin_checkout",
-    {
-      currency: "AUD",
-      value: 39,
-
-      items: [
-        {
-          item_id:
-            "spendshift_full_report",
-
-          item_name:
-            "SpendShift Full Savings Report",
-
-          price: 39,
-
-          quantity: 1,
-        },
-      ],
-    }
+  const previewArea: PersonalisationArea = areas[0] || additionalArea || "subscriptions";
+  const shownAreas = areas.length ? areas : additionalArea ? [additionalArea] : [];
+  const extraAreaChoice = (
+    <div className={styles.extraChoice}>
+      <label htmlFor="optional-extra-area">Want to check an area we didn't find? (optional)</label>
+      <select id="optional-extra-area" value={additionalArea}
+        onChange={event => setAdditionalArea(event.target.value as PersonalisationArea | "")}>
+        <option value="">No extra area</option>
+        {Object.entries(areaNames).filter(([key]) => !areas.includes(key as PersonalisationArea))
+          .map(([key, title]) => <option key={key} value={key}>{title}</option>)}
+      </select>
+      <p>Choose an area only if you want help checking it. This is not proof you're overpaying.</p>
+    </div>
   );
 
-  // TikTok: BEGIN CHECKOUT
-trackTikTok("InitiateCheckout", {
-contents: [
-{
-content_id: "spendshift_full_report",
-content_name: "SpendShift Full Savings Report",
-quantity: 1,
-price: 39,
-},
-],
-content_type: "product",
-value: 39,
-currency: "AUD",
-});
-
-  // Meta BEGIN CHECKOUT
-  trackMetaStandard("InitiateCheckout", {
-  value: 39,
-  currency: "AUD",
-});
-        // Give analytics events time to flush before leaving for Stripe
-await new Promise((resolve) => setTimeout(resolve, 500));
-
-  location.href =
-    data.url;
-
-  return;
-}
-
-alert(
-  data.error ||
-    "Stripe checkout failed"
-);
-    } catch (error) {
-      console.error(
-        "Checkout failed:",
-        error
-      );
-
-      alert(
-        "Something went wrong. Please try again."
-      );
-    } finally {
+  async function checkout() {
+    if (busy || !acceptedTerms || (areas.length === 0 && !additionalArea)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers, additionalArea: additionalArea || null, acceptedTerms, termsVersion: TERMS_VERSION, checkoutRequestId: (()=>{const fingerprint=JSON.stringify({answers,additionalArea});if(checkoutAttempt.current.answers!==fingerprint||!checkoutAttempt.current.id)checkoutAttempt.current={answers:fingerprint,id:crypto.randomUUID()};return checkoutAttempt.current.id;})() }),
+      });
+      const data = await response.json();
+      if (!response.ok || typeof data.url !== "string" ||
+          !data.url.startsWith("https://checkout.stripe.com/")) {
+        throw new Error(data.error || "We couldn't open checkout. Please try again.");
+      }
+      trackEvent("begin_checkout", {
+        currency: "AUD", value: PLAN_PRICE_CENTS / 100,
+        items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: PLAN_PRICE_CENTS / 100, quantity: 1 }],
+      });
+      trackTikTok("InitiateCheckout", {
+        contents: [{ content_id: "spendshift_full_report", content_name: "SpendShift Full Savings Report", quantity: 1, price: PLAN_PRICE_CENTS / 100 }],
+        content_type: "product", value: PLAN_PRICE_CENTS / 100, currency: "AUD",
+      });
+      trackMetaStandard("InitiateCheckout", { value: PLAN_PRICE_CENTS / 100, currency: "AUD" });
+      await new Promise(resolve => setTimeout(resolve, 350));
+      window.location.assign(data.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setBusy(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="auditPage">
-        <Header simple />
-
-        <div className="container">
-          <div className="progressWrap">
-            <div className="progressMeta">
-              <b>Audit Progress</b>
-
-              <span>
-                Question 8 of 8
-              </span>
-            </div>
-
-            <div className="bar">
-              <span
-                style={{
-                  width: "100%",
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="analysisCard">
-            <div
-              className="icon"
-              style={{
-                margin:
-                  "0 auto 20px",
-              }}
-            >
-              <ShieldCheck />
-            </div>
-
-            <h2>
-              Analysing your
-              Answers...
-            </h2>
-
-            <p>
-              We're scanning your
-              answers to estimate
-              your biggest money
-              leaks.
-            </p>
-
-            <div
-              className="circle"
-              style={{
-                background: `conic-gradient(#059625 ${
-                  progress * 3.6
-                }deg, #e5e7eb 0deg)`,
-              }}
-            >
-              <div>
-                <strong>
-                  {progress}%
-                </strong>
-
-                <br />
-
-                <span>
-                  Analysing
-                </span>
-              </div>
-            </div>
-
-            <div className="checksList">
-              <div className="checkRow">
-                <div className="left">
-                  <div className="iconWrap">
-                    <Wallet
-                      size={18}
-                    />
-                  </div>
-
-                  <span>
-                    Reviewing your
-                    spending patterns
-                  </span>
-                </div>
-
-                <CheckCircle
-                  size={20}
-                  fill="#059625"
-                  color="#fff"
-                />
-              </div>
-
-              <div className="checkRow">
-                <div className="left">
-                  <div className="iconWrap">
-                    <BarChart3
-                      size={18}
-                    />
-                  </div>
-
-                  <span>
-                    Comparing against
-                    category averages
-                  </span>
-                </div>
-
-                {progress >= 30 ? (
-                  <CheckCircle
-                    size={20}
-                    fill="#059625"
-                    color="#fff"
-                  />
-                ) : (
-                  <LoaderCircle
-                    size={20}
-                    color="#059625"
-                    className="spin"
-                  />
-                )}
-              </div>
-
-              <div className="checkRow">
-                <div className="left">
-                  <div className="iconWrap">
-                    <Search
-                      size={18}
-                    />
-                  </div>
-
-                  <span>
-                    Identifying
-                    overpayment
-                    opportunities
-                  </span>
-                </div>
-
-                {progress >= 55 ? (
-                  <CheckCircle
-                    size={20}
-                    fill="#059625"
-                    color="#fff"
-                  />
-                ) : progress >=
-                  35 ? (
-                  <LoaderCircle
-                    size={20}
-                    color="#059625"
-                    className="spin"
-                  />
-                ) : (
-                  <Circle
-                    size={16}
-                    fill="#9CA3AF"
-                    color="#9CA3AF"
-                  />
-                )}
-              </div>
-
-              <div className="checkRow">
-                <div className="left">
-                  <div className="iconWrap">
-                    <Lightbulb
-                      size={18}
-                    />
-                  </div>
-
-                  <span>
-                    Calculating your
-                    potential savings
-                  </span>
-                </div>
-
-                {progress >= 72 ? (
-                  <CheckCircle
-                    size={20}
-                    fill="#059625"
-                    color="#fff"
-                  />
-                ) : progress >=
-                  60 ? (
-                  <LoaderCircle
-                    size={20}
-                    color="#059625"
-                    className="spin"
-                  />
-                ) : (
-                  <Circle
-                    size={16}
-                    fill="#9CA3AF"
-                    color="#9CA3AF"
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="safe">
-              <div className="trend-ng-class">
-                <Lock
-                  color="#059625"
-                  size={81}
-                />
-              </div>
-
-              <div>
-                <b>
-                  Your data is safe
-                  with us
-                </b>
-
-                <p className="mini">
-                  We do not need bank
-                  access to estimate
-                  your savings
-                  opportunities.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="auditPage">
+    <div className={styles.page}>
       <Header simple />
-
-      <main className="container">
-        <div className="main-section-results">
-          <section className="resultsHero">
-            <div className="content-wrap-first reveal-left delay-1">
-              <h1
-                style={{
-                  fontSize: 55,
-                }}
-              >
-                We found your <br />
-
-                <span
-                  style={{
-                    color:
-                      "#059625",
-                  }}
-                >
-                  biggest money leaks
-                </span>
-              </h1>
-
-              <p>
-                Based on your answers,
-                we identified areas
-                where you could be
-                overpaying every year.
-              </p>
-
-              <div className="audit-page-label">
-                <div>
-                  <ShieldCheck
-                    size={34}
-                  />
-                </div>
-
-                <div>
-                  <p>
-                    Your data is
-                    private & secure
-                  </p>
-                </div>
-              </div>
-
-              <div className="audit-page-label">
-                <div>
-                  <ChartNoAxesCombined
-                    size={34}
-                  />
-                </div>
-
-                <div>
-                  <p>
-                    Real insights.
-                    Real savings.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="greenPanel reveal-right delay-2"
-              style={{
-                backgroundImage:
-                  "url('/result/panelbg.png')",
-              }}
-            >
-              <span className="badge">
-                Total Recoverable Cash
-                Found
-              </span>
-
-              <h2
-                style={{
-                  fontSize: 65,
-                }}
-              >
-                {money(totalMin)} -{" "}
-                {money(totalMax)}
-                /year
-              </h2>
-
-              <p className="conclu-para">
-                <Info size={34} />
-
-                Based on your answers,
-                we estimated your
-                annual savings using
-                category averages and
-                conservative reduction
-                targets.
-              </p>
-
-              <p
-                className="mini"
-                style={{
-                  color: "#fff",
-                  marginTop: 12,
-                }}
-              >
-                {savingsComparison}
-              </p>
-
-              <a
-  href="#unlock-full-report"
-  className="btn white"
-  onClick={() => {
-    // GA4
-    trackEvent("upgrade_click", {
-      location: "results_hero",
-      value: 39,
-      currency: "AUD",
-    });
-
- 
-    trackTikTok("upgrade_click");
-    trackMeta("upgrade_click");
-  }}
->
-  Get My Full Report
-</a>
-            </div>
+      <main className={styles.wrap}>
+        {!loaded ? (
+          <p className={styles.loading}>Getting your results…</p>
+        ) : answers.length !== 8 ? (
+          <section className={styles.empty}>
+            <h1>Let's start with your free check.</h1>
+            <p>Answer 8 short questions. No bank details needed.</p>
+            <Link className={styles.primaryLink} href="/audit">Start my free check <ArrowRight size={18} /></Link>
           </section>
-
-          <div className="leakTabs reveal-up">
-            {leaks
-              .slice(0, 5)
-              .map((l) => (
-                <div
-                  className="leakTab"
-                  key={l.title}
-                >
-                  <small>
-                    {l.impact}
-                  </small>
-
-                  <strong>
-                    {money(
-                      l.amount
-                    )}
-                  </strong>
-
-                  <span>
-                    {l.title}
-                  </span>
-                </div>
-              ))}
-
-            <div className="leakTab">
-              <small>LOCKED</small>
-
-              <strong>
-                Unlock
-              </strong>
-
-              <span>
-                Full personalised
-                action plan
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <h2 className="reveal-up">
-          Your Top 3 money leaks
-        </h2>
-
-        <section className="mainResults reveal-up">
-          <div>
-            {topLeaks.map(
-              (l, idx) => (
-                <article
-                  className="panel leak"
-                  key={l.title}
-                >
-                  <span className="pill">
-                    0{idx + 1}{" "}
-                    {l.impact}
-                  </span>
-
-                  <h3>
-                    {l.title}
-                  </h3>
-
-                  <div className="add-bg">
-                    <p>
-                      {l.insight}
-                    </p>
-
-                    <div className="savings">
-                      <span>
-                        Save
-                      </span>{" "}
-
-                      {money(
-                        l.amount
-                      )}{" "}
-
-                      <span>
-                        per year
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="mini">
-                    The full report
-                    shows exactly what
-                    to do next,
-                    including scripts
-                    and a 30-day
-                    action plan.
-                  </p>
-                </article>
-              )
-            )}
-
-            <div className="safe">
-              <div className="trend-ng-class">
-                <Zap
-                  color="#059625"
-                  size={81}
-                />
-              </div>
-
-              <div>
-                <b>
-                  These are just the
-                  big ones.
-                </b>
-
-                <p className="mini">
-                  Your full report
-                  includes deeper
-                  personalised
-                  insights, hidden
-                  leaks, scripts, and
-                  action steps.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <aside
-            className="panel reportBox"
-            id="unlock-full-report"
-          >
-            <span className="pill">
-              <BsCheckCircleFill
-                size={20}
-                color="#059625"
-              />
-
-              {" "}
-              Unlock Your{" "}
-
-              <span>
-                Full Potential
-              </span>
-            </span>
-
-            <h2>
-              Get your personalised
-              action plan
-            </h2>
-
-            <p className="list-item">
-              <BsCheckCircleFill
-                size={15}
-                color="#059625"
-              />
-
-              {" "}
-              See all your money leaks
-            </p>
-
-            <p className="list-item">
-              <BsCheckCircleFill
-                size={15}
-                color="#059625"
-              />
-
-              {" "}
-              Get your estimated
-              savings
-            </p>
-
-            <p className="list-item">
-              <BsCheckCircleFill
-                size={15}
-                color="#059625"
-              />
-
-              {" "}
-              Step-by-step action plan
-            </p>
-
-            <p className="list-item">
-              <BsCheckCircleFill
-                size={15}
-                color="#059625"
-              />
-
-              {" "}
-              Scripts you can use
-            </p>
-
-            <p className="list-item">
-              <BsCheckCircleFill
-                size={15}
-                color="#059625"
-              />
-
-              {" "}
-              Save more, stress less
-            </p>
-
-            <div className="card unlock-card">
-              <h5>
-                <FileClock
-                  size={25}
-                  color="#059625"
-                />
-
-                Your Full Report
-              </h5>
-
-              <p>
-                <FileClock
-                  size={25}
-                  color="#fff"
-                />
-
-                Potential annual
-                savings
+        ) : areas.length === 0 && !additionalArea ? (
+          <section className={styles.empty}>
+            <span className={styles.eyebrow}><CheckCircle2 size={17} /> YOUR FREE RESULTS</span>
+            <h1>We didn't find a clear place to start.</h1>
+            <p>Your answers didn't point to a big problem. We won't guess how much you could save.</p>
+            <p><strong>We don't recommend paying based on these answers alone.</strong> If you already know one bill or spending habit you want to check, choose it below.</p>
+            {extraAreaChoice}
+            <Link className={styles.primaryLink} href="/audit">Check my answers again <ArrowRight size={18} /></Link>
+          </section>
+        ) : (
+          <>
+            <section className={styles.hero}>
+              <span className={styles.eyebrow}><CheckCircle2 size={17} /> YOUR FREE RESULTS</span>
+              <h1>{areas.length ? "We found " + areas.length + (areas.length === 1 ? " place" : " places") + " to check." : "You chose " + areaNames[previewArea] + " to check."}</h1>
+              <p className={styles.subhead}>
+                {areas.length ? "Your answers show where to start. These are checks, not proof you are overpaying. More details could change the order." : "Your eight answers did not flag this as a concern, but you asked to check it. We cannot promise a saving."}
               </p>
+            </section>
 
-              <div className="savings">
-                {money(totalMid)}
-              </div>
-
-              <div className="top-bar-leaks">
-                <div className="item">
-                  <span>
-                    Top leaks found:
-                  </span>
-
-                  <span>
-                    {leaks.length}
-                  </span>
+            <section className={styles.areas} aria-label="Places to check">
+              {areas.length > 3 && <h2 className={styles.topLabel}>Start with these three checks</h2>}
+              {shownAreas.slice(0,3).map((area,index)=>(
+                <article className={styles.areaCard} key={area}>
+                  <span className={styles.index}>{index + 1}</span>
+                  <div className={styles.areaCopy}>
+                    <h2>{areaNames[area]}</h2>
+                    <p>{areas.includes(area) ? reasonForArea(area, answers) : "You chose this area. We have not confirmed a problem."}</p>
+                    <p className={styles.freeAction}><strong>First step:</strong> {firstChecks[area]}</p>
+                  </div>
+                  <CheckCircle2 className={styles.areaIcon} size={23} aria-hidden="true" />
+                </article>
+              ))}
+              {areas.length>3&&(
+                <div className={styles.otherAreas}>
+                  <h2>Also worth checking</h2>
+                  <ul>{areas.slice(3).map((area,index)=>(
+                    <li key={area}><strong>{index+4}. {areaNames[area]}</strong><span>{reasonForArea(area, answers)}</span></li>
+                  ))}</ul>
+                  <p>Your paid plan will cover all {areas.length + (additionalArea ? 1 : 0)} areas. Detailed answers may change which ones come first.</p>
                 </div>
+              )}
+              {areas.length === 0
+                ? extraAreaChoice
+                : areas.length < 7
+                  ? showExtraArea
+                    ? extraAreaChoice
+                    : <button type="button" className={styles.extraToggle}
+                        onClick={() => setShowExtraArea(true)}>Want to check another area?</button>
+                  : null}
+            </section>
 
-                <div className="item">
-                  <span>
-                    Action plan steps:
-                  </span>
-
-                  <span>
-                    18
-                  </span>
-                </div>
+            <section className={styles.purchase} id="unlock-full-report">
+              <div className={styles.purchaseHeader}>
+                <span className={styles.eyebrow}><ShieldCheck size={16} /> YOUR NEXT STEP</span>
+                <h2>Get your simple savings plan.</h2>
+                <p>We'll use your answers to show what to check first and how to do it.</p>
               </div>
-            </div>
-
-            <div className="checkoutConsent">
-              <label className="checkoutConsentLabel">
-                <input
-                  type="checkbox"
-                  checked={
-                    acceptedTerms
-                  }
-                  onChange={(e) =>
-                    setAcceptedTerms(
-                      e.target.checked
-                    )
-                  }
-                />
-
-                <span>
-                  I agree to the{" "}
-
-                  <Link
-                    href="/terms-and-conditions"
-                    target="_blank"
-                  >
-                    Terms &amp;
-                    Conditions
-                  </Link>
-                  ,{" "}
-
-                  <Link
-                    href="/privacy-policy"
-                    target="_blank"
-                  >
-                    Privacy Policy
-                  </Link>{" "}
-
-                  and{" "}
-
-                  <Link
-                    href="/financial-information-ai-disclaimer"
-                    target="_blank"
-                  >
-                    Financial
-                    Information &amp;
-                    AI Disclaimer
-                  </Link>
-                  .
-                </span>
+              <div className={styles.benefits}>
+                <p><CheckCircle2 size={20} /> Steps made for your answers</p>
+                <p><CheckCircle2 size={20} /> Help checking bills and regular payments</p>
+                <p><CheckCircle2 size={20} /> A short list to follow at your own pace</p>
+              </div>
+              <div className={styles.miniPreview} aria-label="Example of a possible savings action">
+                <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
+                <h3>{areaNames[previewArea]}</h3>
+                <p>{previewExamples[previewArea].story}</p>
+                <dl className={styles.previewNumbers}>
+                  {previewExamples[previewArea].costs.map(item=><div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
+                </dl>
+                <p className={styles.previewResult}>{previewExamples[previewArea].outcome}</p>
+                <p className={styles.previewCaution}>{previewExamples[previewArea].note}</p>
+                <small>In your paid plan: clear steps and useful links for your answers. No saving is guaranteed.</small>
+              </div>
+              <div className={styles.price}>A$29 <span>one-time payment</span></div>
+              <p className={styles.honesty}>We don't check live prices or promise savings. If you don't know your bill amounts, we'll show you where to find them, but we can't calculate a reduction without enough figures.</p>
+              <label className={styles.terms}>
+                <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
+                <span>I agree to the <Link href="/terms-and-conditions" target="_blank">Terms</Link>, <Link href="/privacy-policy" target="_blank">Privacy Policy</Link> and <Link href="/financial-information-ai-disclaimer" target="_blank">Financial Information & AI Disclaimer</Link>.</span>
               </label>
-            </div>
+              <button className={styles.payButton} type="button" disabled={!acceptedTerms || busy} onClick={checkout}>
+                <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$29"} <ArrowRight size={19} />
+              </button>
+              {error && <p className={styles.error} role="alert">{error}</p>}
+              <p className={styles.footnote}>One payment. Next, add details for the areas in your plan. Skip any amount you do not know.</p>
+            </section>
 
-            <button
-              type="button"
-              onClick={pay}
-              disabled={
-                !acceptedTerms ||
-                busy
-              }
-              className="unlock flex items-center justify-center gap-2"
-            >
-              <Lock
-                size={20}
-                color="#fff"
-              />
-
-              <span>
-                {busy
-                  ? "Redirecting..."
-                  : "Unlock My Full Report — A$39"}
-              </span>
-            </button>
-
-            <p className="mini">
-              Estimates are based on
-              your answers and typical
-              spending patterns.
-              Actual savings may vary.
-              This is general
-              information, not
-              financial advice.
-            </p>
-          </aside>
-        </section>
-
-        <ScrollReveal />
+            <p className={styles.retake}>Want to change an answer? <Link href="/audit">Start again</Link></p>
+          </>
+        )}
       </main>
     </div>
   );

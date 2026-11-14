@@ -1,0 +1,90 @@
+name: Prepare and test approved Phase 1 package
+on:
+  push:
+    branches: [phase-1-personalisation-2026-11]
+    paths:
+      - 'scripts/phase1-package/**'
+      - '.github/workflows/phase1-package-build.yml'
+permissions:
+  contents: read
+concurrency:
+  group: phase1-approved-package
+  cancel-in-progress: true
+jobs:
+  validate:
+    if: github.repository == 'SpendShiftOfficial/Spenshiftnew' && github.ref == 'refs/heads/phase-1-personalisation-2026-11'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      VERCEL_ENV: preview
+      SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+      PHASE1_TEST_EMAILS: disabled
+      PHASE1_TEST_AI: disabled
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Prepare approved source changes
+        run: node scripts/phase1-package/apply.mjs
+      - run: npm ci
+      - name: Type check the full application
+        run: npx tsc --noEmit
+      - name: Check privacy, calculations and recovery rules
+        run: node scripts/check-phase1.mjs
+      - name: Build the test application
+        run: npm run build
+      - name: Install isolated browser test runner
+        run: |
+          npm install --prefix /tmp/spendshift-pw --no-audit --no-fund playwright@1.56.1
+          node /tmp/spendshift-pw/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Desktop and mobile customer journeys
+        run: node scripts/check-phase1-browser.mjs
+        env:
+          PLAYWRIGHT_INSTALL_PATH: /tmp/spendshift-pw/package.json
+      - name: Prepare tested source manifest
+        run: node scripts/phase1-package/manifest.mjs
+      - name: Save tested source only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: phase1-tested-source
+          path: prepared-package/manifest.json
+          retention-days: 2
+      - name: Save fictional browser test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: phase1-browser-evidence
+          path: test-artifacts/
+          if-no-files-found: ignore
+          retention-days: 2
+  publish:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: phase1-tested-source
+          path: prepared-package
+      - name: Publish only to the approved test branch
+        run: node scripts/phase1-package/publish.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

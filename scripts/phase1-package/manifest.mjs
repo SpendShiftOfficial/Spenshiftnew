@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const changed=execFileSync('git',['diff','--name-only','--diff-filter=AM'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+const fresh=execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+const allowed=p=>/^(app|components|lib|docs)\/[A-Za-z0-9_./\[\]-]+$/.test(p)||p==='next.config.ts'||['scripts/check-phase1.mjs','scripts/check-phase1-browser.mjs'].includes(p);
+const paths=[...new Set([...changed,...fresh])].filter(allowed).sort();
+if(paths.length<12||paths.length>80)throw new Error('Unexpected package size');
+const files=paths.map(path=>({path,content:fs.readFileSync(path,'utf8')}));
+if(files.some(f=>Buffer.byteLength(f.content)>200000))throw new Error('Unexpected large source file');
+fs.mkdirSync('prepared-package',{recursive:true});fs.writeFileSync('prepared-package/manifest.json',JSON.stringify({parent:process.env.GITHUB_SHA,files}));
+console.log('Prepared '+files.length+' reviewed source files for the test branch.');

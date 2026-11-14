@@ -17,64 +17,25 @@ import {
 const services = [
   {
     icon: Search,
-    title: "Free Savings Audit",
-    text: "A short assessment that identifies your biggest opportunities to save money.",
-    features: [
-      "Eight simple questions",
-      "Approximately two minutes",
-      "No signup required",
-      "No bank connection",
-      "Immediate free results",
-    ],
-    cta: "Start Free Audit",
+    title: "Free savings check",
+    text: "Answer eight free questions. See what may be worth checking and a first step for each area.",
+    features: ["Eight free questions", "Free results", "No bank login", "No payment for free results"],
+    cta: "Start my free savings check",
     href: "/audit",
   },
   {
-    icon: Sparkles,
-    title: "Personalised Savings Report",
-    text: "A detailed AI-generated report tailored to your answers and spending habits.",
-    features: [
-      "Estimated annual savings",
-      "Priority money leaks",
-      "Hidden savings opportunities",
-      "Negotiation and cancellation scripts",
-      "Saved report access",
-    ],
-    cta: "Create My Report",
-    href: "/audit",
-  },
-  {
-    icon: CalendarDays,
-    title: "30-Day Savings Action Plan",
-    text: "A practical step-by-step roadmap designed to help you implement your recommendations without feeling overwhelmed.",
-    features: [
-      "Four-week roadmap",
-      "Clear weekly priorities",
-      "Estimated completion times",
-      "Interactive action checklist",
-      "Simple progress tracking",
-    ],
-    cta: "See How It Works",
-    href: "/how-it-works",
+    icon: ListChecks,
+    title: "Personalised savings plan",
+    text: "Get clear steps based on your answers. A$29 once, with no subscription.",
+    features: ["Three priority actions", "Help comparing your own costs", "Possible savings only when enough costs are known", "A checklist and savings tracker"],
+    cta: "See what's included",
+    href: "/whats-included",
   },
 ];
-
 const process = [
-  {
-    number: "01",
-    title: "Complete the audit",
-    text: "Answer eight simple questions about your everyday spending habits.",
-  },
-  {
-    number: "02",
-    title: "Review your free results",
-    text: "See your biggest money leaks and estimated savings opportunities.",
-  },
-  {
-    number: "03",
-    title: "Unlock your report",
-    text: "Receive your detailed personalised report and action plan.",
-  },
+  {number: "01", title: "Start free", text: "Answer eight questions. No bank details needed."},
+  {number: "02", title: "See your results", text: "Find the spending areas worth checking and where to start."},
+  {number: "03", title: "Choose your full plan", text: "Pay A$29 once if you want more help. Add costs you know, skip the rest, then follow your plan."},
 ];
 
 export default function ServicesPage() {
@@ -96,9 +57,8 @@ export default function ServicesPage() {
             </h1>
 
             <p>
-              SpendShift helps you identify potential money leaks, understand
-              which areas matter most and take clear steps to reduce everyday
-              expenses.
+              Start with a free check of your spending. If you want more
+              help, choose a personalised savings plan for A$29 once.
             </p>
 
             <div className="servicesHeroChecks">
@@ -119,7 +79,7 @@ export default function ServicesPage() {
             </div>
 
             <Link href="/audit" className="btn">
-              Start Your Free Audit
+              Start my free savings check
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -132,18 +92,17 @@ export default function ServicesPage() {
               <span className="sectionEyebrow">What We Offer</span>
 
               <h2 className="sectionTitle">
-                Three simple ways to
+                Two simple ways to
                 <br />
-                <span>move from insight to savings.</span>
+                <span>check your spending.</span>
               </h2>
 
               <p>
-                Each service is designed to keep the experience simple,
-                practical and easy to follow.
+                The free check comes first. The full savings plan is optional.
               </p>
             </div>
 
-            <div className="servicesPageGrid">
+            <div className="servicesPageGrid" style={{gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 330px), 1fr))",maxWidth:900,marginInline:"auto"}}>
               {services.map((service) => {
                 const Icon = service.icon;
 
@@ -186,12 +145,11 @@ export default function ServicesPage() {
             <div className="servicesOutcomeContent">
               <span className="sectionEyebrow">What You Receive</span>
 
-              <h2>A clearer picture of where your money could be going.</h2>
+              <h2>Know what to check and what to do next.</h2>
 
               <p>
-                SpendShift does not create a traditional budget. It focuses on
-likely savings opportunities and practical actions based on the
-answers you submit. For practical ideas, explore our{" "}
+                Start with free results. The paid plan adds step-by-step help.
+We don't check live offers or promise a saving. For more ideas, explore our{" "}
 <Link
 href="/save-money-australia"
 style={{
@@ -208,17 +166,17 @@ guide to saving money in Australia
               <div className="servicesOutcomePoints">
                 <span>
                   <CircleDollarSign size={20} />
-                  Estimated annual savings
+                  Possible savings when costs are known
                 </span>
 
                 <span>
                   <Target size={20} />
-                  Ranked money leaks
+                  Three priority actions
                 </span>
 
                 <span>
                   <FileText size={20} />
-                  Ready-to-use scripts
+                  Useful comparison links
                 </span>
 
                 <span>
@@ -230,10 +188,10 @@ guide to saving money in Australia
 
             <div className="servicesOutcomePanel">
               <span className="servicesOutcomeLabel">
-                Full personalised report
+                Personalised savings plan
               </span>
 
-              <strong>A$39</strong>
+              <strong>A$29</strong>
 
               <p>One-time payment with no subscription or recurring fees.</p>
 
@@ -245,7 +203,7 @@ guide to saving money in Australia
 
                 <span>
                   <CalendarDays size={19} />
-                  30-day action plan
+                  Three priority actions
                 </span>
 
                 <span>
@@ -255,7 +213,7 @@ guide to saving money in Australia
               </div>
 
               <Link href="/audit" className="btn white">
-                Start Free Audit First
+                Start my free savings check
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -292,17 +250,17 @@ guide to saving money in Australia
           <div className="container">
             <div className="cta">
               <div>
-                <h2>Find your biggest savings opportunities today.</h2>
-                <p>Complete the free audit in approximately two minutes.</p>
+                <h2>See where to start, for free.</h2>
+                <p>Answer eight free questions. No bank login needed.</p>
               </div>
 
               <div>
                 <Link href="/audit" className="btn white">
-                  Start Your Free Audit
+                  Start my free savings check
                   <ArrowRight size={18} />
                 </Link>
 
-                <p className="noCard">No credit card required.</p>
+                <p className="noCard">No card needed for free results.</p>
               </div>
             </div>
           </div>

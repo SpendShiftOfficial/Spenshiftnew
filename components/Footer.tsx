@@ -1,11 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import ScrollReveal from "@/components/ScrollReveal";
-import {
-Circle,
- Mail, Phone
-} from "lucide-react";
+import { Circle, Mail } from "lucide-react";
 
 import { FaFacebook, FaInstagram } from "react-icons/fa6";
 import { FaTiktok } from "react-icons/fa";
@@ -45,8 +41,8 @@ Cookie settings
   return (
     <footer className="footer">
       <div className="container footerGrid">
-        <div className="footerBrand reveal-up">
-          <div className="footerLogo reveal-up">
+        <div className="footerBrand">
+          <div className="footerLogo">
             <Link href="/" className="logo">
               <Image
                 src="/logo.png"
@@ -58,9 +54,8 @@ Cookie settings
           </div>
 
           <p>
-            SpendShift helps Australians uncover hidden money leaks, reduce
-            unnecessary spending and take practical action with personalised
-            AI-powered savings insights.
+            Answer eight free questions to see what spending is worth checking.
+            Get a personalised savings plan for A$29 once if you want clear next steps.
           </p>
 
           <div className="socials">
@@ -90,7 +85,7 @@ Cookie settings
           </div>
         </div>
 
-        <div className="reveal-up">
+        <div className="">
           <h4>Learn</h4>
           <Link href="/how-it-works"><Circle size={10} color="#fff" /> How It Works</Link>
           <Link href="/whats-included"><Circle size={10} color="#fff" /> What’s Included</Link>
@@ -100,14 +95,14 @@ Cookie settings
          <Link href="/save-money-australia"><Circle size={10} color="#fff" /> Save Money Australia</Link>
         </div>
 
-        <div className="reveal-up">
+        <div className="">
           <h4>Services</h4>
-          <Link href="/#services"><Circle size={10} color="#fff" /> Free Savings Audit</Link>
-          <Link href="/#services"><Circle size={10} color="#fff" /> Personalised Savings Report</Link>
-          <Link href="/#services"><Circle size={10} color="#fff" /> 30-Day Savings Action Plan</Link>
+          <Link href="/audit"><Circle size={10} color="#fff" /> Free savings check</Link>
+          <Link href="/whats-included"><Circle size={10} color="#fff" /> A$29 savings plan</Link>
+          <Link href="/services"><Circle size={10} color="#fff" /> Our services</Link>
         </div>
 
-        <div className="reveal-up">
+        <div className="">
           <h4>Legal</h4>
           <Link href="/privacy-policy"><Circle size={10} color="#fff" /> Privacy Policy</Link>
           <Link href="/terms-and-conditions"><Circle size={10} color="#fff" /> Terms &amp; Conditions</Link>
@@ -116,7 +111,7 @@ Cookie settings
           <Link href="/financial-information-ai-disclaimer"><Circle size={10} color="#fff" /> Financial Disclosure</Link>
         </div>
 
-        <div className="reveal-up ">
+        <div className="">
           <h4>Contact</h4>
           <Link className="cntct" href="mailto:info@spendshift.com.au">
            <Mail size={20} color="#059625" /> info@spendshift.com.au
@@ -124,7 +119,7 @@ Cookie settings
         </div>
       </div>
 
-      <div className="container footerBottom reveal-up">
+      <div className="container footerBottom">
         <span className="footerCopyright">
           © SpendShift 2026. All rights reserved.
         </span>
@@ -149,7 +144,6 @@ openCookieSettings();
 </Link>
 </div>
       </div>
-       <ScrollReveal />
     </footer>
    
   );

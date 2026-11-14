@@ -144,6 +144,21 @@ action:
 },
 ];
 
+const jumpLabels: Record<string, string> = {
+  "review-bills": "Household bills",
+  "energy": "Energy",
+  "phone-internet": "Phone & internet",
+  "subscriptions": "Subscriptions",
+  "groceries": "Groceries",
+  "takeaway": "Takeaway",
+  "insurance": "Insurance",
+  "transport": "Transport",
+  "fees": "Fees",
+  "automate": "Automatic saving",
+  "pause-spending": "Impulse buys",
+  "money-leaks": "Where to start"
+};
+
 const quickWins = [
 "Cancel one subscription you no longer use",
 "Check one major bill against current alternatives",
@@ -175,7 +190,7 @@ answer:
 {
 question: "How does SpendShift help me find savings?",
 answer:
-"SpendShift asks eight simple questions about your everyday spending habits and identifies likely money leaks and practical savings opportunities. The free audit takes approximately two minutes and does not require a bank connection.",
+"SpendShift asks eight simple questions about spending and shows which areas may be worth checking and where to start. The free audit takes approximately two minutes and does not require a bank connection.",
 },
 ];
 
@@ -201,7 +216,7 @@ color: "#667085",
 fontWeight: 500,
 }}
 >
-Last reviewed: 12 October 2026
+Last reviewed: 14 November 2026 · By SpendShift
 </p>
 
 <h1>
@@ -210,14 +225,14 @@ How to save money in Australia:
 </h1>
 
 <p className="heroText">
-Saving more does not have to mean tracking every dollar or
-giving up everything you enjoy. Start by finding the expenses
-that are quietly costing you more than they should.
+Save money by checking regular bills, unused subscriptions, groceries
+and everyday spending. Start with one cost you can change. You do not
+need a complex budget or a paid service to begin.
 </p>
 
 <div className="heroActions">
 <Link href="/audit" className="primaryButton">
-Start your free audit
+Start my free savings check
 <ArrowRight size={18} />
 </Link>
 
@@ -317,6 +332,19 @@ going toward things you actually value.
 </div>
 </section>
 
+<section className="editorialNote">
+<div className="articleContainer">
+<h2>How to start saving money in Australia</h2>
+<p><strong>Start with costs you pay often.</strong> Check your electricity, phone, insurance and subscriptions.
+Then look at groceries, takeaway and other small buys. Compare a like-for-like option before changing a
+service, and record what you actually save. The 12 steps below help you choose where to begin.</p>
+<p className="editorialMethod"><strong>About this guide:</strong> Prepared by SpendShift and reviewed on 14 November 2026
+against Australian consumer sources, including <a href="https://moneysmart.gov.au/budgeting/get-more-value-from-your-money" target="_blank" rel="noopener noreferrer">Moneysmart</a> and the
+<a href="https://www.accc.gov.au/consumers/specific-products-and-activities/electricity-prices-and-plans" target="_blank" rel="noopener noreferrer"> ACCC</a>.
+Examples below are made up to explain the maths. They are not current quotes or savings promises.</p>
+</div>
+</section>
+
 <section className="tipsSection">
 <div className="pageContainer">
 <div className="sectionHeading">
@@ -331,7 +359,7 @@ to your household and start there.
 <nav className="jumpNav" aria-label="Money-saving topics">
 {tips.map((tip) => (
 <a href={`#${tip.id}`} key={tip.id}>
-{tip.number}
+{tip.number} · {jumpLabels[tip.id]}
 </a>
 ))}
 </nav>
@@ -363,6 +391,37 @@ return (
 </div>
 </section>
 
+<section className="examplesSection" aria-labelledby="examples-heading">
+<div className="articleContainer">
+<div className="sectionEyebrow">ILLUSTRATIVE EXAMPLES</div>
+<h2 id="examples-heading">What a possible saving looks like</h2>
+<p>These numbers are examples, not quotes or estimates for your household. You only save money if you
+make a change and your actual costs go down.</p>
+<div className="exampleGrid">
+<article className="exampleCard">
+<h3>Unused subscription</h3>
+<p>You cancel a service costing A$12 each month.</p>
+<strong>A$12 × 12 = A$144 a year</strong>
+<p>Only if the service is unused, the charges stop and no cancellation fee applies.</p>
+<Link href="/cancel-unused-subscriptions-australia">How to find and cancel unused subscriptions</Link>
+</article>
+<article className="exampleCard">
+<h3>Comparable electricity offer</h3>
+<p>Your old estimated yearly cost is A$2,000. A comparable offer for the same usage is A$1,800.</p>
+<strong>A$2,000 − A$1,800 = A$200 a year</strong>
+<p>Check supply charges, usage, discounts and any switching costs. These are invented amounts, not live offers.</p>
+<Link href="/reduce-electricity-bill-australia">How to reduce your electricity bill</Link>
+</article>
+<article className="exampleCard">
+<h3>Phone plan</h3>
+<p>A suitable A$50 monthly plan is replaced with one costing A$40 per month.</p>
+<strong>(A$50 − A$40) × 12 = A$120 a year</strong>
+<p>Only if coverage, data and contract terms still meet your needs, with no extra fees.</p>
+</article>
+</div>
+</div>
+</section>
+
 <section className="midCta">
 <div className="pageContainer">
 <div className="midCtaCard">
@@ -370,14 +429,14 @@ return (
 <span className="ctaEyebrow">PERSONALISED TO YOU</span>
 <h2>Not sure which expense to tackle first?</h2>
 <p>
-SpendShift&apos;s free audit analyses your answers to identify
-likely money leaks and show you where practical savings
+SpendShift&apos;s free check uses your answers to show
+where you may want to check costs and where savings
 opportunities may exist.
 </p>
 </div>
 
 <Link href="/audit" className="lightButton">
-Find my money leaks
+Start my free savings check
 <ArrowRight size={18} />
 </Link>
 </div>
@@ -457,6 +516,24 @@ decisions.
 </p>
 
 <div className="resourcesGrid">
+<a href="https://www.energy.gov.au/rebates/energy-made-easy" target="_blank" rel="noopener noreferrer" className="resourceCard">
+<span className="resourceSource">AUSTRALIAN GOVERNMENT</span>
+<h3>Energy Made Easy</h3>
+<p>Compare electricity and gas plans in NSW, ACT, Queensland where available, SA and Tasmania using an independent tool.</p>
+<span className="resourceLink">Compare energy offers</span>
+</a>
+<a href="https://compare.energy.vic.gov.au/" target="_blank" rel="noopener noreferrer" className="resourceCard">
+<span className="resourceSource">VICTORIAN GOVERNMENT</span>
+<h3>Victorian Energy Compare</h3>
+<p>Check electricity and gas offers using your Victorian household's costs and usage.</p>
+<span className="resourceLink">Compare Victorian offers</span>
+</a>
+<a href="https://www.acma.gov.au/choosing-right-product-or-plan" target="_blank" rel="noopener noreferrer" className="resourceCard">
+<span className="resourceSource">ACMA</span>
+<h3>Phone plan comparison guide</h3>
+<p>Learn which fees, limits and terms to read before changing your phone or internet plan.</p>
+<span className="resourceLink">Read the consumer guide</span>
+</a>
 <a
 href="https://moneysmart.gov.au/saving/simple-ways-to-save-money"
 target="_blank"
@@ -504,6 +581,23 @@ and assess value for money.
 </div>
 </div>
 </section>
+<section className="relatedGuides" aria-labelledby="related-heading">
+<div className="articleContainer">
+<div className="sectionEyebrow">GO DEEPER</div>
+<h2 id="related-heading">More detailed money-saving guides</h2>
+<p>Two practical guides for common household costs. Both are free to read.</p>
+<div className="relatedGrid">
+<Link href="/reduce-electricity-bill-australia">
+<strong>How to reduce your electricity bill in Australia</strong>
+<span>Read a bill, check your rates and compare like-for-like offers.</span>
+</Link>
+<Link href="/cancel-unused-subscriptions-australia">
+<strong>How to find and cancel unused subscriptions</strong>
+<span>Check bank statements, app stores and renewals without missing charges.</span>
+</Link>
+</div>
+</div>
+</section>
 <section className="finalSection">
 <div className="pageContainer">
 <div className="finalCard">
@@ -518,11 +612,11 @@ and assess value for money.
 <p>
 Answer eight simple questions about your everyday spending
 habits. SpendShift will identify likely money leaks and show
-you your strongest savings opportunities.
+you the areas worth checking first.
 </p>
 
 <Link href="/audit" className="primaryButton finalButton">
-Start your free audit
+Start my free savings check
 <ArrowRight size={18} />
 </Link>
 
@@ -868,17 +962,18 @@ margin: 32px auto 42px;
 }
 
 .jumpNav a {
-width: 38px;
-height: 38px;
+min-height: 42px;
 display: inline-flex;
 align-items: center;
 justify-content: center;
 border: 1px solid #d9e4d7;
-border-radius: 50%;
+border-radius: 999px;
+padding: 9px 14px;
 background: #ffffff;
-color: #486052;
-font-size: 12px;
-font-weight: 800;
+color: #354b3b;
+font-size: 13px;
+font-weight: 750;
+line-height: 1.3;
 text-decoration: none;
 }
 
@@ -1356,7 +1451,53 @@ padding: 40px 21px;
 font-size: 36px;
 }
 }
-`}</style>
+.editorialNote {
+  padding: 42px 0;
+  background: #f1f8f0;
+  border-top: 1px solid #dfeadd;
+  border-bottom: 1px solid #dfeadd;
+}
+.editorialNote h2, .examplesSection h2, .relatedGuides h2 {
+  margin: 0 0 18px;
+  color: #173b26;
+  font-size: clamp(27px,4vw,38px);
+  line-height: 1.2;
+}
+.editorialNote p, .examplesSection > .articleContainer > p, .relatedGuides p {
+  color: #4b6054;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.editorialMethod {
+  padding-top: 12px;
+  font-size: 14px !important;
+  line-height: 1.7;
+}
+.editorialMethod a, .exampleCard a { color: #087d2c; text-underline-offset: 3px; }
+.examplesSection, .relatedGuides { padding: 76px 0; background: #fff; }
+.exampleGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin-top: 30px; }
+.exampleCard { padding: 25px; border: 1px solid #dce8de; border-radius: 20px; background: #f8fbf8; min-width: 0; }
+.exampleCard h3 { color: #173b26; font-size: 21px; margin: 0 0 14px; }
+.exampleCard p { color: #486052; font-size: 15px; line-height: 1.65; }
+.exampleCard strong { display: block; color: #087d2c; font-size: 20px; line-height: 1.4; }
+.exampleCard a { display: inline-block; margin-top: 12px; font-weight: 750; font-size: 15px; }
+.relatedGuides { background: #f5faf5; }
+.relatedGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 25px; }
+.relatedGrid a { display: flex; flex-direction: column; gap: 12px; padding: 26px; border: 1px solid #dce8de; border-radius: 20px; background: #fff; text-decoration: none; color: #173b26; }
+.relatedGrid a:hover { border-color: #55a960; }
+.relatedGrid a strong { font-size: 19px; line-height: 1.4; }
+.relatedGrid a span { font-size: 15px; line-height: 1.6; color: #4b6054; }
+@media (max-width: 900px) {
+  .exampleGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .examplesSection, .relatedGuides { padding: 55px 0; }
+  .exampleGrid, .relatedGrid { grid-template-columns: 1fr; }
+  .jumpNav { justify-content: flex-start; margin: 26px auto 35px; }
+}
+
+`}
+</style>
  
 </div>
 );

@@ -1,0 +1,21 @@
+.page{background:#f7faf7;color:#183b28}.wrap{width:min(990px,calc(100% - 36px));margin:0 auto;padding:40px 0 90px}
+.hero{padding:24px 0 36px}.breadcrumb{display:flex;gap:11px;align-items:center;flex-wrap:wrap;font-size:14px;margin-bottom:35px}.breadcrumb a{color:#216c36;text-decoration:underline;text-underline-offset:3px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.09em;color:#20733c}
+.hero h1{font-size:clamp(36px,5.3vw,57px);line-height:1.12;letter-spacing:-.035em;max-width:930px;margin:13px 0 20px;color:#0c301e}
+.lead{font-size:clamp(18px,2.4vw,21px);line-height:1.65;max-width:850px;color:#435a49;margin:0 0 17px}.byline{font-size:14px;color:#617568;margin:0}
+.answer,.example,.sources,.related,.cta{padding:33px 36px;border:1px solid #dae7db;border-radius:22px;background:#fff;margin:22px 0}
+.answer{background:#eef8ef;border-color:#cde2d0}.answer h2,.example h2,.sources h2,.related h2,.cta h2{font-size:clamp(25px,3.8vw,32px);line-height:1.25;margin:0 0 14px;color:#173b26}
+.answer p,.example p,.sources p,.related p,.cta p,.section p{font-size:17px;line-height:1.75;color:#405448}.answer h3{font-size:19px;margin:22px 0 7px}.answer ul{padding-left:22px;margin:6px 0}.answer li{padding:4px 0;font-size:16px;line-height:1.5}
+.toc{margin:35px 0 38px;padding:26px 32px;border-left:5px solid #3c9a50;background:#fff;border-radius:0 18px 18px 0}
+.toc h2{font-size:23px;margin:0 0 10px}.toc ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;list-style:none;margin:0;padding:0}.toc a{color:#15703b;text-decoration:underline;text-underline-offset:3px;line-height:1.5;font-size:16px}
+.section{padding:35px 8px;border-bottom:1px solid #dce7df;scroll-margin-top:115px}.section h2{font-size:clamp(26px,3.8vw,34px);line-height:1.24;margin:0 0 18px;color:#173b26}.section p{margin:0 0 16px}
+.steps{padding-left:27px;margin:18px 0}.steps li{padding:6px 0 15px 6px;font-size:17px;line-height:1.5}.steps strong{color:#173b26}.steps p{margin:5px 0 0}
+.bullets{padding-left:24px}.bullets li{font-size:17px;line-height:1.65;padding:5px 0;color:#405448}
+.sectionSources{font-size:15px!important}.sectionSources a,.sources a{color:#126c38;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.example{scroll-margin-top:115px;background:#ecf6ee}.example .eyebrow{display:block;margin-bottom:12px}.math{background:#fff;border:1px solid #d8e7da;padding:19px 21px;border-radius:14px;margin:16px 0}.math p{margin:0 0 10px;font-size:16px}.math strong{display:block;font-size:22px;color:#126a35;line-height:1.4}.caution{font-size:15px!important}
+.questions details{border-bottom:1px solid #dee9df;padding:15px 0}.questions summary{font-size:18px;font-weight:750;cursor:pointer}.questions p{padding:4px 0 0}
+.sources ul{padding-left:20px}.sources li{padding:5px 0 15px;font-size:17px;line-height:1.5}.sources li span{display:block;font-size:15px;color:#62736a;line-height:1.5}.small{font-size:14px!important;line-height:1.6!important;color:#506355!important}
+.related{background:#f0f7f0}.related>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.related a{background:#fff;display:flex;flex-direction:column;border:1px solid #d8e7da;border-radius:14px;padding:20px;gap:10px;color:#173b26;text-decoration:none}.related a strong{font-size:17px}.related a span{font-size:15px;line-height:1.5;color:#5a7264}.related a:hover{border-color:#4caa60}
+.cta{text-align:center;background:#0d3b22;color:#fff}.cta h2,.cta p{color:#fff}.cta p{color:#d5e8db}.button{display:inline-flex;justify-content:center;align-items:center;min-height:52px;border-radius:30px;margin-top:7px;padding:13px 24px;color:#103421;background:#c9f4ce;font-size:17px;font-weight:800;text-decoration:none}.button:hover{background:#fff;color:#103421}
+@media(max-width:700px){.toc ul,.related>div{grid-template-columns:1fr}.answer,.example,.sources,.related,.cta{padding:25px 22px}.section{padding:28px 2px}}
+@media(max-width:390px){.wrap{width:calc(100% - 26px)}.hero h1{letter-spacing:-.025em}.answer,.example,.sources,.related,.cta{padding:22px 18px}.button{width:100%}}

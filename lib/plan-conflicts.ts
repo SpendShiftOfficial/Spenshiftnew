@@ -1,0 +1,62 @@
+import type { PlanDraft } from "./plan-draft";
+import type { PersonalisationArea } from "./personalisation-questions";
+import { selectPersonalisationAreas } from "./personalisation-questions";
+
+export type AuditConflict = { area: PersonalisationArea; message: string };
+
+/**
+ * Compare the broad free audit against more specific paid answers.
+ * Leave uncertain / borderline frequency answers alone; flag hard contradictions.
+ */
+export function findAuditConflict(d: PlanDraft): AuditConflict | null {
+  const areas = selectPersonalisationAreas(d.answers);
+  if (d.additionalArea && !areas.includes(d.additionalArea as PersonalisationArea)) {
+    areas.push(d.additionalArea as PersonalisationArea);
+  }
+  const { answers, details } = d;
+  const mealMode = details.takeawayMealMode || "combined";
+  const takeawayCount = details.takeawayOrdersPerWeek === "" ? null : Number(details.takeawayOrdersPerWeek);
+  const restaurantCount = details.restaurantOrdersPerWeek === "" ? null : Number(details.restaurantOrdersPerWeek);
+  const bothKnown = mealMode !== "both" || (takeawayCount !== null && restaurantCount !== null);
+  const weekly = mealMode === "both"
+    ? bothKnown ? (takeawayCount ?? 0) + (restaurantCount ?? 0) : null
+    : mealMode === "restaurant" ? restaurantCount : takeawayCount;
+  const anyPositive = mealMode === "both"
+    ? (takeawayCount !== null && takeawayCount > 0) || (restaurantCount !== null && restaurantCount > 0)
+    : weekly !== null && weekly > 0;
+  if (areas.includes("takeaway") && (weekly !== null && Number.isFinite(weekly) || anyPositive)) {
+    const freeAnswer = answers[0];
+    if ((freeAnswer === "Never" && anyPositive) ||
+        (weekly !== null && !['Never', 'Rarely', 'Less than once a week'].includes(freeAnswer) && weekly === 0) ||
+        (weekly !== null && freeAnswer === "1–2 times/week" && weekly > 4) ||
+        (weekly !== null && freeAnswer === "Almost daily" && weekly < 3)) {
+      return {
+        area: "takeaway",
+        message: "Your first meal-out answer and your weekly meal count do not match. Check one of them before making your plan.",
+      };
+    }
+  }
+  if (areas.includes("insurance") && answers[2] === "I don’t currently have insurance" &&
+      d.insurancePolicies.some(p => p.type || (p.premium !== "" && Number(p.premium) > 0))) {
+    return {
+      area: "insurance",
+      message: "You first said you don't have insurance, but added an insurance policy. Please check your first answer.",
+    };
+  }
+  if (areas.includes("phone") && answers[4].includes("don't pay either") &&
+      ["both", "mobile", "internet"].includes(details.phoneService)) {
+    return {
+      area: "phone",
+      message: "You first said you don't pay phone or internet bills. Please check your first answer.",
+    };
+  }
+  if (areas.includes("energy") && answers[5].includes("don't pay these bills") &&
+      ((details.electricityBill !== "" && Number(details.electricityBill) > 0) ||
+        (details.hasGas === "yes" && details.gasMonthly !== "" && Number(details.gasMonthly) > 0))) {
+    return {
+      area: "energy",
+      message: "You first said you don't pay power or gas bills. Please check your first answer.",
+    };
+  }
+  return null;
+}

@@ -1,0 +1,234 @@
+.page {
+  background: #f8faf7;
+  min-height: 100vh;
+  color: #16291b;
+}
+.wrap {
+  width: min(100% - 32px, 790px);
+  margin: 0 auto;
+  padding: 52px 0 88px;
+}
+.hero { text-align: center; margin-bottom: 30px; }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #11682d;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.hero h1, .empty h1 {
+  color: #183b24;
+  font-weight: 850;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -.04em;
+  margin: 18px auto 14px;
+  max-width: 700px;
+}
+.subhead {
+  font-size: clamp(17px, 2.4vw, 20px);
+  line-height: 1.55;
+  color: #495b4f;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.areas { display: grid; gap: 14px; margin: 32px 0 36px; }
+.areaCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 25px 24px;
+  background: #fff;
+  border: 1px solid #dce9de;
+  border-radius: 19px;
+  box-shadow: 0 4px 24px rgba(16, 55, 25, .035);
+}
+.index {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  background: #e5f5e7;
+  color: #14662c;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  font-weight: 800;
+}
+.areaCopy { flex: 1; min-width: 0; }
+.areaCopy h2 {
+  font-size: 23px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #203727;
+  margin: 0 0 6px;
+}
+.areaCopy p {
+  margin: 0;
+  color: #536158;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.areaIcon { color: #159438; flex-shrink: 0; }
+.purchase {
+  background: #fff;
+  border: 1px solid #dce9de;
+  border-radius: 24px;
+  padding: clamp(24px, 5vw, 42px);
+  box-shadow: 0 10px 32px rgba(12, 52, 22, .05);
+}
+.purchaseHeader h2 {
+  margin: 12px 0;
+  font-weight: 850;
+  letter-spacing: -.03em;
+  font-size: clamp(27px, 4vw, 36px);
+  line-height: 1.17;
+}
+.purchaseHeader p {
+  color: #506155;
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 0;
+}
+.benefits { display: grid; gap: 12px; margin: 27px 0 29px; }
+.benefits p {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+  color: #1e3b27;
+}
+.benefits svg { flex: 0 0 20px; margin-top: 1px; color: #13923a; }
+.price {
+  font-size: 37px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+  padding-bottom: 8px;
+}
+.price span {
+  color: #637066;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.honesty {
+  font-size: 14px;
+  color: #5d695f;
+  line-height: 1.55;
+  margin: 6px 0 24px;
+}
+.terms {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin: 16px 0 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #48594d;
+  cursor: pointer;
+}
+.terms input { width: 21px; height: 21px; flex: 0 0 21px; accent-color: #0d912e; margin-top: 1px; }
+.terms a, .retake a { color: #0b742c; text-decoration: underline; text-underline-offset: 3px; }
+.payButton {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 58px;
+  padding: 14px 22px;
+  border-radius: 35px;
+  border: 1px solid #0b832e;
+  background: #08882e;
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.payButton:hover:not(:disabled) { background: #046c23; }
+.payButton:disabled { opacity: .52; cursor: not-allowed; }
+.payButton:focus-visible, .primaryLink:focus-visible { outline: 4px solid #b9e6c4; outline-offset: 3px; }
+.error { color: #a11212; font-weight: 650; margin: 12px 0 0; }
+.footnote { font-size: 13px; color: #66736a; text-align: center; margin: 15px 0 0; }
+.retake { font-size: 15px; color: #4c5e51; text-align: center; margin: 24px auto; }
+.empty { margin: 70px auto; max-width: 680px; padding: 30px; text-align: center; }
+.empty p { color: #4d5e52; font-size: 17px; line-height: 1.65; }
+.empty strong { color: #1c3e29; }
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  background: #08882e;
+  border-radius: 28px;
+  padding: 15px 25px;
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 14px;
+}
+.loading { margin: 80px 0; font-size: 18px; color: #5c6a60; text-align: center; }
+@media (max-width: 600px) {
+  .wrap { width: min(100% - 28px, 790px); padding-top: 30px; }
+  .areaCard { padding: 19px 15px; gap: 12px; }
+  .areaCopy h2 { font-size: 20px; }
+  .areaCopy p { font-size: 15px; }
+  .areaIcon { display: none; }
+  .purchase { border-radius: 18px; }
+  .payButton { font-size: 15px; }
+}
+
+/* A compact list keeps all flagged concerns visible without seven large cards. */
+.topLabel,.otherAreas h2{font-size:21px;line-height:1.3;font-weight:800;color:#20402b;margin:6px 0 1px}
+.otherAreas{border-radius:18px;background:#fff;border:1px solid #deebdf;padding:21px 23px}
+.otherAreas ul{list-style:none;margin:14px 0 0;padding:0}
+.otherAreas li{display:flex;flex-direction:column;gap:4px;padding:13px 0;border-top:1px solid #e5efe7}
+.otherAreas li strong{font-size:16px;color:#23442d}
+.otherAreas li span{font-size:14px;color:#617166;line-height:1.5}
+.otherAreas p{font-size:14px;color:#516456;line-height:1.55;margin:14px 0 0}
+.samplePlan{border:1px solid #d4e5d6;border-radius:16px;margin:24px 0;background:#f8fbf8;overflow:hidden}
+.samplePlan summary{font-size:16px;font-weight:800;color:#176432;cursor:pointer;padding:17px 19px;line-height:1.45}
+.samplePlan summary:focus-visible{outline:3px solid #a3ddad;outline-offset:-4px}
+.sampleInside{border-top:1px solid #dfeddf;padding:19px 20px}
+.exampleLabel{font-size:12px;color:#5a755f;font-weight:800;letter-spacing:.035em}
+.sampleInside h3{font-size:23px;font-weight:850;margin:12px 0 8px}
+.sampleInside p,.sampleInside li{font-size:15px;line-height:1.6;color:#34553e}
+.sampleSaving{background:#e8f7eb;border-radius:10px;padding:12px}
+.sampleSaving strong{font-size:20px;color:#196c32}
+.sampleInside ol{padding-left:21px;margin:15px 0}
+.sampleInside small{font-size:13px;line-height:1.5;color:#657a69}
+@media(max-width:600px){.otherAreas{padding:18px 16px}.sampleInside{padding:16px}}
+
+/* Compact example tied to a flagged area, not a fictional savings claim. */
+.miniPreview { background: #f8fbf8; border: 1px solid #d4e5d6; border-radius: 14px; padding: 15px 17px; margin: 18px 0; }
+.miniPreview h3 { color: #21472d; font-size: 19px; line-height: 1.3; font-weight: 800; margin: 8px 0; }
+.miniPreview p { color: #3f5745; font-size: 15px; line-height: 1.55; margin: 0 0 8px; }
+.miniPreview small { color: #5b7261; font-size: 12px; line-height: 1.5; }
+
+/* A useful first action on each of the three main free results. */
+.areaCopy .freeAction { margin-top: 11px; font-size: 14px; line-height: 1.5; color: #315f3c; }
+.freeAction strong { color: #1d6334; }
+.previewNumbers { margin: 10px 0; border: 1px solid #e0eee2; border-radius: 11px; overflow: hidden; }
+.previewNumbers div { display: flex; gap: 12px; justify-content: space-between; padding: 8px 13px; background: #fff; }
+.previewNumbers div + div { border-top: 1px solid #e4eee6; }
+.previewNumbers dt { color: #536759; font-size: 14px; }
+.previewNumbers dd { color: #21452b; font-weight: 800; font-size: 15px; margin: 0; text-align: right; }
+.miniPreview .previewResult { font-size: 21px; color: #17672e; background: #e8f5ea; padding: 10px 13px; border-radius: 9px; font-weight: 850; margin: 9px 0; }
+.miniPreview .previewCaution { color: #586e5e; font-size: 13px; line-height: 1.5; }
+
+/* Optional customer-chosen area: keep it small, honest and usable on mobile. */
+.extraChoice { display:grid; gap:8px; text-align:left; border:1px solid #dce9de; border-radius:13px; padding:15px 17px; margin:17px 0; background:#fff; }
+.extraChoice label { font-size:15px; font-weight:750; color:#274c31; }
+.extraChoice select { width:100%; min-height:46px; padding:10px 12px; font:inherit; font-size:16px; color:#183a24; border:1px solid #b9cdbd; border-radius:9px; background:#fff; }
+.extraChoice select:focus-visible { outline:3px solid #a2d0a9; outline-offset:2px; }
+.extraChoice p { margin:0; color:#5b6c5d; font-size:13px; line-height:1.45; }
+
+/* One to six flagged areas: reveal the optional choice only when asked. */
+.extraToggle { justify-self:start; width:fit-content; border:0; background:transparent; color:#166936; font:inherit; font-size:15px; font-weight:750; padding:7px 0; text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.extraToggle:focus-visible { outline:3px solid #a2d0a9; outline-offset:3px; border-radius:4px; }

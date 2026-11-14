@@ -1,0 +1,591 @@
+.page {
+  min-height: 100vh;
+  background: #f7f7f3;
+  color: #17231b;
+}
+.wrap {
+  max-width: 740px;
+  padding: 50px 20px 80px;
+  margin: 0 auto;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #047329;
+  background: #e8f6eb;
+  border: 1px solid #c9e7cf;
+  border-radius: 100px;
+  padding: 8px 13px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.wrap h1 {
+  max-width: 680px;
+  font-size: clamp(31px, 5vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  margin: 18px 0 14px;
+  font-weight: 800;
+  color: #15241b;
+}
+.intro {
+  color: #58645b;
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 0 0 20px;
+}
+.previewNotice {
+  color: #5f5437;
+  background: #fff6de;
+  border: 1px solid #f1dfae;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  margin-bottom: 30px;
+}
+.progressTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #516055;
+  font-size: 13px;
+  margin-bottom: 9px;
+}
+.progressTop strong {
+  color: #183a22;
+}
+.track {
+  height: 9px;
+  border-radius: 10px;
+  background: #dfe8df;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.track > div {
+  height: 100%;
+  background: #059625;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+.panel {
+  background: #fff;
+  border: 1px solid #e1e7e0;
+  box-shadow: 0 12px 38px rgba(28, 66, 34, 0.06);
+  border-radius: 22px;
+  padding: clamp(22px, 5vw, 37px);
+}
+.panel h2 {
+  color: #15241b;
+  font-size: clamp(24px, 4vw, 30px);
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+}
+.help {
+  color: #657168;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 25px;
+}
+.fields {
+  display: grid;
+  gap: 24px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field label {
+  font-size: 14px;
+  font-weight: 650;
+  color: #243b2b;
+}
+.field input,
+.field select {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #cbd7cd;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+  min-height: 52px;
+  padding: 12px 14px;
+  color: #15241b;
+}
+.field input:focus,
+.field select:focus {
+  outline: 3px solid rgba(5, 150, 37, 0.15);
+  border-color: #059625;
+}
+.field small {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #727d74;
+}
+.moneyInput {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.moneyInput span {
+  position: absolute;
+  left: 16px;
+  font-size: 17px;
+  font-weight: 650;
+  color: #425b4a;
+  pointer-events: none;
+}
+/* Higher specificity than the later generic .field input rules. */
+.field .moneyInput input {
+  padding-left: 48px;
+  padding-right: 14px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+}
+.actions button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 49px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.primary {
+  background: #059625;
+  color: #fff;
+  border: 1px solid #059625;
+}
+.primary:hover { background: #047923; }
+.secondary {
+  background: #fff;
+  color: #203729;
+  border: 1px solid #c7d3ca;
+}
+.secondary:hover { background: #eff6f0; }
+.skip {
+  display: block;
+  border: 0;
+  background: none;
+  color: #617266;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  margin: 20px auto 0;
+  padding: 4px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.skip:hover { color: #0a6c2c; }
+.check {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  color: #067f31;
+  background: #e3f7e9;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.reviewRows {
+  border: 1px solid #edf0ea;
+  border-radius: 12px;
+  margin: 0;
+  overflow: hidden;
+}
+.reviewRows > div {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 13px 16px;
+}
+.reviewRows > div + div { border-top: 1px solid #edf0ea; }
+.reviewRows dt { font-size: 14px; color: #617266; }
+.reviewRows dd { font-size: 14px; font-weight: 700; color: #203729; margin: 0; text-align: right; }
+.empty {
+  padding: 20px;
+  border-radius: 12px;
+  background: #f3f7f2;
+  line-height: 1.6;
+  color: #4e6454;
+}
+.footnote {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 20px auto 0;
+  color: #788279;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+@media (max-width: 570px) {
+  .wrap { padding: 27px 16px 60px; }
+  .panel { border-radius: 18px; }
+  .actions { flex-direction: column-reverse; align-items: stretch; }
+  .actions button { width: 100%; }
+  .actions > span { display: none; }
+  .reviewRows > div { display: block; }
+  .reviewRows dd { text-align: left; padding-top: 4px; }
+}
+
+.demoPanel {
+  background: #eff7f0;
+  border: 1px solid #d0e7d5;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 18px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.demoPanel label {
+  color: #24442c;
+  font-size: 14px;
+  font-weight: 700;
+}
+.demoPanel select {
+  background: #fff;
+  border: 1px solid #bed5c4;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  min-height: 44px;
+  padding: 10px;
+  color: #193922;
+  width: 100%;
+}
+.demoPanel small {
+  color: #56705c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.selectionNote {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #53665a;
+  margin: 15px 0 20px;
+}
+
+.insuranceList {
+  display: grid;
+  gap: 16px;
+}
+.policyCard {
+  background: #f8faf7;
+  border: 1px solid #dce7dc;
+  border-radius: 15px;
+  padding: 20px;
+  display: grid;
+  gap: 17px;
+}
+.policyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.policyHeader strong {
+  font-size: 16px;
+  color: #213f29;
+}
+.removePolicy {
+  border: 0;
+  color: #8d3636;
+  background: none;
+  padding: 8px 0 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.removePolicy:hover { color: #642020; }
+.addPolicy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  background: #eef8f0;
+  border: 1px dashed #73b584;
+  border-radius: 12px;
+  color: #18642f;
+  min-height: 48px;
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.addPolicy:hover { background: #e0f2e4; }
+.policyHint {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #657168;
+  margin: 0;
+}
+@media (max-width: 570px) {
+  .policyCard { padding: 15px; }
+}
+
+.addArea {
+  display: grid;
+  gap: 9px;
+  padding: 15px 17px;
+  margin: 8px 0 18px;
+  background: #fff;
+  border: 1px solid #d8e5d9;
+  border-radius: 13px;
+}
+.addArea label {
+  color: #1f3c28;
+  font-size: 14px;
+  font-weight: 700;
+}
+.addArea label span {
+  color: #6a776b;
+  font-weight: 400;
+}
+.addArea select {
+  width: 100%;
+  background: #fff;
+  color: #193922;
+  border: 1px solid #cbd7cd;
+  min-height: 48px;
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+  font-size: 15px;
+}
+.addArea small {
+  color: #6e796f;
+  line-height: 1.5;
+}
+.submitError {
+  margin-top: 14px;
+  color: #991b1b;
+  font-weight: 600;
+  font-size: 13px;
+}
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+/* Phase 1: keep optional detail out of the main path. */
+.reviewExtra {
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+}
+.extraLink {
+  border: 0;
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #08792a;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  padding: 10px 0;
+  cursor: pointer;
+  width: fit-content;
+}
+.extraLink:hover { color: #045a1e; }
+.optionalDetails {
+  border: 1px solid #dce9df;
+  background: #f8fbf8;
+  border-radius: 13px;
+  padding: 13px 15px;
+}
+.optionalDetails summary {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #16612f;
+  font-weight: 700;
+  cursor: pointer;
+}
+.optionalInner {
+  display: grid;
+  gap: 17px;
+  padding: 18px 0 4px;
+}
+.field > input[type="text"] {
+  min-height: 50px;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.addArea {
+  margin: 0;
+}
+.wrap h1 {
+  font-size: clamp(32px, 5vw, 44px);
+  letter-spacing: -.035em;
+  line-height: 1.14;
+}
+.panel h2 {
+  font-size: clamp(25px, 4vw, 30px);
+  line-height: 1.22;
+}
+.field label { font-size: 15px; }
+.field input, .field select { font-size: 16px; }
+
+ .fields{min-inline-size:0;}
+
+.fields{border:0;padding:0}.field input{min-width:0;max-width:100%;min-height:48px;padding:10px 12px;font:inherit;font-size:16px}.reviewExtra dl{display:grid;gap:8px;margin:12px 0}.reviewExtra dl>div{display:flex;justify-content:space-between;gap:16px}.reviewExtra dt{color:#53665a}.reviewExtra dd{font-weight:750;margin:0;text-align:right}
+
+.journeyFieldset{border:0;padding:0;margin:0;min-width:0}.journeyFieldset:disabled{opacity:.78}.field input[type=text],.field input[type=number]{border:1px solid #c5d8ca;border-radius:10px;background:white}.reviewExtra dt,.reviewExtra dd{overflow-wrap:anywhere}
+
+/* Leave breathing room between the optional audit editor and area progress. */
+.optionalDetails + .progressTop {
+  margin-top: 24px;
+}
+@media (max-width: 570px) {
+  .actions { gap: 15px; }
+}
+
+/* Insurance asks the overall question first; each policy retains its own payment period. */
+.sectionQuestion {
+  font-weight: 750;
+  font-size: 17px;
+  color: #213c29;
+  line-height: 1.45;
+  margin: 0;
+}
+.insuranceTotal {
+  background: #eff8f1;
+  border: 1px solid #d3e6d6;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+  color: #224b2e;
+}
+.insuranceTotal strong {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.insuranceTotal small {
+  color: #526b59;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Optional extra unused services use the existing card styling and spacing. */
+.unusedCard { display: grid; gap: 16px; padding: 17px; border: 1px solid #dae7dc; border-radius: 14px; background: #f8faf7; }
+.unusedCard > strong { color: #23432b; font-size: 16px; }
+.unusedCard .extraLink { justify-self: start; }
+
+/* Optional insurer details stay readable and aligned, not tiny inline inputs. */
+.optionalInner label {
+  display: grid;
+  gap: 8px;
+  color: #243b2b;
+  font-size: 15px;
+  font-weight: 650;
+}
+.optionalInner label input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #c5d8ca;
+  border-radius: 10px;
+  background: #fff;
+  color: #15241b;
+  font: inherit;
+  font-size: 16px;
+}
+.optionalInner label input:focus-visible {
+  outline: 3px solid rgba(5, 150, 37, .15);
+  border-color: #059625;
+}
+
+.unitSwitch { justify-self: start; background: none; border: none; padding: 2px 0; color: #236d36; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.unitSwitch:focus-visible { outline: 3px solid #a2dcb2; outline-offset: 4px; }
+.billChoices { border: 0; margin: 0; padding: 0; display: grid; gap: 9px; min-width: 0; }
+.billChoices legend { font-size: 17px; font-weight: 800; color: #203c28; padding: 0; margin: 0 0 7px; }
+.billChoices > p { color: #627266; font-size: 13px; margin: 0 0 4px; }
+.billChoice { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid #cbdccb; background: #fff; border-radius: 12px; cursor: pointer; color: #263e2d; line-height: 1.45; }
+.billChoice:has(input:checked) { background: #eaf6ec; border-color: #268847; }
+.billChoice input { appearance: auto; width: 19px; height: 19px; min-width: 19px; margin: 0; accent-color: #0a7a2c; }
+.billChoice span { flex: 1; }
+.billChoice:focus-within { outline: 3px solid #a2dcb2; outline-offset: 2px; }
+
+/* Keep the two kinds of meals visually distinct, but in one savings area. */
+.mealGroup {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #d5e4d7;
+  border-radius: 15px;
+  background: #f8fbf8;
+  min-width: 0;
+}
+.mealGroup h3 { margin: 0; color: #1a4327; font-size: 19px; font-weight: 800; line-height: 1.3; }
+.mealGroup > small { color: #607363; font-size: 13px; line-height: 1.55; }
+@media (max-width: 570px) {
+  .mealGroup { padding: 15px; gap: 17px; }
+}
+
+/* Explain the extra paid questions clearly without adding a new step. */
+.introPanel {
+  margin: 18px 0 22px;
+  padding: 22px 24px;
+  background: #eff8f1;
+  border: 1px solid #d2e7d6;
+  border-radius: 17px;
+}
+.introPanel h2 {
+  margin: 0 0 12px;
+  color: #184327;
+  font-size: clamp(22px, 3.2vw, 27px);
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -.015em;
+}
+.introPanel p {
+  margin: 0 0 11px;
+  color: #385340;
+  font-size: 16px;
+  line-height: 1.58;
+}
+.introPanel p:last-child { margin-bottom: 0; }
+.introPanel strong { color: #184327; }
+.introPanel .noExtraCharge {
+  color: #1d6536;
+  font-weight: 700;
+}
+.field label { font-size: 16px; line-height: 1.44; }
+.field small { font-size: 13px; line-height: 1.55; }
+.policyHint { font-size: 14px; line-height: 1.6; }
+.billChoices > p { font-size: 14px; line-height: 1.55; }
+@media (max-width: 570px) {
+  .introPanel { padding: 18px; margin: 16px 0 20px; }
+  .introPanel p { font-size: 15px; }
+}
+
+/* Home-meal figures are optional; do not burden customers who cannot estimate them. */
+.optionalMealCost { border:1px solid #d5e4d7; border-radius:11px; background:#fff; padding:12px 14px; min-width:0; }
+.optionalMealCost summary { color:#176b33; font-size:15px; font-weight:700; line-height:1.45; cursor:pointer; }
+.optionalMealCost summary:focus-visible { outline:3px solid #a2dcb2; outline-offset:3px; border-radius:4px; }
+.optionalMealCost > p { color:#627266; font-size:13px; line-height:1.5; margin:12px 0; }
+.optionalMealCost > .field { margin-top:12px; }

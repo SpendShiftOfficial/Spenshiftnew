@@ -1,0 +1,67 @@
+name: Phase 1 customer walkthrough — desktop and mobile
+on:
+  push:
+    branches: [phase-1-personalisation-2026-11]
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'scripts/check-phase1-browser.mjs'
+      - 'scripts/check-phase1.mjs'
+      - '.github/workflows/phase1-customer-walkthrough.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'scripts/check-phase1-browser.mjs'
+      - 'scripts/check-phase1.mjs'
+      - '.github/workflows/phase1-customer-walkthrough.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase1-customer-walkthrough
+  cancel-in-progress: true
+
+jobs:
+  customer-journey:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      VERCEL_ENV: preview
+      SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+      PHASE1_TEST_EMAILS: disabled
+      PHASE1_TEST_AI: disabled
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: node scripts/check-phase1.mjs
+      - run: npm run build
+      - name: Install isolated browser
+        run: |
+          npm install --prefix /tmp/spendshift-pw --no-audit --no-fund playwright@1.56.1
+          node /tmp/spendshift-pw/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Complete the customer journeys without manual guidance
+        run: node scripts/check-phase1-browser.mjs
+        env:
+          PLAYWRIGHT_INSTALL_PATH: /tmp/spendshift-pw/package.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: phase1-customer-walkthrough-evidence
+          path: test-artifacts/
+          if-no-files-found: ignore
+          retention-days: 3

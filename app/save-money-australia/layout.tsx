@@ -7,7 +7,7 @@ const articleImage =
 export const metadata: Metadata = {
 title: "How to Save Money in Australia: 12 Practical Ways",
 description:
-"Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses, plus a free 2-minute savings audit.",
+"Discover 12 practical ways to save money in Australia. Check household bills, energy, insurance, groceries and subscriptions, with clear steps and useful resources.",
 alternates: {
 canonical: "https://www.spendshift.com.au/save-money-australia",
 },
@@ -40,7 +40,7 @@ const articleStructuredData = {
 "@type": "Article",
 "@id": "https://www.spendshift.com.au/save-money-australia#article",
 headline: "How to Save Money in Australia: 12 Practical Ways",
-dateModified: "2026-10-12T22:13:00+11:00",
+dateModified: "2026-11-14",
 description:
 "Discover practical ways to save money in Australia across bills, groceries, subscriptions and everyday expenses, plus a free 2-minute savings audit.",
 url: "https://www.spendshift.com.au/save-money-australia",
