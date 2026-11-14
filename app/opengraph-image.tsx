@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "SpendShift — See where you could spend less with a free savings check";
+export const alt = "SpendShift: See where you could spend less with a free savings check";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
