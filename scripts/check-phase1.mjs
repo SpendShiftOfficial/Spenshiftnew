@@ -437,6 +437,20 @@ check('source offers relevant bill-finding help without adding more compulsory q
  assert.ok(ui.includes('Remove unused subscription'));
 });
 
+check('paid follow-ups use the free subscription answer and keep missing amounts optional',()=>{
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(ui,/draft\.answers\[1\]==='Yes — at least one unused'/);
+ assert.match(ui,/You mentioned an unused subscription\. Is that still right\?/);
+ assert.match(ui,/Its name and monthly price would help us calculate a possible saving/);
+ assert.match(ui,/You can still finish without them/);
+ assert.match(ui,/What is the main reason you choose these meals\?/);
+ assert.doesNotMatch(ui,/What makes it hard to eat out less\?/);
+ assert.match(ui,/areaHeading\.current\?\.scrollIntoView/);
+ assert.match(ui,/ref=\{areaHeading\}>You're nearly done/);
+ const r=validateRefinements({details:{unusedSubscriptionChoice:'yes'}});
+ assert.equal(r.unusedSubscriptions.length,0);
+ assert.equal(analyseSavings(previewProfiles['all-seven'].answers,r).estimatedAnnualScenario,null);
+});
 check('plain-language questions distinguish costs, renewal and optional cover',()=>{
  const form=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
