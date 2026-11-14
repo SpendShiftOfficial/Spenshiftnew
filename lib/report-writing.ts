@@ -33,7 +33,7 @@ export function makeReportMarkdown(
       if(d.unusedSubscriptionChoice==="not_sure")lines.push("You are not sure if any services are unused.");
       if(d.unusedSubscriptionChoice==="yes"){
         for(const item of refinements.unusedSubscriptions)lines.push(
-          "Unused service: "+(item.name||"Name not provided")+" — "+
+          "Unused service: "+(item.name||"Name not provided")+", "+
           (item.monthly===null?"Monthly price not provided":money(item.monthly)+" per month")+"."
         );
         lines.push("A possible saving requires cancelling each listed service and checking the charges stop.");
