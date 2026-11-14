@@ -657,7 +657,7 @@ try{
    await page.getByRole('button',{name:'Make my plan',exact:true}).click();
    await page.waitForURL('**/plan-preview');
    const tracker=page.getByRole('region',{name:'See what your changes are worth'});
-   await tracker.getByRole('button',{name:'Record my first change'}).click();
+   await tracker.getByRole('button',{name:/^(Record my first change|Update my progress)$/}).click();
    const opts=await tracker.getByLabel('Which part of your plan changed?').locator('option').allTextContents();
    assert.ok(opts.includes('Mobile phone')&&opts.includes('Electricity'));
    assert.equal(opts.includes('Home internet'),false,'Mobile-only customers should not see internet tracking');
