@@ -206,7 +206,7 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
       <div className={styles.trackerHeading}>
         <span className={styles.trackerEyebrow}>OPTIONAL • YOUR PROGRESS</span>
         <h2 id="savings-progress-title">See what your changes are worth</h2>
-        <p>Made a change since getting your plan? Record what you paid before and after. We'll show how much lower (or higher) your spending is.</p>
+        <p>Made a change since getting your plan? Come back and compare what you paid before and after. We'll show how much lower (or higher) your spending is.</p>
       </div>
 
       {loaded && current.length > 0 ? (
@@ -228,7 +228,7 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
           </p>
         </>
       ) : (
-        <p className={styles.trackerEmpty}>Nothing recorded yet? That's normal. This is for later, after a bill drops or you genuinely spend less.</p>
+        <p className={styles.trackerEmpty}>Nothing recorded yet? That's normal. This is for later. Come back after a bill drops or you genuinely spend less.</p>
       )}
 
       {loaded && options.length > 0 && (
