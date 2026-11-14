@@ -313,13 +313,19 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
           }))
         : [{ key: "insurance", title: "Insurance" }];
     }
-    if (op.area === "phone") return [
-      { key: "mobile", title: "Mobile phone" },
-      { key: "internet", title: "Home internet" },
-    ];
+    if (op.area === "phone") {
+      const service = refinements.details.phoneService;
+      if (service === "neither") return [];
+      // Avoid offering a bill the customer explicitly said they do not pay.
+      return [
+        ...(service === "internet" ? [] : [{ key: "mobile", title: "Mobile phone" }]),
+        ...(service === "mobile" ? [] : [{ key: "internet", title: "Home internet" }]),
+      ];
+    }
     if (op.area === "energy") return [
       { key: "electricity", title: "Electricity" },
-      { key: "gas", title: "Gas" },
+      ...((refinements.details.hasGas === "yes" || refinements.details.gasMonthly !== null)
+        ? [{ key: "gas", title: "Gas" }] : []),
     ];
     return [{ key: op.area, title: op.title }];
   });
