@@ -17,10 +17,27 @@ async function next(page){await page.getByRole('button',{name:'Next',exact:true}
 try{
  for(let i=0;i<90;i++){try{const r=await fetch(base+'/');if(r.ok)break;}catch{}if(i===89)throw new Error('Local app did not start: '+logs.slice(-3000));await new Promise(r=>setTimeout(r,1000));}
  browser=await chromium.launch({headless:true});
+ await test('search sitemap and branded social image',async()=>{
+  const response=await fetch(base+'/sitemap.xml');
+  assert.equal(response.status,200);
+  const xml=await response.text();
+  for(const slug of ['/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia','/save-money-australia']){
+   assert.ok(xml.includes('https://www.spendshift.com.au'+slug),'Missing article in sitemap: '+slug);
+  }
+  assert.ok(!xml.includes('www.spendshift.com.au/audit<'),'Private free audit should not be in sitemap');
+  assert.ok(!xml.includes('www.spendshift.com.au/results<'),'Private results should not be in sitemap');
+  assert.ok(xml.includes('<lastmod>2026-11-14</lastmod>'),'Sitemap should use actual update dates');
+  const og=await fetch(base+'/opengraph-image');
+  assert.equal(og.status,200,'Open Graph image route is not ready');
+  assert.match(og.headers.get('content-type')||'',/image\/png/);
+  const bytes=new Uint8Array(await og.arrayBuffer());
+  assert.equal(bytes[0],137,'Expected PNG image');
+  assert.equal(bytes[1],80);
+ });
  for(const viewport of [{width:1280,height:900},{width:375,height:812}]){
   const context=await browser.newContext({viewport});const page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
-  await test('seven public pages, clear offer and mobile layout '+viewport.width,async()=>{
-   const routes=['/','/pricing','/whats-included','/how-it-works','/why-spendshift','/services','/save-money-australia'];
+  await test('nine public pages, SEO and mobile layout '+viewport.width,async()=>{
+   const routes=['/','/pricing','/whats-included','/how-it-works','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia'];
    for(const route of routes){
     await go(page,route);
     const body=await page.locator('body').innerText();
@@ -37,6 +54,26 @@ try{
     assert.match(title,/SpendShift/,'Page title missing on '+route);
     const description=await page.locator('meta[name="description"]').getAttribute('content');
     assert.ok(description&&description.length>35,'Description missing on '+route);
+    const canonical=await page.locator('link[rel="canonical"]').getAttribute('href');
+    assert.equal(canonical,'https://www.spendshift.com.au'+route,'Canonical incorrect on '+route);
+    if(route==='/'){
+     assert.match(await page.title(),/Free Savings Check for Australians/);
+     assert.match((await page.locator('meta[property="og:image"]').getAttribute('content'))||'',/\/opengraph-image/);
+    }
+    if(route==='/save-money-australia'){
+     assert.match(body,/Last reviewed: 14 November 2026/);
+     assert.ok(await page.locator('nav.jumpNav a').filter({hasText:'Household bills'}).count()>0,'Descriptive navigation missing');
+     assert.ok(await page.locator('a[href="/reduce-electricity-bill-australia"]').count()>0,'Electricity guide link missing');
+     assert.ok(await page.locator('a[href="/cancel-unused-subscriptions-australia"]').count()>0,'Subscription guide link missing');
+    }
+    if(route==='/reduce-electricity-bill-australia'){
+     assert.match(body,/Energy Made Easy/);
+     assert.match(body,/3,500/);
+    }
+    if(route==='/cancel-unused-subscriptions-australia'){
+     assert.match(body,/Google Play/);
+     assert.match(body,/A\$179.88/);
+    }
     assert.equal(await page.locator('a[href="/#services"]').count(),0,'Outdated footer anchor on '+route);
     await noOverflow(page);
     await page.screenshot({path:'test-artifacts/marketing-'+(route==='/'?'home':route.slice(1))+'-'+viewport.width+'.png',fullPage:true});
