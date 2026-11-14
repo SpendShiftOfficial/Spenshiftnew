@@ -18,6 +18,11 @@ export const emptyPolicy=():RawPolicy=>({type:'',premium:'',paymentPeriod:'',ins
 export function blankDraft(answers:string[]):PlanDraft{
  const details:Record<string,string>={};Object.keys(emptyRefinements().details).forEach(key=>details[key]='');
  details.electricityPeriod='';details.takeawayAmountPeriod='order';details.gasPeriod='';
+ // Carry the clear free answer forward, so buyers do not have to repeat it.
+ // A yes is not a monetary saving: actual service names and costs are still required.
+ if(answers[1]==='Yes — at least one unused')details.unusedSubscriptionChoice='yes';
+ if(answers[1]==='No — I use them all')details.unusedSubscriptionChoice='no';
+ if(answers[1]==='Not sure')details.unusedSubscriptionChoice='not_sure';
  return {version:1,answers:[...answers],details,insurancePolicies:[emptyPolicy()],additionalUnusedSubscriptions:[],additionalArea:'',step:0};
 }
 function obj(input:unknown):Record<string,unknown>{if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Please check your saved answers.');return input as Record<string,unknown>;}
