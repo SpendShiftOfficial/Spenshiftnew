@@ -167,6 +167,21 @@ check('A$29 checkout, displayed prices and analytics preserve older A$39 purchas
   assert.doesNotMatch(copy,/A\$39/);
  }
 });
+check('free results make the A$29 upgrade clear without hiding the free check',()=>{
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.match(results,/href="#unlock-full-report"/);
+ assert.ok(results.indexOf('href="#unlock-full-report"') < results.indexOf('className={styles.areas}'),'Upgrade shortcut must be visible before the full free result list');
+ assert.match(results,/Turn your checks into a plan you can use/);
+ for(const phrase of ['Your top 3 actions','Clear steps for each area','Help comparing costs','optional savings tracker','What happens after payment?','once · no subscription','Payment handled by Stripe']){
+  assert.ok(results.includes(phrase),'Missing concrete paid value: '+phrase);
+ }
+ assert.match(results,/disabled=\{!acceptedTerms \|\| busy\}/);
+ assert.match(results,/EXAMPLE ONLY — NOT YOUR ESTIMATE/);
+ assert.ok(results.indexOf('<details className={styles.previewDetails}') > results.indexOf('Get my savings plan — A$29'),'Optional illustration must not delay the checkout decision');
+ assert.match(results,/We don't recommend paying based on these answers alone/);
+ assert.match(results,/We don't check live prices or promise savings/);
+ assert.doesNotMatch(results,/setTimeout\(resolve, 350\)/);
+});
 check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:29}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
 check('private layout does not load measurement scripts',()=>{const layout=fs.readFileSync('app/layout.tsx','utf8');assert.doesNotMatch(layout,/googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/plan-preview/);assert.match(fs.readFileSync('components/PublicAnalytics.tsx','utf8'),/isMarketingPath/);});
 check('checkout validates before calling Stripe and does not leak provider errors',()=>{const route=fs.readFileSync('app/api/checkout/route.ts','utf8');assert.ok(route.indexOf('validateAuditAnswers(data.answers)')<route.indexOf('.checkout.sessions.create'));assert.match(route,/acceptedTerms/);assert.match(route,/idempotencyKey/);assert.doesNotMatch(route,/error: e\.message/);});
