@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { checkedDifference } from "@/lib/savings-math";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { checkedDifference, roundMoney } from "@/lib/savings-math";
 import styles from "./simple-report.module.css";
 
 export type TrackerOption = { key: string; title: string };
+type Period = "week" | "month" | "year";
 type Entry = {
   id: string;
   key: string;
@@ -12,11 +13,17 @@ type Entry = {
   before: number;
   after: number;
   fees: number;
-  period: "week" | "month" | "year";
+  period: Period;
   date: string;
+  // Existing v2 entries described fees for the same recurring time period.
+  // New entries distinguish one-off fees, so we never quietly change old totals.
+  feeMode?: "upfront" | "per_period";
 };
 
-const money = (n: number) => "$" + Math.abs(n).toLocaleString("en-AU", { maximumFractionDigits: 2 });
+const factors: Record<Period, number> = { week: 52, month: 12, year: 1 };
+const money = (n: number) =>
+  "$" + Math.abs(n).toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const periodLabel: Record<Period, string> = { week: "week", month: "month", year: "year" };
 
 function todayHere(): string {
   const now = new Date();
@@ -24,192 +31,310 @@ function todayHere(): string {
   return now.getFullYear() + "-" + two(now.getMonth() + 1) + "-" + two(now.getDate());
 }
 
-export default function SavingsTracker({
-  reportId,
-  options,
-}: {
-  reportId: string;
-  options: TrackerOption[];
-}) {
+function validEntry(value: unknown): value is Entry {
+  if (!value || typeof value !== "object") return false;
+  const e = value as Partial<Entry>;
+  return typeof e.id === "string" && e.id.length <= 100 &&
+    typeof e.key === "string" && e.key.length <= 160 &&
+    typeof e.label === "string" && e.label.length <= 120 &&
+    (e.period === "week" || e.period === "month" || e.period === "year") &&
+    typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) &&
+    (e.feeMode === undefined || e.feeMode === "upfront" || e.feeMode === "per_period") &&
+    [e.before, e.after, e.fees].every(n =>
+      typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100000
+    );
+}
+
+// An older record's "fees" were costs for every stated period.
+// New records specify up-front fees, paid only once.
+function annualPace(e: Entry): number {
+  return roundMoney(checkedDifference(e.before, e.after, e.feeMode === "upfront" ? 0 : e.fees) * factors[e.period]);
+}
+function firstYear(e: Entry): number {
+  return roundMoney(annualPace(e) - (e.feeMode === "upfront" ? e.fees : 0));
+}
+function impact(n: number): string {
+  if (n > 0) return money(n) + " less";
+  if (n < 0) return money(n) + " more";
+  return "No change";
+}
+
+export default function SavingsTracker({ reportId, options }: { reportId: string; options: TrackerOption[] }) {
+  const storageKey = "spendshift_checked_results_v2_" + reportId;
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const [editId, setEditId] = useState("");
   const [itemKey, setItemKey] = useState(options[0]?.key || "");
   const [before, setBefore] = useState("");
   const [after, setAfter] = useState("");
   const [fees, setFees] = useState("0");
-  const [period, setPeriod] = useState<Entry["period"]>("month");
+  const [period, setPeriod] = useState<Period>("month");
   const [date, setDate] = useState("");
   const [localToday, setLocalToday] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState("");
-
-  const storageKey = "spendshift_checked_results_v2_" + reportId;
+  const [formError, setFormError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (Array.isArray(saved)) {
-        setEntries(saved.filter((entry): entry is Entry =>
-          entry && typeof entry.id === "string" &&
-          (options.some(option => option.key === entry.key) ||
-            (typeof entry.label === "string" && entry.label.length < 120)) &&
-          ["week", "month", "year"].includes(entry.period) &&
-          typeof entry.date === "string" &&
-          [entry.before, entry.after, entry.fees].every(n =>
-            typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100000
-          )
-        ).slice(0, 50));
-      }
+      const saved: unknown = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (Array.isArray(saved)) setEntries(saved.filter(validEntry).slice(0, 50));
+      else setMessage("We couldn't open earlier entries on this device.");
     } catch {
-      setMessage("Your saved results could not be opened on this device.");
+      setMessage("We couldn't open earlier entries on this device.");
     }
     setLoaded(true);
     setLocalToday(todayHere());
-  }, [storageKey, options.length]);
+    setDate(current => current || todayHere());
+  }, [storageKey]);
 
-  function store(next: Entry[]) {
+  useEffect(() => {
+    if (formOpen && editId) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [formOpen, editId]);
+
+  function store(next: Entry[], notice: string): boolean {
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
       setEntries(next);
-      setMessage("Saved on this device.");
+      setMessage(notice);
       return true;
     } catch {
-      setMessage("This browser cannot save the result. Write the figures down.");
+      setMessage("This browser couldn't save your changes. Please keep a separate copy of the figures.");
       return false;
     }
   }
 
-  function startEdit(entry: Entry) {
-    setEditId(entry.id);
-    setItemKey(entry.key);
-    setBefore(String(entry.before));
-    setAfter(String(entry.after));
-    setFees(String(entry.fees));
-    setPeriod(entry.period);
-    setDate(entry.date);
-    setConfirmed(false);
-  }
-
-  function clearForm() {
+  function resetForm() {
     setEditId("");
+    setItemKey(options[0]?.key || "");
     setBefore("");
     setAfter("");
     setFees("0");
     setPeriod("month");
-    setDate("");
+    setDate(todayHere());
     setConfirmed(false);
+    setFormError("");
   }
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  function startAdd() {
+    resetForm();
+    setFormOpen(true);
+  }
+
+  function startEdit(entry: Entry) {
+    if (!options.some(option => option.key === entry.key)) return;
+    setEditId(entry.id);
+    setItemKey(entry.key);
+    setBefore(String(entry.before));
+    setAfter(String(entry.after));
+    // Legacy per-period costs still display as the original period-specific fees.
+    setFees(String(entry.fees));
+    setPeriod(entry.period);
+    setDate(entry.date);
+    setConfirmed(false);
+    setFormError("");
+    setFormOpen(true);
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!confirmed || !date || before === "" || after === "") {
-      setMessage("Add both costs, the date, and confirm you checked the same period.");
+    setFormError("");
+    if (!confirmed || !date || before.trim() === "" || after.trim() === "") {
+      setFormError("Add the costs and check the confirmation box before saving.");
+      return;
+    }
+    if (!options.some(option => option.key === itemKey)) {
+      setFormError("Choose one of the areas in your plan.");
+      return;
+    }
+    if (entries.some(entry => entry.key === itemKey && entry.id !== editId)) {
+      setFormError("You already track this area. Choose Edit on that result to update it, rather than counting it twice.");
       return;
     }
     const next: Entry = {
       id: editId || crypto.randomUUID(),
       key: itemKey,
-      label: options.find(option => option.key === itemKey)?.title || "Bill",
+      label: options.find(option => option.key === itemKey)?.title || "Spending area",
       before: Number(before),
       after: Number(after),
       fees: Number(fees || "0"),
       period,
       date,
+      feeMode: editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
+        ? "per_period" : "upfront",
     };
+    if ([before, after, fees || "0"].some(n => n.trim() === "" || !/^(?:0|[1-9]\d{0,5})(?:\.\d{1,2})?$/.test(n))) {
+      setFormError("Use valid dollar amounts with up to two decimal places.");
+      return;
+    }
     try {
       checkedDifference(next.before, next.after, next.fees);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Please check your amounts.");
+      setFormError(error instanceof Error ? error.message : "Please check your amounts.");
       return;
     }
-    if (next.date > todayHere()) {
-      setMessage("Please use today's date or an earlier date.");
-      return;
-    }
-    if (!options.some(option => option.key === next.key)) {
-      setMessage("Please choose a bill or spending area.");
+    if (next.date > todayHere() || !/^\d{4}-\d{2}-\d{2}$/.test(next.date)) {
+      setFormError("Choose a valid date no later than today.");
       return;
     }
     const nextEntries = editId
       ? entries.map(entry => entry.id === editId ? next : entry)
       : [next, ...entries].slice(0, 50);
-    if (store(nextEntries)) clearForm();
+    if (store(nextEntries, "Saved on this device.")) {
+      resetForm();
+      setFormOpen(false);
+    }
   }
 
+  // Old entries sometimes contain repeat entries for the same area.
+  // Keep them visible/editable, but count only the most recent one.
+  const seen = new Set<string>();
+  const current = entries.filter(entry => {
+    if (seen.has(entry.key)) return false;
+    seen.add(entry.key);
+    return true;
+  });
+  const duplicateIds = new Set(entries.filter(entry => !current.includes(entry)).map(entry => entry.id));
+  const annualTotal = roundMoney(current.reduce((sum, entry) => sum + annualPace(entry), 0));
+  const firstYearTotal = roundMoney(current.reduce((sum, entry) => sum + firstYear(entry), 0));
+  const monthlyTotal = roundMoney(annualTotal / 12);
+
   return (
-    <section className={styles.lastCard}>
-      <h2>Track money you've actually saved (optional)</h2>
-      <p><strong>This is for later.</strong> After you cancel a subscription, switch a bill or spend less on something, come back and compare what you paid before and after. We'll work out the difference using your figures.</p>
-      <p className={styles.trackerExample}>Example: If you cancel a $20-a-month subscription, your cost goes from $20 to $0 a month. That's $20 less a month, once the charge really stops.</p>
-      {loaded && entries.length===0 && <p className={styles.checkNote}>Nothing recorded yet? That's normal. You can skip this section until you've made a change.</p>}
-      {loaded && entries.map(entry => {
-        const difference = checkedDifference(entry.before, entry.after, entry.fees);
-        return (
-          <article className={styles.resultRow} key={entry.id}>
-            <strong>{entry.label || options.find(item => item.key === entry.key)?.title || "Bill"}</strong>
-            <p>{difference === 0 ? "You recorded no change in cost" : "You recorded " + money(difference) + (difference > 0 ? " less" : " more")} for this {entry.period}, after fees, on {entry.date}.</p>
-            {options.some(option => option.key === entry.key) &&
-              <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
-            {!options.some(option => option.key === entry.key) &&
-              <small>From an earlier version of your plan</small>}
-            <button type="button" onClick={() => store(entries.filter(item => item.id !== entry.id))}>Remove</button>
-          </article>
-        );
-      })}
-      {options.length > 0 && (
-        <details className={styles.helpDetails} open={Boolean(editId) || undefined}>
-          <summary>{editId ? "Edit a saved cost change" : "I've made a change — compare my costs"}</summary>
-          <form className={styles.trackerForm} onSubmit={submit}>
-            <label>
-              Which bill or spending area?
-              <select value={itemKey} onChange={e => setItemKey(e.target.value)}>
-                {options.map(item => <option key={item.key} value={item.key}>{item.title}</option>)}
-              </select>
-            </label>
-            <label>
-              Both amounts cover the same time period
-              <select value={period} onChange={e => setPeriod(e.target.value as Entry["period"])}>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-                <option value="year">Year</option>
-              </select>
-            </label>
-            <label>
-              What you paid before ($)
-              <input type="number" min="0" max="100000" step="0.01" required
-                value={before} onChange={e => setBefore(e.target.value)} />
-            </label>
-            <label>
-              What you paid after ($)
-              <input type="number" min="0" max="100000" step="0.01" required
-                value={after} onChange={e => setAfter(e.target.value)} />
-            </label>
-            <label>
-              Extra costs for that same week, month or year ($)
-              <input type="number" min="0" max="100000" step="0.01" required
-                value={fees} onChange={e => setFees(e.target.value)} />
-            </label>
-            <small className={styles.checkNote}>Use the same time period for all amounts. For a one-off switching fee, choose Year and compare the full-year costs.</small>
-            <label>
-              Date you checked
-              <input type="date" required max={localToday || undefined} value={date} onChange={e => setDate(e.target.value)} />
-            </label>
-            <label className={styles.confirmRow}>
-              <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />
-              I compared the same service, people and time period. I did not count this change elsewhere.
-            </label>
-            <button type="submit" className={styles.copyButton} disabled={!confirmed}>
-              {editId ? "Save changes" : "Save this result"}
-            </button>
-            {editId && <button type="button" className={styles.copyButton} onClick={clearForm}>Cancel edit</button>}
-          </form>
-        </details>
+    <section className={styles.trackerShell} aria-labelledby="savings-progress-title">
+      <div className={styles.trackerHeading}>
+        <span className={styles.trackerEyebrow}>OPTIONAL • YOUR PROGRESS</span>
+        <h2 id="savings-progress-title">See what your changes are worth</h2>
+        <p>Made a change since getting your plan? Record what you paid before and after. We'll show how much lower (or higher) your spending is.</p>
+      </div>
+
+      {loaded && current.length > 0 ? (
+        <>
+          <div className={styles.trackerMetrics} aria-label="Your recorded spending changes">
+            <div className={styles.trackerMetric}>
+              <span>Ongoing change per month</span>
+              <strong>{impact(monthlyTotal)}</strong>
+              <small>From {current.length} {current.length === 1 ? "area" : "areas"} you recorded</small>
+            </div>
+            <div className={styles.trackerMetric}>
+              <span>Possible effect over 12 months</span>
+              <strong>{impact(firstYearTotal)}</strong>
+              <small>After any fees you entered</small>
+            </div>
+          </div>
+          <p className={styles.trackerExplanation}>
+            These figures show a change in spending, not money already in your bank. The 12-month figure assumes the same costs continue. We have not checked your bills.
+          </p>
+        </>
+      ) : (
+        <p className={styles.trackerEmpty}>Nothing recorded yet? That's normal. This is for later, after a bill drops or you genuinely spend less.</p>
       )}
-      <p className={styles.checkNote}>
-        Your entries are saved only in this browser, not on other devices. We keep weekly, monthly and yearly changes separate so they aren't added together by mistake.
-      </p>
-      <p role="status" aria-live="polite">{message}</p>
+
+      {loaded && options.length > 0 && (
+        <>
+          <button className={styles.trackerAction} type="button"
+            aria-expanded={formOpen} aria-controls="savings-progress-form"
+            onClick={() => {
+              if (formOpen) { resetForm(); setFormOpen(false); }
+              else startAdd();
+            }}>
+            {formOpen ? "Close tracker form" : current.length ? "Update my progress" : "Record my first change"}
+            <span aria-hidden="true">{formOpen ? "−" : "+"}</span>
+          </button>
+
+          {formOpen && (
+            <form id="savings-progress-form" ref={formRef} className={styles.trackerFormV2} onSubmit={submit}>
+              <h3>{editId ? "Update this cost change" : "Record a real cost change"}</h3>
+              <p>Example: A subscription you cancelled went from $20 to $0 a month. Only add it when the charge has actually stopped.</p>
+              <label>
+                Which part of your plan changed?
+                <select value={itemKey} onChange={e => setItemKey(e.target.value)}>
+                  {options.map(item => <option key={item.key} value={item.key}>{item.title}</option>)}
+                </select>
+              </label>
+              <label>
+                How often are these costs paid?
+                <select value={period} onChange={e => setPeriod(e.target.value as Period)}>
+                  <option value="month">Each month</option>
+                  <option value="week">Each week</option>
+                  <option value="year">Each year</option>
+                </select>
+              </label>
+              <div className={styles.trackerFormGrid}>
+                <label>
+                  Before ($)
+                  <input type="number" min="0" max="100000" step="0.01" inputMode="decimal" required
+                    value={before} onChange={e => setBefore(e.target.value)} placeholder="e.g. 70" />
+                </label>
+                <label>
+                  Now ($)
+                  <input type="number" min="0" max="100000" step="0.01" inputMode="decimal" required
+                    value={after} onChange={e => setAfter(e.target.value)} placeholder="e.g. 50" />
+                </label>
+              </div>
+              <p className={styles.trackerFormHint}>Compare the same service or spending area over the same length of time. For power, compare similar usage as well.</p>
+              <label>
+                {editId && entries.find(entry => entry.id === editId)?.feeMode !== "upfront"
+                  ? "Extra costs in that same time period ($)"
+                  : "One-off switching or cancellation fees ($) — if any"}
+                <input type="number" min="0" max="100000" step="0.01" inputMode="decimal"
+                  value={fees} onChange={e => setFees(e.target.value)} />
+              </label>
+              <label>
+                Date you checked your new cost
+                <input type="date" max={localToday || undefined} value={date}
+                  onChange={e => setDate(e.target.value)} required />
+              </label>
+              <label className={styles.trackerConfirmation}>
+                <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />
+                <span>I checked a real change, used the same time period, and haven't counted this spending elsewhere.</span>
+              </label>
+              {formError && <p className={styles.trackerFormError} role="alert">{formError}</p>}
+              <div className={styles.trackerFormActions}>
+                <button type="submit" className={styles.trackerSave} disabled={!confirmed}>
+                  {editId ? "Save updated result" : "Save my change"}
+                </button>
+                <button type="button" className={styles.trackerCancel} onClick={() => { resetForm(); setFormOpen(false); }}>Cancel</button>
+              </div>
+            </form>
+          )}
+        </>
+      )}
+
+      {loaded && entries.length > 0 && (
+        <div className={styles.trackerHistory}>
+          <h3>Your recorded changes</h3>
+          <p>Keep one result per area. If you make another change there, edit the existing figures to reflect the new total.</p>
+          {entries.map(entry => {
+            const isDuplicate = duplicateIds.has(entry.id);
+            const ongoing = roundMoney(annualPace(entry) / 12);
+            const currentOption = options.find(option => option.key === entry.key);
+            return (
+              <article className={styles.trackerResult} key={entry.id}>
+                <div className={styles.trackerResultTop}>
+                  <strong>{currentOption?.title || entry.label || "Spending area"}</strong>
+                  <span>{entry.date}</span>
+                </div>
+                <p>Before {money(entry.before)} → now {money(entry.after)} / {periodLabel[entry.period]}</p>
+                <strong className={styles.trackerResultAmount}>{impact(ongoing)} per month</strong>
+                {entry.fees > 0 && <small>{money(entry.fees)} {entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the 12-month calculation</small>}
+                {isDuplicate && <p className={styles.trackerDuplicate}>Older record — not included in the combined figures, to avoid counting this area twice.</p>}
+                <div className={styles.trackerRowActions}>
+                  {currentOption && <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
+                  <button type="button" onClick={() => {
+                    if (store(entries.filter(item => item.id !== entry.id), "Removed on this device.")) {
+                      if (editId === entry.id) { resetForm(); setFormOpen(false); }
+                    }
+                  }}>Remove</button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+      <p className={styles.trackerPrivacy}>Saved only in this browser, not your SpendShift account. It won't sync to another device, and clearing browser data can erase it. Tracking is optional and does not change your report.</p>
+      <p className={styles.trackerStatus} role="status" aria-live="polite">{message}</p>
     </section>
   );
 }
