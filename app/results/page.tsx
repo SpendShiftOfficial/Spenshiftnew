@@ -231,10 +231,10 @@ export default function Results() {
                 <p>Your free results tell you <strong>where to look.</strong> Your paid plan helps you work out <strong>what to do next.</strong></p>
               </div>
               <div className={styles.benefits} aria-label="What your plan includes">
-                <p><CheckCircle2 size={20} /><span><strong>Your top 3 actions</strong> — put in order using your answers.</span></p>
-                <p><CheckCircle2 size={20} /><span><strong>Clear steps for each area</strong> — not just generic money-saving tips.</span></p>
-                <p><CheckCircle2 size={20} /><span><strong>Help comparing costs</strong> — including questions to ask providers, where relevant.</span></p>
-                <p><CheckCircle2 size={20} /><span><strong>A checklist and optional savings tracker</strong> — return when you're ready to act.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>Your top 3 actions</strong>, put in order using your answers.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>Clear steps for each area</strong>, not just generic money-saving tips.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>Help comparing costs</strong>, including questions to ask providers, where relevant.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>A checklist and optional savings tracker</strong>. Return when you're ready to act.</span></p>
               </div>
               <div className={styles.price}>A$29 <span>once · no subscription</span></div>
               <div className={styles.afterPayment}>
@@ -247,15 +247,15 @@ export default function Results() {
                 <span>I agree to the <Link href="/terms-and-conditions" target="_blank">Terms</Link>, <Link href="/privacy-policy" target="_blank">Privacy Policy</Link> and <Link href="/financial-information-ai-disclaimer" target="_blank">Financial Information & AI Disclaimer</Link>.</span>
               </label>
               <button className={styles.payButton} type="button" disabled={!acceptedTerms || busy} onClick={checkout}>
-                <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$29"} <ArrowRight size={19} />
+                <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan for A$29"} <ArrowRight size={19} />
               </button>
               {error && <p className={styles.error} role="alert">{error}</p>}
               <p className={styles.checkoutTrust}><ShieldCheck size={16} aria-hidden="true" /> Payment handled by Stripe. No bank login needed.</p>
               <p className={styles.footnote}>One payment. No recurring charges. <Link href="/refund-policy" target="_blank">Read the refund policy</Link>.</p>
               <details className={styles.previewDetails} id="plan-example">
-                <summary>See an example of a plan action <span>Example only — not your estimate</span></summary>
+                <summary>See an example of a plan action <span>Example only. Not your estimate</span></summary>
                 <div className={styles.miniPreview} aria-label="Example of a possible savings action">
-                  <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
+                  <span className={styles.exampleLabel}>EXAMPLE ONLY. NOT YOUR ESTIMATE</span>
                   <h3>{areaNames[previewArea]}</h3>
                   <p>{previewExamples[previewArea].story}</p>
                   <dl className={styles.previewNumbers}>
