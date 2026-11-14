@@ -151,7 +151,7 @@ export async function sendOrderConfirmationOnce(order: PaidOrder, chargedCents: 
       : "Your payment is confirmed.";
     await sendEmail(
       order.customer_email,
-      "Your SpendShift payment is confirmed — finish your savings report",
+      "Your SpendShift payment is confirmed. Finish your savings report",
       paymentMessage + " Your report is reserved. Next, answer short questions about the areas in your plan. You can skip any amount you do not know. Your progress is saved as you go.<br><br>" +
       '<a style="background:#059625;color:#fff;padding:13px 22px;border-radius:24px;text-decoration:none;display:inline-block" href="' + htmlSafe(url) + '">Continue to your report</a><br><br>' +
       "Keep this link private because it provides access to your purchase.",
