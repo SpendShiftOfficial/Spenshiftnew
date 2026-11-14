@@ -16,9 +16,11 @@ type Rule = { index: number; signals: Record<string, number> };
 
 const rules: Record<PersonalisationArea, Rule> = {
   takeaway: { index: 0, signals: {
-    "Never": 0, "Rarely": 1, "Less than once a week": 1, "1–2 times/week": 2, "3–5 times/week": 3, "Almost daily": 4,
+    "Never": 0, "Rarely": 1, "Less than once a week": 1, "1–2 times/week": 1, "3–5 times/week": 3, "Almost daily": 4,
   }},
   subscriptions: { index: 1, signals: {
+    "I don't have any subscriptions": 0, "Yes — at least one unused": 4, "No — I use them all": 0,
+    // Historical count-based answers still work for existing reports.
     "None": 0, "1–2": 0, "0–2": 0, "3–5": 2, "6–10": 3, "10+": 4, "Not sure": 2,
   }},
   insurance: { index: 2, signals: {
@@ -27,7 +29,7 @@ const rules: Record<PersonalisationArea, Rule> = {
     "Over 2 years ago": 3, "Never / not sure": 3, "Never": 3, "Not sure": 2,
   }},
   convenience: { index: 3, signals: {
-    "Rarely": 0, "1–2 times/week": 2, "3–5 times/week": 3, "Daily": 4,
+    "Rarely": 0, "1–2 times/week": 1, "3–5 times/week": 3, "Daily": 4,
   }},
   phone: { index: 4, signals: {
     "Within 6 months": 0, "6-12 months ago": 1,
@@ -42,7 +44,7 @@ const rules: Record<PersonalisationArea, Rule> = {
     "I don't pay these bills": 0,
   }},
   unplanned: { index: 6, signals: {
-    "Rarely": 0, "1–2 times/week": 2, "3–5 times/week": 3, "Almost daily": 4,
+    "Rarely": 0, "1–2 times/week": 1, "3–5 times/week": 3, "Almost daily": 4,
   }},
 };
 
@@ -86,7 +88,11 @@ export function selectPersonalisationAreas(auditAnswers: string[]): Personalisat
 export function reasonForArea(area: PersonalisationArea, answers: string[]): string {
   switch (area) {
     case "subscriptions":
-      return answers[1] === "Not sure" ? "You're not sure how many you pay for." : answers[1] === "None" ? "You don't pay for any subscriptions." : "You pay for " + answers[1] + " subscriptions.";
+      if(answers[1]==="Yes — at least one unused")return "You said at least one subscription goes unused. Check whether you still need it and what it costs.";
+      if(answers[1]==="Not sure")return "You aren't sure whether any subscriptions need a closer look.";
+      if(answers[1]==="I don't have any subscriptions"||answers[1]==="None")return "You don't pay for subscriptions.";
+      if(answers[1]==="No — I use them all")return "You said you use the subscriptions you pay for.";
+      return "You pay for " + answers[1] + " subscriptions.";
     case "insurance":
       return answers[2] === "Never / not sure" || answers[2] === "Not sure"
         ? "You're not sure when you last checked your insurance."
