@@ -805,7 +805,8 @@ try{
   assert.match(report,/Total usual weekly cost for the meals you listed: \$280/i);
   assert.match(report,/not much time|quickly|busy nights/i);
   assert.match(report,/Possible total reduction: \$80 a week/);
-  assert.match(report,/Track money you've actually saved/);
+  assert.match(report,/See what your changes are worth/);
+  assert.match(report,/Record my first change/);
   assert.equal(customerCheckout,1);
   await noOverflow(buyer);
   await buyer.screenshot({path:'test-artifacts/first-time-customer-full-journey.png',fullPage:true});
