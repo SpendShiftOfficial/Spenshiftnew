@@ -365,3 +365,19 @@
   .previewDetails summary { padding: 15px 16px; }
   .previewDetails .miniPreview { padding: 16px; }
 }
+
+
+/* Explain goal-based ordering without implying we know which check saves the most. */
+.freeGoalNote {
+  margin: 21px auto 0;
+  max-width: 690px;
+  padding: 13px 16px;
+  border-left: 3px solid #188245;
+  background: #f0f7f1;
+  text-align: left;
+  border-radius: 0 11px 11px 0;
+  color: #3f5d46;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.freeGoalNote strong { color: #1b4f2b; }
