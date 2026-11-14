@@ -8,7 +8,7 @@ import { analyseSavings } from "@/lib/savings-engine";
 import { validateRefinements } from "@/lib/report-refinements";
 
 export const metadata: Metadata = {
-  title: "SpendShift — report design preview",
+  title: "SpendShift: report design preview",
   robots: { index: false, follow: false },
 };
 
@@ -36,7 +36,7 @@ const examples = {
     insurancePolicies: [],
   },
   "all-seven": {
-    label: "All 7 areas — big test",
+    label: "All 7 areas (big test)",
     details: {
       takeawayOrder: "120", takeawayOrdersPerWeek: "7",
       takeawaySwapPerWeek: "3", takeawayReplacementCost: "40",
@@ -89,7 +89,7 @@ export default async function ReportPreview({
         background: "#fff7dd", borderRadius: 13, border: "1px solid #f0dfa5",
         color: "#5d4c22", width: "calc(100% - 24px)"
       }}>
-        <strong>DESIGN TEST ONLY — NO REAL CUSTOMER DATA</strong>
+        <strong>DESIGN TEST ONLY. NO REAL CUSTOMER DATA</strong>
         <p style={{ margin: "7px 0 12px", fontSize: 14 }}>
           Switch between fake customer answers below. This does not charge anyone or save a report.
         </p>
