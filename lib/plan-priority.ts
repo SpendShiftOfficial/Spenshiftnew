@@ -7,7 +7,7 @@ export function priorityReason(op:SavingsOpportunity,answers:string[],r:ReportRe
  if(goal==='Lower my bills'&&['insurance','phone','energy','subscriptions'].includes(op.area))return 'This fits your goal: lower your bills.';
  if(goal==='Stop money disappearing so fast'&&['takeaway','convenience','unplanned','subscriptions'].includes(op.area))return 'This fits your goal: take control of regular spending.';
  if(goal==='Reduce stress'&&['subscriptions','convenience'].includes(op.area))return 'A small, low-pressure place to start.';
- if(goal==='Save more money'&&op.area==='subscriptions'&&answers[1]==='Yes — at least one unused')
+ if(goal==='Save more money'&&op.area==='subscriptions'&&answers[1]==='Yes — at least one unused'&&r.details.unusedSubscriptionChoice!=='no')
    return 'You mentioned an unused subscription. Check the charge and whether it still serves you.';
  if(op.scenarioSaving!==null)return 'You gave enough costs to work out a possible change.';
  return 'Your answers show a reason to check, not proof that you pay too much.';
