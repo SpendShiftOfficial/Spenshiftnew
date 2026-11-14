@@ -20,7 +20,7 @@ export default function ReportEditLink({ reportId }: { reportId: string }) {
   return (
     <p className={styles.reportCorrection}>
       {sessionId ? (
-        <>Need to correct an answer? <Link href={"/personalise?session_id=" + encodeURIComponent(sessionId) + "&revise=1"}>Update my answers</Link> — no new payment.</>
+        <>Need to correct an answer? <Link href={"/personalise?session_id=" + encodeURIComponent(sessionId) + "&revise=1"}>Update my answers</Link>. No new payment.</>
       ) : (
         <>Need to correct an answer? Use the private edit link in your report email, or contact <a href="mailto:info@spendshift.com.au">SpendShift support</a>.</>
       )}
