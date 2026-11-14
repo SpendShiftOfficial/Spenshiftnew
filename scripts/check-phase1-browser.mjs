@@ -176,11 +176,37 @@ try{
    await page.waitForURL('**/results');const freeText=await page.locator('body').innerText();assert.match(freeText,/7 places to check/);assert.match(freeText,/Get my savings plan — A\$29/);assert.doesNotMatch(freeText,/A\$39/);await noOverflow(page);
    assert.equal(await page.locator('#optional-extra-area').count(),0,'Seven flagged areas must not show an extra dropdown');
    assert.equal(await page.getByRole('button',{name:'Want to check another area?'}).count(),0,'Seven flagged areas must not show the optional link');
-   const example=page.getByLabel('Example of a possible savings action');assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
+   const preview=page.locator('#plan-example');
+   assert.equal(await preview.getAttribute('open'),null,'Illustration should not push the upgrade button below the fold');
+   assert.equal(await page.getByLabel('Example of a possible savings action').isVisible(),false,'Illustration starts collapsed');
+   await preview.locator('summary').click();
+   const example=page.getByLabel('Example of a possible savings action');
+   assert.match(await example.innerText(),/EXAMPLE ONLY — NOT YOUR ESTIMATE/);assert.doesNotMatch(await example.innerText(),/\$40 less each week/);
    assert.match(await example.innerText(),/In your paid plan: clear steps and useful links/);
    assert.equal(await example.locator('ol').count(),0,'The free example must not give away the full three-step guide');
    await noOverflow(page);
    await page.screenshot({path:'test-artifacts/free-results-'+viewport.width+'.png',fullPage:true});
+  });
+  await test('free-to-paid decision shows value, price and terms clearly '+viewport.width,async()=>{
+   await go(page,'/results');
+   const nudge=page.getByLabel('Optional paid savings plan');
+   assert.match(await nudge.innerText(),/A\$29 once/);
+   assert.match(await nudge.innerText(),/No subscription/);
+   const jump=nudge.getByRole('link',{name:"See what's included"});
+   assert.equal(await jump.getAttribute('href'),'#unlock-full-report');
+   await jump.click();
+   assert.ok(page.url().endsWith('#unlock-full-report'),'Upgrade shortcut must scroll to the full offer, not charge the customer');
+   const offer=page.locator('#unlock-full-report');
+   const copy=await offer.innerText();
+   for(const phrase of ['Your top 3 actions','Clear steps for each area','Help comparing costs','optional savings tracker','What happens after payment?','A$29','no subscription','Payment handled by Stripe']){
+    assert.ok(copy.includes(phrase),'Missing upgrade reassurance: '+phrase);
+   }
+   const buy=offer.getByRole('button',{name:'Get my savings plan — A$29'});
+   assert.equal(await buy.isDisabled(),true,'Checkout must require accepted terms');
+   await offer.locator('input[type=checkbox]').check();
+   assert.equal(await buy.isEnabled(),true,'Terms acceptance must enable checkout');
+   assert.equal(await page.locator('#plan-example').getAttribute('open'),null,'Example should not bury price and checkout');
+   await noOverflow(page);
   });
   await test('one to six flagged areas reveal only missing choices on request '+viewport.width,async()=>{
    const context=await browser.newContext({viewport});const choicePage=await context.newPage();
@@ -199,7 +225,7 @@ try{
    await select.selectOption('phone');
    assert.equal(await select.inputValue(),'phone');
    assert.equal(await show.count(),0,'The link is replaced by the revealed selector');
-   assert.equal(await choicePage.getByRole('heading',{name:'Get your simple savings plan.'}).count(),1);
+   assert.equal(await choicePage.getByRole('heading',{name:'Turn your checks into a plan you can use.'}).count(),1);
    await noOverflow(choicePage);
    await context.close();
   });
