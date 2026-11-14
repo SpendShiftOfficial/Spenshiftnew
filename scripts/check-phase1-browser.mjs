@@ -815,6 +815,7 @@ try{
     await buyer.locator('#takeawayReason').selectOption('busy');
    }
    if(heading==='Subscriptions'){
+    assert.equal(await buyer.locator('#unusedSubscriptionChoice').inputValue(),'yes','A free unused-service answer should carry into the paid questions without a second decision');
     await buyer.locator('#subscriptionsMonthly').fill('70');
     await buyer.locator('#unusedSubscriptionChoice').selectOption('no');
    }
