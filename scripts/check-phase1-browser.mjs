@@ -485,7 +485,7 @@ try{
    await paid.getByRole('heading',{name:'Subscriptions'}).waitFor();
    assert.equal(await paid.locator('#unusedSubscriptionChoice').inputValue(),'yes','Free answer should already be selected');
    assert.match(await paid.locator('body').innerText(),/You mentioned an unused subscription\. Is that still right\?/);
-   assert.match(await paid.locator('body').innerText(),/no extra charge/i);
+   assert.match(await paid.locator('body').innerText(),/Skip any amount you don't know/);
    await paid.getByRole('button',{name:'Next',exact:true}).click();
    await paid.getByRole('heading',{name:"You're nearly done"}).waitFor();
    assert.match(await paid.locator('body').innerText(),/Its name and monthly price would help us calculate a possible saving/);
