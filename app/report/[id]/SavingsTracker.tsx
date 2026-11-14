@@ -347,7 +347,7 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
                   : impact(ongoing) + " per month"}</strong>
                 {entry.fees > 0 && <small>{money(entry.fees)} {isOneOff
                   ? "other one-time costs included once"
-                  : entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the comparison</small>
+                  : entry.feeMode === "upfront" ? "one-off fee" : "extra cost per " + periodLabel[entry.period]} included in the comparison</small>}
                 {isDuplicate && <p className={styles.trackerDuplicate}>Older record — not included in the combined figures, to avoid counting this area twice.</p>}
                 <div className={styles.trackerRowActions}>
                   {currentOption && <button type="button" onClick={() => startEdit(entry)}>Edit</button>}
