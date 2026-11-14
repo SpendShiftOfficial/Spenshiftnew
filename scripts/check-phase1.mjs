@@ -736,4 +736,21 @@ check('tracker separates recurring reductions from one-off fees and avoids dupli
  assert.equal(checkedDifference(1200,900,50),250);
 });
 
+check('paid tracker does not annualise a single unplanned purchase or invent unused bills',()=>{
+ const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.match(tracker,/if \(e\.key === "unplanned"\) return 0;/);
+ assert.match(tracker,/function oneOffDifference\(e: Entry\)/);
+ assert.match(tracker,/const recurring = current\.filter\(entry => entry\.key !== "unplanned"\)/);
+ assert.match(tracker,/oneOffTotal/);
+ assert.match(tracker,/Not projected into monthly or yearly totals\./i);
+ assert.match(tracker,/One-time purchase\./);
+ assert.match(tracker,/Saved only in this browser/);
+ assert.match(report,/service === "neither"/);
+ assert.match(report,/service === "internet" \? \[\] :/);
+ assert.match(report,/service === "mobile" \? \[\] :/);
+ assert.match(report,/details\.hasGas === "yes" \|\| refinements\.details\.gasMonthly !== null/);
+ assert.match(report,/key: "unplanned"/);
+});
+
 console.log('Phase 1 package: '+cases+' test groups passed.');
