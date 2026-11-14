@@ -140,7 +140,6 @@ export default function Results() {
         content_type: "product", value: PLAN_PRICE_CENTS / 100, currency: "AUD",
       });
       trackMetaStandard("InitiateCheckout", { value: PLAN_PRICE_CENTS / 100, currency: "AUD" });
-      await new Promise(resolve => setTimeout(resolve, 350));
       window.location.assign(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -175,12 +174,21 @@ export default function Results() {
               <span className={styles.eyebrow}><CheckCircle2 size={17} /> YOUR FREE RESULTS</span>
               <h1>{areas.length ? "We found " + areas.length + (areas.length === 1 ? " place" : " places") + " to check." : "You chose " + areaNames[previewArea] + " to check."}</h1>
               <p className={styles.subhead}>
-                {areas.length ? "Your answers show where to start. These are checks, not proof you are overpaying. More details could change the order." : "Your eight answers did not flag this as a concern, but you asked to check it. We cannot promise a saving."}
+                {areas.length ? "Your answers point to places worth reviewing. This doesn't prove you're overpaying, and we haven't checked prices for you." : "Your eight answers did not flag this as a concern, but you asked to check it. We cannot promise a saving."}
               </p>
+              <div className={styles.planShortcut} aria-label="Optional paid savings plan">
+                <div>
+                  <strong>Want a plan for these checks?</strong>
+                  <span>A$29 once · No subscription · Skip amounts you don't know</span>
+                </div>
+                <a href="#unlock-full-report" className={styles.planShortcutLink}>
+                  See what's included <ArrowRight size={18} aria-hidden="true" />
+                </a>
+              </div>
             </section>
 
             <section className={styles.areas} aria-label="Places to check">
-              {areas.length > 3 && <h2 className={styles.topLabel}>Start with these three checks</h2>}
+              <h2 className={styles.topLabel}>{shownAreas.length > 3 ? "Start with these three free checks" : "Your free checks"}</h2>
               {shownAreas.slice(0,3).map((area,index)=>(
                 <article className={styles.areaCard} key={area}>
                   <span className={styles.index}>{index + 1}</span>
@@ -211,30 +219,24 @@ export default function Results() {
                   : null}
             </section>
 
-            <section className={styles.purchase} id="unlock-full-report">
+            <section className={styles.purchase} id="unlock-full-report" aria-labelledby="paid-plan-title">
               <div className={styles.purchaseHeader}>
-                <span className={styles.eyebrow}><ShieldCheck size={16} /> YOUR NEXT STEP</span>
-                <h2>Get your simple savings plan.</h2>
-                <p>We'll use your answers to show what to check first and how to do it.</p>
+                <span className={styles.eyebrow}><ShieldCheck size={16} /> OPTIONAL PERSONALISED PLAN</span>
+                <h2 id="paid-plan-title">Turn your checks into a plan you can use.</h2>
+                <p>Your free results tell you <strong>where to look.</strong> Your paid plan helps you work out <strong>what to do next.</strong></p>
               </div>
-              <div className={styles.benefits}>
-                <p><CheckCircle2 size={20} /> Steps made for your answers</p>
-                <p><CheckCircle2 size={20} /> Help checking bills and regular payments</p>
-                <p><CheckCircle2 size={20} /> A short list to follow at your own pace</p>
+              <div className={styles.benefits} aria-label="What your plan includes">
+                <p><CheckCircle2 size={20} /><span><strong>Your top 3 actions</strong> — put in order using your answers.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>Clear steps for each area</strong> — not just generic money-saving tips.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>Help comparing costs</strong> — including questions to ask providers, where relevant.</span></p>
+                <p><CheckCircle2 size={20} /><span><strong>A checklist and optional savings tracker</strong> — return when you're ready to act.</span></p>
               </div>
-              <div className={styles.miniPreview} aria-label="Example of a possible savings action">
-                <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
-                <h3>{areaNames[previewArea]}</h3>
-                <p>{previewExamples[previewArea].story}</p>
-                <dl className={styles.previewNumbers}>
-                  {previewExamples[previewArea].costs.map(item=><div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
-                </dl>
-                <p className={styles.previewResult}>{previewExamples[previewArea].outcome}</p>
-                <p className={styles.previewCaution}>{previewExamples[previewArea].note}</p>
-                <small>In your paid plan: clear steps and useful links for your answers. No saving is guaranteed.</small>
+              <div className={styles.price}>A$29 <span>once · no subscription</span></div>
+              <div className={styles.afterPayment}>
+                <strong>What happens after payment?</strong>
+                <p>Answer a few more questions about these areas. Skip any amount you don't know. Then get your step-by-step plan and a link to return to it.</p>
               </div>
-              <div className={styles.price}>A$29 <span>one-time payment</span></div>
-              <p className={styles.honesty}>We don't check live prices or promise savings. If you don't know your bill amounts, we'll show you where to find them, but we can't calculate a reduction without enough figures.</p>
+              <p className={styles.honesty}>We don't check live prices or promise savings. If you don't know a bill amount, we'll show you where to find it. We can only calculate possible reductions when you provide enough figures.</p>
               <label className={styles.terms}>
                 <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} />
                 <span>I agree to the <Link href="/terms-and-conditions" target="_blank">Terms</Link>, <Link href="/privacy-policy" target="_blank">Privacy Policy</Link> and <Link href="/financial-information-ai-disclaimer" target="_blank">Financial Information & AI Disclaimer</Link>.</span>
@@ -243,7 +245,22 @@ export default function Results() {
                 <LockKeyhole size={18} /> {busy ? "Opening checkout…" : "Get my savings plan — A$29"} <ArrowRight size={19} />
               </button>
               {error && <p className={styles.error} role="alert">{error}</p>}
-              <p className={styles.footnote}>One payment. Next, add details for the areas in your plan. Skip any amount you do not know.</p>
+              <p className={styles.checkoutTrust}><ShieldCheck size={16} aria-hidden="true" /> Payment handled by Stripe. No bank login needed.</p>
+              <p className={styles.footnote}>One payment. No recurring charges. <Link href="/refund-policy" target="_blank">Read the refund policy</Link>.</p>
+              <details className={styles.previewDetails} id="plan-example">
+                <summary>See an example of a plan action <span>Example only — not your estimate</span></summary>
+                <div className={styles.miniPreview} aria-label="Example of a possible savings action">
+                  <span className={styles.exampleLabel}>EXAMPLE ONLY — NOT YOUR ESTIMATE</span>
+                  <h3>{areaNames[previewArea]}</h3>
+                  <p>{previewExamples[previewArea].story}</p>
+                  <dl className={styles.previewNumbers}>
+                    {previewExamples[previewArea].costs.map(item=><div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
+                  </dl>
+                  <p className={styles.previewResult}>{previewExamples[previewArea].outcome}</p>
+                  <p className={styles.previewCaution}>{previewExamples[previewArea].note}</p>
+                  <small>In your paid plan: clear steps and useful links for your answers. No saving is guaranteed.</small>
+                </div>
+              </details>
             </section>
 
             <p className={styles.retake}>Want to change an answer? <Link href="/audit">Start again</Link></p>
