@@ -30,7 +30,9 @@ function SuccessContent() {
 
   useEffect(() => {
     if (mode !== "generating") return;
-    const interval = setInterval(() => setActiveStep(prev => Math.min(prev + 1, steps.length - 1)), 7000);
+    // Fast plan generation needs a faster illustrative sequence, never an extra wait.
+    // These step highlights are not live server progress; ready reports open immediately.
+    const interval = setInterval(() => setActiveStep(prev => Math.min(prev + 1, steps.length - 1)), 1100);
     return () => clearInterval(interval);
   }, [mode]);
 
@@ -140,7 +142,7 @@ function SuccessContent() {
               );
             })}
           </div>
-          <p className="mini">Keep this page open if you can. Your payment is saved if you need to come back.</p>
+          <p className="mini">These steps are a guide. Your plan opens as soon as it's ready. Your payment is saved if you need to come back.</p>
         </>
       )}
       {mode === "error" && (

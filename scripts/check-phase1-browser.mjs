@@ -17,6 +17,30 @@ async function next(page){await page.getByRole('button',{name:'Next',exact:true}
 try{
  for(let i=0;i<90;i++){try{const r=await fetch(base+'/');if(r.ok)break;}catch{}if(i===89)throw new Error('Local app did not start: '+logs.slice(-3000));await new Promise(r=>setTimeout(r,1000));}
  browser=await chromium.launch({headless:true});
+ await test('quick report generation cycles loading steps without artificial waiting',async()=>{
+  const context=await browser.newContext({viewport:{width:375,height:812}});
+  const page=await context.newPage();
+  page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(16000);
+  const reportId='rpt_fastloadingfixture';
+  let createCalls=0;
+  await page.route('**/api/payment-status?**',route=>route.fulfill({
+   json:{paid:true,answers:high,status:'awaiting_details',reportId:null,refinements:null,revision:'2026-11-14T00:00:00.000Z'},
+  }));
+  await page.route('**/api/create-report',async route=>{
+   createCalls++;
+   await new Promise(resolve=>setTimeout(resolve,5800));
+   await route.fulfill({json:{status:'ready',reportId}});
+  });
+  await page.route('**/report/'+reportId,route=>route.fulfill({status:302,headers:{location:base+'/plan-preview'}}));
+  await page.goto(base+'/success?session_id=cs_test_fast_loading_fixture&generate=1',{waitUntil:'domcontentloaded'});
+  await page.getByRole('heading',{name:'Making your savings plan'}).waitFor();
+  await page.waitForFunction(()=>document.querySelectorAll('.reportStep.done').length>=3,null,{timeout:6000});
+  const description=await page.locator('.analysisCard .mini').innerText();
+  assert.match(description,/steps are a guide/i);
+  await page.waitForURL('**/plan-preview',{timeout:16000});
+  assert.equal(createCalls,1,'Report generation should only run once');
+  await context.close();
+ });
  await test('search sitemap and branded social image',async()=>{
   const response=await fetch(base+'/sitemap.xml');
   assert.equal(response.status,200);
