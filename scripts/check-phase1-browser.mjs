@@ -87,6 +87,23 @@ try{
     await page.getByRole('button',{name:'Close menu'}).click();
    }
   });
+  await test('legal documents and phone readability '+viewport.width,async()=>{
+   const docs=[
+    ['/terms-and-conditions',['AUD $29','no subscription','Last updated: 14 November 2026']],
+    ['/privacy-policy',['Microsoft Clarity','Meta Pixel','TikTok Pixel','Last updated: 14 November 2026']],
+    ['/refund-policy',['30-day money-back guarantee','AUD $29','Last updated: 14 November 2026']],
+    ['/financial-information-ai-disclaimer',['conditional calculations','Anthropic Claude','Last updated: 14 November 2026']],
+    ['/cookies',['Google Analytics','Microsoft Clarity','Meta Pixel','TikTok Pixel','Last updated: 14 November 2026']],
+   ];
+   for(const [route,phrases] of docs){
+    await go(page,route);
+    const body=await page.locator('body').innerText();
+    for(const phrase of phrases)assert.ok(body.includes(phrase),'Missing disclosure '+phrase+' on '+route);
+    assert.doesNotMatch(body,/AUD \$39|30-day action plan/i,'Obsolete paid product on '+route);
+    await noOverflow(page);
+    await page.screenshot({path:'test-artifacts/legal-'+route.slice(1)+'-'+viewport.width+'.png',fullPage:true});
+   }
+  });
   await test('free eight-question journey '+viewport.width,async()=>{
    await go(page,'/audit');
    for(let i=0;i<high.length;i++){await page.getByRole('button',{name:high[i],exact:true}).click();await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();}
