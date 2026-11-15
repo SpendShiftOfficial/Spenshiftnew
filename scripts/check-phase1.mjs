@@ -228,6 +228,24 @@ check('consented public analytics covers new guides and measures audit CTA safel
   assert.match(publicAnalytics,/window\.clarity\?\.\('event','audit_cta_click'\)/);
   assert.match(publicAnalytics,/if\(ok\)/);
 });
+check('first-party aggregate audit counters contain no customer data',()=>{
+  const route=fs.readFileSync('app/api/audit-metric/route.ts','utf8');
+  const client=fs.readFileSync('lib/first-party-audit.ts','utf8');
+  const audit=fs.readFileSync('app/audit/page.tsx','utf8');
+  const migration=fs.readFileSync('supabase/migrations/20261115054400_spendshift_aggregate_audit.sql','utf8');
+  assert.match(route,/SPENDSHIFT_AGGREGATE_METRICS_ENABLED/);
+  assert.match(route,/Object\.keys\(body\)\.length !== 1/);
+  assert.match(route,/req\.headers\.get\("origin"\)/);
+  assert.match(route,/allowedEvents\.has\(body\.event\)/);
+  assert.match(client,/JSON\.stringify\(\{ event \}\)/);
+  assert.doesNotMatch(client,/answers|email|reportId|sessionId|amount|gtag\(|clarity\(/i);
+  assert.match(audit,/recordAggregateAuditEvent\('audit_start'\)/);
+  assert.match(audit,/recordAggregateAuditEvent\('audit_complete'\)/);
+  assert.match(migration,/ENABLE ROW LEVEL SECURITY/);
+  assert.match(migration,/REVOKE ALL ON public\.spendshift_audit_daily FROM PUBLIC, anon, authenticated/);
+  assert.match(migration,/GRANT EXECUTE ON FUNCTION public\.spendshift_increment_audit_daily\(text\) TO service_role/);
+  assert.equal(isMarketingPath('/api/audit-metric'),false);
+});
 check('checkout validates before calling Stripe and does not leak provider errors',()=>{const route=fs.readFileSync('app/api/checkout/route.ts','utf8');assert.ok(route.indexOf('validateAuditAnswers(data.answers)')<route.indexOf('.checkout.sessions.create'));assert.match(route,/acceptedTerms/);assert.match(route,/idempotencyKey/);assert.doesNotMatch(route,/error: e\.message/);});
 check('checkout pause does not block existing paid access',()=>{assert.doesNotMatch(fs.readFileSync('lib/paid-orders.ts','utf8'),/SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS/);});
 check('recovery leaves unpaid and unfinished drafts untouched',()=>{const cron=fs.readFileSync('app/api/cron/recover-paid-reports/route.ts','utf8');assert.match(cron,/refinements->>completed/);assert.match(cron,/completed===true/);assert.match(fs.readFileSync('lib/report-fulfillment.ts','utf8'),/Please finish or skip the questions/);});
