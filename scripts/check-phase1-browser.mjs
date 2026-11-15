@@ -364,6 +364,29 @@ try{
    await assertCurrencySpacing('#subscriptionsMonthly');
    await noOverflow(page);
   });
+  await test('feedback follows the paid plan, welcomes criticism and never sends from demos '+viewport.width,async()=>{
+   await go(page,'/report-preview?customer=all-seven');
+   const feedback=page.getByRole('region',{name:'How was your plan?'});
+   await feedback.waitFor({state:'visible'});
+   assert.equal(await feedback.getByRole('radio').count(),2);
+   assert.equal(await feedback.getByRole('button',{name:'Send feedback'}).isDisabled(),true);
+   assert.match(await feedback.innerText(),/Good or bad/);
+   assert.match(await feedback.innerText(),/won't publish it without asking/);
+   assert.equal(await feedback.getByRole('textbox',{name:'Tell us more (optional)'}).count(),1);
+   await feedback.getByRole('radio',{name:'Needs work'}).check();
+   await feedback.getByRole('textbox',{name:'Tell us more (optional)'}).fill('I would like clearer examples.');
+   assert.equal(await feedback.getByRole('button',{name:'Send feedback'}).isEnabled(),true);
+   let attemptedNetwork=false;
+   await page.route('**/api/report-feedback',route=>{attemptedNetwork=true;return route.abort();});
+   await feedback.getByRole('button',{name:'Send feedback'}).click();
+   assert.match(await feedback.getByRole('alert').innerText(),/sample report\. No feedback was sent/);
+   assert.equal(attemptedNetwork,false);
+   const invalid=await page.request.post(base+'/api/report-feedback',{data:{reportId:'demo-test',rating:'helpful',comment:''}});
+   assert.equal(invalid.status(),400,'Demo reports may never send customer feedback');
+   const wrongRating=await page.request.post(base+'/api/report-feedback',{data:{reportId:'rpt_1234567890',rating:'fake',comment:''}});
+   assert.equal(wrongRating.status(),400,'Invalid rating is rejected before email');
+   await noOverflow(page);
+  });
   await test('optional tracker stays compact until opened and has good spacing '+viewport.width,async()=>{
    await go(page,'/report-preview?customer=all-seven');
    const tracker=page.getByRole('region',{name:'See what your changes are worth'});
