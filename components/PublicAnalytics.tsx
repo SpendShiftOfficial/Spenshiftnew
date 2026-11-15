@@ -19,7 +19,7 @@ export default function PublicAnalytics({enabled}:{enabled:boolean}){
     const target=event.target;
     if(!(target instanceof Element))return;
     const link=target.closest('a[href]');
-    if(!link)return;
+    if(!(link instanceof HTMLAnchorElement))return;
     const url=new URL(link.href,location.href);
     if(url.origin===location.origin&&url.pathname.replace(/\/$/,'')==='/audit'&&!url.search&&!url.hash){
       trackEvent('audit_cta_click');
