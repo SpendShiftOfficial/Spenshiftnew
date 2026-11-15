@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import styles from "./simple-report.module.css";
+import { recordReportEngagement } from "@/lib/first-party-report";
 
 type Rating = "helpful" | "needs_work";
 
@@ -33,6 +34,8 @@ export default function ReportFeedback({ reportId }: { reportId: string }) {
         throw new Error(payload.error || "We couldn't send your feedback. Please try again.");
       }
       setSent(true);
+      // Only the completion signal is counted; neither rating nor comment is shared.
+      recordReportEngagement("feedback_sent", reportId);
       setComment("");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send your feedback. Please try again.");
