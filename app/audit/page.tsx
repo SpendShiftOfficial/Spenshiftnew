@@ -2,14 +2,15 @@
 import {useEffect,useState} from 'react';
 import Header from '@/components/Header';
 import {auditQuestions,validateAuditAnswers} from '@/lib/audit-schema';
+import {recordAggregateAuditEvent} from '@/lib/first-party-audit';
 import styles from './audit.module.css';
 const key='spendshift_free_draft_v2';
 export default function Audit(){
  const [index,setIndex]=useState(0);const [answers,setAnswers]=useState<string[]>([]);const [loaded,setLoaded]=useState(false);const [error,setError]=useState('');
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.answers)&&saved.answers.length<=8&&saved.answers.every((a:unknown,i:number)=>typeof a==='string'&&(auditQuestions[i].options.includes(a)||(i===0&&a==='Less than once a week')||(i===1&&['None','1–2','3–5','6–10','10+','0–2'].includes(a))||(i===6&&a==='1–2 times/month')))){setAnswers(saved.answers.map((a:string,i:number)=>i===0&&a==='Less than once a week'?'Rarely':i===6&&a==='1–2 times/month'?'Rarely':a));setIndex(Math.max(0,Math.min(7,Number(saved.index)||0)));}}catch{}setLoaded(true);},[]);
  useEffect(()=>{if(loaded){try{localStorage.setItem(key,JSON.stringify({answers,index}));}catch{}}},[answers,index,loaded]);
- function choose(value:string){setAnswers(prev=>{const next=[...prev];next[index]=value;return next;});setError('');}
- function next(){if(!answers[index])return;if(index<7){setIndex(index+1);return;}try{const valid=validateAuditAnswers(answers);let saved=false;try{localStorage.setItem('spendshift_answers',JSON.stringify(valid));localStorage.removeItem(key);saved=true;}catch{}if(!saved){try{sessionStorage.setItem('spendshift_answers',JSON.stringify(valid));saved=true;}catch{}}if(!saved){setError('Your browser is blocking saved answers. Allow website storage to view your free results.');return;}window.location.assign('/results');}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');}}
+ function choose(value:string){if(index===0)recordAggregateAuditEvent('audit_start');setAnswers(prev=>{const next=[...prev];next[index]=value;return next;});setError('');}
+ function next(){if(!answers[index])return;if(index<7){setIndex(index+1);return;}try{const valid=validateAuditAnswers(answers);let saved=false;try{localStorage.setItem('spendshift_answers',JSON.stringify(valid));localStorage.removeItem(key);saved=true;}catch{}if(!saved){try{sessionStorage.setItem('spendshift_answers',JSON.stringify(valid));saved=true;}catch{}}if(!saved){setError('Your browser is blocking saved answers. Allow website storage to view your free results.');return;}recordAggregateAuditEvent('audit_complete');window.location.assign('/results');}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');}}
  const q=auditQuestions[index];const visibleOptions=q.options.filter(a=>a!=='Never / not sure'||answers[index]===a);
  // Historical count-based choices remain visible only when reopening a saved draft.
  if(index===1&&answers[index]&&!visibleOptions.includes(answers[index])&&['None','1–2','3–5','6–10','10+','0–2'].includes(answers[index]))visibleOptions.push(answers[index]);
