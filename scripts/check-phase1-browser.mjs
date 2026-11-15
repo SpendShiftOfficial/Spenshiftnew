@@ -254,6 +254,8 @@ try{
     await page.reload({waitUntil:'networkidle'});
     assert.equal(await page.getByRole('button',{name:'Rarely',exact:true}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
+    await page.getByRole('button',{name:'Start a new check'}).click();
+    assert.equal(await page.getByText('Question 1 of 8',{exact:true}).count(),1);
     await noOverflow(page);
    });
    await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
