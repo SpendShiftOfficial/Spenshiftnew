@@ -26,7 +26,7 @@ function loadTs(file) {
 
 
 const {validateAuditAnswers,auditQuestions,PLAN_PRICE_CENTS,LEGACY_PLAN_PRICE_CENTS,isAcceptedPlanPaymentAmount}=loadTs('lib/audit-schema');
-const {selectPersonalisationAreas,previewProfiles,reasonForArea}=loadTs('lib/personalisation-questions');
+const {selectPersonalisationAreas,previewProfiles,reasonForArea,auditPriorityScore}=loadTs('lib/personalisation-questions');
 const {validateRefinements,emptyRefinements}=loadTs('lib/report-refinements');
 const {blankDraft,cleanDraft,prepareDraft,restoreDraft,selectedDraftAreas}=loadTs('lib/plan-draft');
 const {analyseSavings}=loadTs('lib/savings-engine');
@@ -699,6 +699,45 @@ check('paid questions use plain, specific wording and treat all figures as estim
  assert.match(ui,/count=\(key:string,label:string,hint=''/);
 });
 
+check('monthly unplanned buys do not cause an assumed money problem',()=>{
+ const options=auditQuestions[6].options;
+ assert.deepEqual(options,['Rarely','1–2 times/month','1–2 times/week','3–5 times/week','Almost daily']);
+ const monthly=[...high];monthly[6]='1–2 times/month';
+ assert.equal(validateAuditAnswers(monthly)[6],'1–2 times/month');
+ assert.equal(auditPriorityScore('unplanned',monthly),0);
+ assert.equal(selectPersonalisationAreas(monthly).includes('unplanned'),false);
+ const old=[...high];old[6]='Rarely';
+ assert.equal(validateAuditAnswers(old)[6],'Rarely');
+ const audit=fs.readFileSync('app/audit/page.tsx','utf8');
+ assert.match(audit,/Think of online orders, clothes or extra things you buy at the shops/);
+});
+check('one-dollar spinner steps keep exact typed cents and bill calculations',()=>{
+ const paid=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.equal((paid.match(/step='1'/g)||[]).length,4);
+ assert.doesNotMatch(paid,/step='0\.01'/);
+ assert.match(paid,/inputMode='decimal'/);
+ const r=validateRefinements({details:{convenienceWeekly:'26.75',convenienceGoalWeekly:'20.50',convenienceOverlap:'no',mobileMonthly:'44.90'},insurancePolicies:[{type:'Life or income protection',premium:'82.45',paymentPeriod:'month',renewal:'soon'}]});
+ assert.equal(r.details.convenienceWeekly,26.75);
+ assert.equal(r.details.convenienceGoalWeekly,20.5);
+ assert.equal(r.details.mobileMonthly,44.9);
+ assert.equal(r.insurancePolicies[0].premium,82.45);
+ const tracker=fs.readFileSync('app/report/[id]/SavingsTracker.tsx','utf8');
+ const quotes=fs.readFileSync('app/report/[id]/QuoteCheck.tsx','utf8');
+ assert.match(tracker,/step="0\.01"/);
+ assert.match(quotes,/step="0\.01"/);
+});
+check('insurance tips explain cover values and require qualified advice for life cover',()=>{
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ assert.match(report,/Check how much your home or belongings are insured for/);
+ assert.match(report,/enough to rebuild or replace them/);
+ assert.match(report,/flood and storm damage/);
+ assert.match(report,/Check how much you are covered for/);
+ assert.match(report,/licensed financial adviser before changing or cancelling this cover/);
+ const {firstSteps}=loadTs('lib/report-steps');
+ const refs=validateRefinements({insurancePolicies:[{type:'Life or income protection',premium:'82.45',paymentPeriod:'month',renewal:'soon'}]});
+ const insurance=analyseSavings(high,refs).opportunities.find(o=>o.area==='insurance');
+ assert.match(firstSteps(insurance,refs)[2],/licensed financial adviser before changing or cancelling/);
+});
 check('occasional takeaway buyers can give a truthful answer',()=>{
  const optional='Rarely';
  assert.ok(auditQuestions[0].options.includes(optional));
