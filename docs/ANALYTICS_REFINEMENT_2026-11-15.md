@@ -65,3 +65,26 @@ Do not silently add Measurement Protocol purchase events: without confirmed cons
 ## GA4/Clarity dashboard housekeeping (after deployment and evidence)
 
 Keep the existing properties and event history. Do not mark `audit_cta_click` as a purchase or a lead completion. Retain the `purchase` key event for future, correctly implemented ecommerce measurement, but do not interpret its absence as an absence of orders. Older smart events such as `paid_report_ready` and `purchase` are definitions, not evidence of recent successful triggering.
+
+## First-party audit counters — draft code, OFF by default
+
+The branch now includes proposed migration `supabase/migrations/20261115054400_spendshift_aggregate_audit.sql`, endpoint `/api/audit-metric` and two client events. **The migration has NOT been applied to Production or Preview**, and the endpoint is disabled unless `SPENDSHIFT_AGGREGATE_METRICS_ENABLED=true` in Production.
+
+- `audit_start`: recorded once per browser tab/session when a visitor chooses an answer on the first free-audit question.
+- `audit_complete`: recorded once per browser tab/session after all eight choices pass existing validation and the answers have been saved locally.
+- The browser sends only the event name to the same-origin backend; it does NOT transmit financial answers, private links or user identifiers. Third-party analytics remain disabled on `/audit`.
+- The database stores only Sydney-local dates, two allowlisted event names and aggregate counts. Only the server's service role can access the table and increment function.
+- These are **approximate interactions, not deduplicated people**. An open endpoint can be abused by automated requests; rate/abuse protections and privacy review must be completed before enabling it. SessionStorage failure or offline usage can cause undercounting.
+- Read-only query after migration:
+
+```sql
+SELECT event_date,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'audit_start'),0) AS audit_starts,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'audit_complete'),0) AS audit_completions
+FROM public.spendshift_audit_daily
+GROUP BY event_date ORDER BY event_date DESC;
+```
+
+Before release: review privacy disclosures and abuse controls, apply the migration in an isolated test database, check RLS/advisors and regression/browser tests, and obtain explicit approval before any production SQL migration or enabling the Vercel environment flag.
+
+The payment and fulfilment source of truth is still `report_orders`. This branch has **not** added report-engagement collection or modified payments or reports; opening a report and interacting with its checklist/tracker remain to be instrumented separately.
