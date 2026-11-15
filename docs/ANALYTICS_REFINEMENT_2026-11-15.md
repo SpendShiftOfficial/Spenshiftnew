@@ -68,7 +68,7 @@ Keep the existing properties and event history. Do not mark `audit_cta_click` as
 
 ## First-party audit counters — draft code, OFF by default
 
-The branch now includes proposed migration `supabase/migrations/20261115054400_spendshift_aggregate_audit.sql`, endpoint `/api/audit-metric` and two client events. **The migration has NOT been applied to Production or Preview**, and the endpoint is disabled unless `SPENDSHIFT_AGGREGATE_METRICS_ENABLED=true` in Production.
+The branch now includes proposed migration `supabase/migrations/20261115054400_spendshift_aggregate_audit.sql`, endpoint `/api/audit-metric` and two client events. **The migration has NOT been applied to Production; it has been tested on the isolated Supabase branch**, and the endpoint is disabled unless `SPENDSHIFT_AGGREGATE_METRICS_ENABLED=true` in Production.
 
 - `audit_start`: recorded once per browser tab/session when a visitor chooses an answer on the first free-audit question.
 - `audit_complete`: recorded once per browser tab/session after all eight choices pass existing validation and the answers have been saved locally.
@@ -121,3 +121,20 @@ ORDER BY event_date DESC;
 ```
 
 An approved end-to-end operational funnel should combine *separately labelled* sources: consented GA4 website visits, consented first-party audit actions, verified Stripe paid orders, Supabase fulfilment stages, and consented first-party report interactions. The events do **not** yet share a privacy-safe anonymous identifier, so do not divide counts with different denominators to claim an exact visitor-to-purchase conversion rate.
+
+## Staging migration verification — 15 November 2026
+
+**Successful on isolated Supabase test branch only** (`pcjgzbaigtsnevhcjqyd`). The SQL parser rejected an earlier draft function delimiter; that was corrected in GitHub before any application. The corrected migration `spendshift_aggregate_audit` was successfully installed on the test branch.
+
+- Both aggregate tables exist with RLS enabled.
+- Anonymous and authenticated roles cannot read either aggregate table.
+- Only the service role can read, insert and update the counters or execute their increment functions. Both functions are `SECURITY INVOKER`.
+- In test-only SQL calls, one `audit_start` increment and one `report_open` increment were recorded with the correct Sydney date and counts.
+- The branch's existing test report orders/reports were not altered by the additive migration.
+- The security advisor returned informational `RLS enabled without policy` notices, consistent with the intended server-only design.
+
+**Production migration has NOT been applied.** The application feature flag remains OFF and the endpoints return no content when disabled.
+
+**Unresolved release gate:** The production Vercel project has no custom WAF rule. Same-origin validation and browser sessionStorage do not stop scripted requests; a rate-limiting rule and a privacy review are still required before enabling anonymous counters. Vercel Hobby supports one WAF rate-limit rule per project, which may be configured for both aggregate endpoints after release approval. Implement and validate a log-only configuration before enforcing any rule, and ensure it cannot interfere with checkout/report operations. Rate limits mitigate abuse but do not guarantee unique-user accuracy.
+
+**Measurement integrity:** GDPR/APP-style consent decisions and GA4 consented traffic counts are not automatically comparable to anonymous first-party event totals. Report interaction counts can be underreported when consent is refused and overreported across devices/tabs or automated requests. Never describe them as exact unique-customer figures.
