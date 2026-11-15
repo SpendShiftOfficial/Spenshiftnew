@@ -88,3 +88,36 @@ GROUP BY event_date ORDER BY event_date DESC;
 Before release: review privacy disclosures and abuse controls, apply the migration in an isolated test database, check RLS/advisors and regression/browser tests, and obtain explicit approval before any production SQL migration or enabling the Vercel environment flag.
 
 The payment and fulfilment source of truth is still `report_orders`. This branch has **not** added report-engagement collection or modified payments or reports; opening a report and interacting with its checklist/tracker remain to be instrumented separately.
+
+## Draft report engagement tracking — disabled pending approval
+
+Added an opt-in, first-party-only report engagement design on the same analytics branch:
+
+- `report_open`: the structured paid savings report loaded in a customer's browser.
+- `checklist_interaction`: the customer checked/unchecked an action.
+- `tracker_saved`: the customer saved or updated a local spending comparison.
+- `feedback_sent`: a report feedback form succeeded (not what the feedback said).
+
+These are approximate **per-browser-session event counts, not unique users or proof of achieved savings**. The browser helper requires the existing `spendshift_cookie_consent=granted` preference. The old audit counter helper now also respects that choice, so rejecting optional analytics means no first-party funnel events are sent.
+
+The protected report's unguessable ID is transmitted ONLY to the same-origin `/api/report-metric` endpoint for a server-side check against a ready `report_orders` row. The ID is never stored in the analytics aggregate table or sent to GA4, Clarity or ad pixels. All the report and financial content remain local to the private workflow. Demo reports and legacy reports outside `report_orders` are not counted.
+
+Proposed SQL (same unapplied aggregate-audit migration) creates `spendshift_report_daily`: only a date, four event categories and integer counts. Row-level security and service-role-only permissions prevent browser access. The endpoint rejects unknown event names, invalid tokens and cross-origin browser requests. However, a request with a leaked valid report token could be repeated; browser-only session deduplication is **not** server-side abuse prevention.
+
+The feature is **OFF** unless `SPENDSHIFT_AGGREGATE_METRICS_ENABLED=true` is explicitly configured in Production, and the SQL migration is **not installed** in any connected production database. Before activation: complete privacy/legal review, confirm appropriate abuse controls and limited retention, validate the migration and row permissions in an isolated database, and verify that aggregate counts correspond to the intended actions. Never claim precise person-level conversion rates or deduplicated report-user counts from these counters.
+
+Read-only aggregate report query after separately approving/applying the migration:
+
+```sql
+SELECT
+  event_date,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'report_open'),0) AS report_opens,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'checklist_interaction'),0) AS checklist_users_actions,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'tracker_saved'),0) AS tracker_save_actions,
+  COALESCE(SUM(event_count) FILTER (WHERE event_name = 'feedback_sent'),0) AS feedback_submissions
+FROM public.spendshift_report_daily
+GROUP BY event_date
+ORDER BY event_date DESC;
+```
+
+An approved end-to-end operational funnel should combine *separately labelled* sources: consented GA4 website visits, consented first-party audit actions, verified Stripe paid orders, Supabase fulfilment stages, and consented first-party report interactions. The events do **not** yet share a privacy-safe anonymous identifier, so do not divide counts with different denominators to claim an exact visitor-to-purchase conversion rate.
