@@ -3,6 +3,7 @@ import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refine
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
 import ReportEditLink from "./ReportEditLink";
+import ReportFeedback from "./ReportFeedback";
 import SavingsTracker, { type TrackerOption } from "./SavingsTracker";
 import QuoteCheck from "./QuoteCheck";
 import {takeawayMath} from "@/lib/savings-math";
@@ -377,6 +378,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
         </section>}
 
         {trackerOptions.length > 0 && <SavingsTracker reportId={reportId} options={trackerOptions} />}
+        <ReportFeedback reportId={reportId} />
         <footer className={styles.footer}>
           <p><strong>How to check real savings:</strong> Compare what you paid before and after. Take away any fees or extra costs. Don't count the same money twice.</p>
           <p>We have not checked live prices for you. This plan gives general money tips, not personal financial advice.</p>
