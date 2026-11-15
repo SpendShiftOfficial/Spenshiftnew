@@ -158,13 +158,11 @@ export default function PersonaliseClient({allowDemo,hasPaidSession}:{allowDemo:
  return <div className={styles.page}><Header simple/><main className={styles.wrap}><fieldset className={styles.journeyFieldset} disabled={submitting}>
   <h1>{isRevision?'Update your savings plan.':'Make your plan fit you.'}</h1>
    {isRevision&&<p className={styles.intro}>You can change any answer in your plan. Your old report stays safe until you save. You will not pay again.</p>}
-   {!isRevision&&draft.step===0&&!review&&<section className={styles.introPanel} aria-label="Why we ask for more details">
-     <h2>A few more details. A plan made for you.</h2>
-     <p>Your first 8 answers showed us where to start. Now tell us a little more about what you pay. This helps us give you clearer steps and show possible savings when we have enough information.</p>
-     <p><strong>A rough guess is fine.</strong> Skip any amount you don't know. We'll save your answers as you go.</p>
-     {sessionId&&<p className={styles.noExtraCharge}>You have already paid. There is no extra charge.</p>}
+   {!isRevision&&draft.step===0&&!review&&<section className={styles.introPanel} aria-label="Before you start">
+     <p>Answer a few more questions. Skip any amount you don't know. We'll save your answers as you go.</p>
+     {sessionId&&<p className={styles.noExtraCharge}>You've already paid. No extra charge.</p>}
    </section>}
-   <p className={styles.intro}>{areas.length===0?'Your new answers do not point to a clear place to start. Pick one area you want help with.':areas.length+(areas.length===1?' area':' areas')+' to check. We’ll go through them one at a time.'}</p>
+   {areas.length===0&&<p className={styles.intro}>Your new answers do not point to a clear place to start. Pick one area you want help with.</p>}
   {sessionId&&<p role='status' aria-live='polite' className={styles.selectionNote}>{saving}</p>}
   {!sessionId&&<div className={styles.demoPanel}><label htmlFor='demo'>Test customer (no payment or saved customer data)</label><select id='demo' onChange={e=>setDraft(blankDraft(previewProfiles[e.target.value].answers))}>{Object.entries(previewProfiles).map(([key,p])=><option key={key} value={key}>{p.label}</option>)}</select></div>}
   
