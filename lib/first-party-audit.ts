@@ -4,6 +4,8 @@ type AggregateAuditEvent = "audit_start" | "audit_complete";
 export function recordAggregateAuditEvent(event: AggregateAuditEvent) {
   if (typeof window === "undefined") return;
   try {
+    // Respect the customer's existing optional-analytics choice.
+    if (localStorage.getItem("spendshift_cookie_consent") !== "granted") return;
     // Count at most once per tab/session. This is not a unique-person identifier.
     const key = "spendshift_aggregate_" + event;
     if (sessionStorage.getItem(key) === "1") return;
