@@ -324,7 +324,7 @@ try{
     const selectedDraft={version:1,answers,details:{},insurancePolicies:[],additionalUnusedSubscriptions:[],additionalArea:'subscriptions',step:0};
     await chosenPage.route('**/api/payment-status?**',route=>route.fulfill({json:{paid:true,answers,status:'awaiting_details',reportId:null,refinements:{version:1,draft:selectedDraft},revision:'2026-11-13T00:00:00.000Z'}}));
     await chosenPage.goto(base+'/personalise?session_id=cs_test_selectedarea00000000000',{waitUntil:'networkidle'});
-    assert.match(await chosenPage.locator('body').innerText(),/1 area to check/);
+    assert.match(await chosenPage.locator('body').innerText(),/Area 1 of 1/);
     assert.match(await chosenPage.locator('body').innerText(),/Subscriptions/);
     await noOverflow(chosenPage);
     await extraContext.close();
@@ -341,9 +341,9 @@ try{
    assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
    const previous=page.getByRole('button',{name:'Previous question',exact:true});
    assert.equal(await previous.count(),0);
-   assert.match(await page.locator('body').innerText(),/A few more details. A plan made for you./);
-   assert.match(await page.locator('body').innerText(),/Your first 8 answers showed us where to start/);
-   assert.match(await page.locator('body').innerText(),/A rough guess is fine/);
+   const intro=page.locator('[aria-label="Before you start"]');
+   assert.equal((await intro.innerText()).trim(),"Answer a few more questions. Skip any amount you don't know. We'll save your answers as you go.");
+   assert.equal(await intro.locator('h2').count(),0,'Do not repeat the heading');
    const heading=await page.getByRole('heading',{name:'Make your plan fit you.'}).boundingBox();
    const progress=await page.getByText('Area 1 of 7',{exact:true}).boundingBox();
    assert.ok(heading&&progress&&progress.y>heading.y+heading.height,'Progress must sit below the introduction');
@@ -521,7 +521,7 @@ try{
    await go(page,'/personalise');await page.locator('#demo').selectOption('all-seven');
    assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
    assert.equal(await page.getByText('Check or change my first answers',{exact:true}).count(),0);
-   assert.match(await page.locator('body').innerText(),/Your first 8 answers showed us where to start/);
+   assert.match(await page.locator('body').innerText(),/Answer a few more questions/);
    await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
    await page.locator('#takeawayOrder').fill('32');
    await page.locator('#takeawayOrdersPerWeek').fill('6');
@@ -532,7 +532,7 @@ try{
    assert.equal(await page.locator('section h2').last().innerText(),'Takeaway and eating out');
    assert.equal(await page.locator('#takeawayOrder').inputValue(),'32');
    assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
-   assert.match(await page.locator('body').innerText(),/A rough guess is fine/);
+   assert.match(await page.locator('body').innerText(),/Skip any amount you don't know/);
    await noOverflow(page);
   });
   await test('guided all-seven questionnaire and report '+viewport.width,async()=>{
@@ -760,7 +760,7 @@ try{
  await page.route('**/api/personalisation/draft',async route=>{const body=route.request().postDataJSON();if(body.revision!==revision){await route.fulfill({status:409,json:{error:'This plan changed in another tab. Reload before editing.'}});return;}saved=body.draft;calls++;revision=new Date(Date.UTC(2026,10,9,10,0,calls)).toISOString();await route.fulfill({json:{saved:true,revision}});});
  await test('paid drafts save, reload and go back within paid questions',async()=>{
   await go(page,'/success?session_id='+session);await page.waitForURL('**/personalise?**');
-  assert.match(await page.locator('body').innerText(),/You have already paid. There is no extra charge/);
+  assert.match(await page.locator('body').innerText(),/You've already paid\. No extra charge/);
   assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0);
   await page.locator('input[name=takeawayMealMode][value=takeaway]').check();
   await page.locator('#takeawayOrder').fill('120');
