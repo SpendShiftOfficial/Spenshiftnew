@@ -3,6 +3,7 @@ import Script from 'next/script';
 import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {isMarketingPath} from '@/lib/privacy';
+import {trackEvent} from '@/lib/gtag';
 export default function PublicAnalytics({enabled}:{enabled:boolean}){
  const pathname=usePathname();const [allowed,setAllowed]=useState(false);
  useEffect(()=>{
@@ -12,8 +13,27 @@ export default function PublicAnalytics({enabled}:{enabled:boolean}){
   (window as any).__spendshiftPublicTracking=ok;setAllowed(ok);
   // Full navigation creates a fresh, tracker-free document before any answers are entered.
   const leave=(event:MouseEvent)=>{const link=(event.target as Element)?.closest?.('a');if(!link)return;const url=new URL(link.href,location.href);if(url.origin===location.origin&&(!isMarketingPath(url.pathname)||url.search||url.hash)){event.preventDefault();event.stopImmediatePropagation();location.assign(url.href);}};
-  if(ok)window.addEventListener('click',leave,true);
-  return()=>window.removeEventListener('click',leave,true);
+  // Track the public call to action *before* the full navigation removes
+  // analytics from the private audit. No answers, IDs or URLs are transmitted.
+  const trackAuditCta=(event:MouseEvent)=>{
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const link=target.closest('a[href]');
+    if(!link)return;
+    const url=new URL(link.href,location.href);
+    if(url.origin===location.origin&&url.pathname.replace(/\/$/,'')==='/audit'&&!url.search&&!url.hash){
+      trackEvent('audit_cta_click');
+      window.clarity?.('event','audit_cta_click');
+    }
+  };
+  if(ok){
+    window.addEventListener('click',trackAuditCta,true);
+    window.addEventListener('click',leave,true);
+  }
+  return()=>{
+    window.removeEventListener('click',trackAuditCta,true);
+    window.removeEventListener('click',leave,true);
+  };
  },[pathname,enabled]);
  if(!allowed)return null;
  return (<><Script id="consent-default" strategy="afterInteractive">
