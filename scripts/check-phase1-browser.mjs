@@ -230,7 +230,24 @@ try{
    await noOverflow(choicePage);
    await context.close();
   });
-  await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
+  await test('unplanned shopping offers monthly frequency without inventing a problem '+viewport.width,async()=>{
+    await go(page,'/audit');
+    await page.getByRole('button',{name:'Start a new check'}).click();
+    const answers=['Never',"I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','1–2 times/month','Save more money'];
+    for(let i=0;i<answers.length;i++){
+      if(i===6){
+        assert.match(await page.locator('body').innerText(),/online orders, clothes or extra things/);
+        assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),1);
+        assert.equal(await page.getByRole('button',{name:'1–2 times/week',exact:true}).count(),1);
+      }
+      await page.getByRole('button',{name:answers[i],exact:true}).click();
+      await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
+    }
+    await page.waitForURL('**/results');
+    assert.match(await page.locator('body').innerText(),/don't recommend paying based on these answers alone/i);
+    await noOverflow(page);
+   });
+   await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
    await go(page,'/audit');
    assert.equal(await page.getByRole('button',{name:'Less than once a week',exact:true}).count(),0);
    await page.getByRole('button',{name:'Rarely',exact:true}).click();
@@ -486,7 +503,35 @@ try{
    assert.doesNotMatch(await meal.innerText(),/Takeaway or delivery/);
    await noOverflow(page);
   });
-  await test('insurance renewal and optional cover details have clear meanings '+viewport.width,async()=>{
+  await test('paid money arrows move by a dollar and exact cents are retained '+viewport.width,async()=>{
+    await go(page,'/personalise');
+    await page.locator('#demo').selectOption('takeaway-convenience');
+    await next(page);
+    const weekly=page.locator('#convenienceWeekly');
+    assert.equal(await weekly.getAttribute('step'),'1');
+    await weekly.fill('25');
+    await weekly.press('ArrowUp');
+    assert.equal(await weekly.inputValue(),'26');
+    await weekly.fill('26.75');
+    await page.locator('#convenienceGoalWeekly').fill('20.50');
+    await next(page);
+    assert.match(await page.locator('body').innerText(),/\$26\.75 a week/);
+    await page.getByRole('button',{name:'Check or edit small everyday buys'}).click();
+    assert.equal(await page.locator('#convenienceWeekly').inputValue(),'26.75');
+
+    await go(page,'/personalise');
+    await page.locator('#demo').selectOption('subscriptions-insurance');
+    await next(page);
+    const premium=page.locator('#policy-cost-0');
+    assert.equal(await premium.getAttribute('step'),'1');
+    await page.locator('#policy-type-0').selectOption('Life or income protection');
+    await page.locator('#policy-period-0').selectOption('month');
+    await premium.fill('82.45');
+    await next(page);
+    assert.match(await page.locator('body').innerText(),/\$82\.45 per month/);
+    await noOverflow(page);
+   });
+   await test('insurance renewal and optional cover details have clear meanings '+viewport.width,async()=>{
    await go(page,'/personalise');await page.locator('#demo').selectOption('subscriptions-insurance');
    await next(page);
    const screen=page.locator('section').first();
