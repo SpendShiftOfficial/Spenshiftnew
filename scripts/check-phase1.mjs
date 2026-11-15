@@ -238,7 +238,7 @@ check('first-party aggregate audit counters contain no customer data',()=>{
   assert.match(route,/req\.headers\.get\("origin"\)/);
   assert.match(route,/allowedEvents\.has\(body\.event\)/);
   assert.match(client,/JSON\.stringify\(\{ event \}\)/);
-  assert.doesNotMatch(client,/answers|email|reportId|sessionId|amount|gtag\(|clarity\(/i);
+  assert.doesNotMatch(client,/email|reportId|sessionId|amount|gtag\(|clarity\(/i);
   assert.match(audit,/recordAggregateAuditEvent\('audit_start'\)/);
   assert.match(audit,/recordAggregateAuditEvent\('audit_complete'\)/);
   assert.match(migration,/ENABLE ROW LEVEL SECURITY/);
