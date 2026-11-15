@@ -230,21 +230,30 @@ try{
    await noOverflow(choicePage);
    await context.close();
   });
-  await test('unplanned shopping offers monthly frequency without inventing a problem '+viewport.width,async()=>{
+  await test('unplanned shopping keeps four choices and a clear example '+viewport.width,async()=>{
     await go(page,'/audit');
     await page.getByRole('button',{name:'Start a new check'}).click();
-    const answers=['Never',"I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','1–2 times/month','Save more money'];
+    const answers=['Never',"I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
     for(let i=0;i<answers.length;i++){
       if(i===6){
-        assert.match(await page.locator('body').innerText(),/online orders, clothes or extra things/);
-        assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),1);
-        assert.equal(await page.getByRole('button',{name:'1–2 times/week',exact:true}).count(),1);
+        assert.match(await page.locator('body').innerText(),/Think of online orders, clothes or extra things you buy at the shops/);
+        assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
+        const choices=await page.locator('[role="group"] button').allTextContents();
+        assert.deepEqual(choices,['Rarely','1–2 times/week','3–5 times/week','Almost daily']);
       }
       await page.getByRole('button',{name:answers[i],exact:true}).click();
       await page.getByRole('button',{name:i===7?'See my free results':'Next question',exact:true}).click();
     }
     await page.waitForURL('**/results');
     assert.match(await page.locator('body').innerText(),/don't recommend paying based on these answers alone/i);
+    await go(page,'/audit');
+    await page.evaluate(()=>localStorage.setItem('spendshift_free_draft_v2',JSON.stringify({
+      answers:['Never',"I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','1–2 times/month'],
+      index:6,
+    })));
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await page.getByRole('button',{name:'Rarely',exact:true}).getAttribute('aria-pressed'),'true');
+    assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
     await noOverflow(page);
    });
    await test('monthly takeaway buyers can complete the free check '+viewport.width,async()=>{
