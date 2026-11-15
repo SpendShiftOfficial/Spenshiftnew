@@ -44,7 +44,7 @@ const rules: Record<PersonalisationArea, Rule> = {
     "I don't pay these bills": 0,
   }},
   unplanned: { index: 6, signals: {
-    "Rarely": 0, "1–2 times/week": 1, "3–5 times/week": 3, "Almost daily": 4,
+    "Rarely": 0, "1–2 times/month": 0, "1–2 times/week": 1, "3–5 times/week": 3, "Almost daily": 4,
   }},
 };
 
