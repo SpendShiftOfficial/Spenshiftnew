@@ -774,4 +774,34 @@ check('paid tracker does not annualise a single unplanned purchase or invent unu
  assert.match(report,/return \[\{ key: op\.area, title: op\.title \}\]/);
 });
 
+check('post-report feedback is optional, private, and never a testimonial without permission',()=>{
+ const report=fs.readFileSync('app/report/[id]/SimpleSavingsReport.tsx','utf8');
+ const component=fs.readFileSync('app/report/[id]/ReportFeedback.tsx','utf8');
+ const api=fs.readFileSync('app/api/report-feedback/route.ts','utf8');
+ const css=fs.readFileSync('app/report/[id]/simple-report.module.css','utf8');
+ const marketing=fs.readFileSync('components/SavingsOffer.tsx','utf8');
+ const results=fs.readFileSync('app/results/page.tsx','utf8');
+ assert.ok(report.indexOf('<ReportFeedback reportId={reportId} />')>report.indexOf('<SavingsTracker reportId={reportId}'));
+ assert.match(component,/How was your plan\?/);
+ assert.match(component,/Helpful/);
+ assert.match(component,/Needs work/);
+ assert.match(component,/Good or bad/);
+ assert.match(component,/Your feedback is private/);
+ assert.match(component,/We won't publish it without asking you first/);
+ assert.match(component,/if \(demo\)/);
+ assert.match(component,/maxLength=\{600\}/);
+ assert.doesNotMatch(marketing,/ReportFeedback/);
+ assert.doesNotMatch(results,/ReportFeedback/);
+ assert.match(api,/await readJson\(request, 1400\)/);
+ assert.match(api,/rpt_\[A-Za-z0-9_-\]/);
+ assert.match(api,/rating !== "helpful" && rating !== "needs_work"/);
+ assert.match(api,/comment\.length > 600/);
+ assert.match(api,/\.from\("report_orders"\)/);
+ assert.match(api,/\.eq\("status", "ready"\)/);
+ assert.match(api,/PHASE1_TEST_EMAILS/);
+ assert.match(api,/idempotencyKey/);
+ assert.match(api,/not permission to publish/);
+ assert.doesNotMatch(api,/customer_email|analytics|trackEvent/);
+ assert.match(css,/@media print \{ \.feedback \{ display:none/);
+});
 console.log('Phase 1 package: '+cases+' test groups passed.');
