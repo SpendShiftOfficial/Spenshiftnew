@@ -699,17 +699,18 @@ check('paid questions use plain, specific wording and treat all figures as estim
  assert.match(ui,/count=\(key:string,label:string,hint=''/);
 });
 
-check('monthly unplanned buys do not cause an assumed money problem',()=>{
+check('unplanned shopping stays simple and older monthly answers remain valid',()=>{
  const options=auditQuestions[6].options;
- assert.deepEqual(options,['Rarely','1–2 times/month','1–2 times/week','3–5 times/week','Almost daily']);
- const monthly=[...high];monthly[6]='1–2 times/month';
- assert.equal(validateAuditAnswers(monthly)[6],'1–2 times/month');
- assert.equal(auditPriorityScore('unplanned',monthly),0);
- assert.equal(selectPersonalisationAreas(monthly).includes('unplanned'),false);
- const old=[...high];old[6]='Rarely';
- assert.equal(validateAuditAnswers(old)[6],'Rarely');
+ assert.deepEqual(options,['Rarely','1–2 times/week','3–5 times/week','Almost daily']);
+ const legacy=[...high];legacy[6]='1–2 times/month';
+ assert.equal(validateAuditAnswers(legacy)[6],'1–2 times/month');
+ assert.equal(auditPriorityScore('unplanned',legacy),0);
+ assert.equal(selectPersonalisationAreas(legacy).includes('unplanned'),false);
+ const ordinary=[...high];ordinary[6]='Rarely';
+ assert.equal(validateAuditAnswers(ordinary)[6],'Rarely');
  const audit=fs.readFileSync('app/audit/page.tsx','utf8');
  assert.match(audit,/Think of online orders, clothes or extra things you buy at the shops/);
+ assert.match(audit,/i===6&&a==='1–2 times\/month'\?'Rarely':a/);
 });
 check('one-dollar spinner steps keep exact typed cents and bill calculations',()=>{
  const paid=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
