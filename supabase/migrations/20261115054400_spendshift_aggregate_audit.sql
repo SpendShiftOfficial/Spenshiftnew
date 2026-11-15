@@ -52,7 +52,7 @@ GRANT SELECT, INSERT, UPDATE ON public.spendshift_report_daily TO service_role;
 CREATE OR REPLACE FUNCTION public.spendshift_increment_report_daily(p_event text)
 RETURNS void LANGUAGE plpgsql SECURITY INVOKER
 SET search_path = pg_catalog, public
-AS $
+AS $$
 BEGIN
   IF p_event IS NULL OR p_event NOT IN
      ('report_open', 'checklist_interaction', 'tracker_saved', 'feedback_sent') THEN
@@ -63,7 +63,7 @@ BEGIN
   ON CONFLICT (event_date, event_name)
   DO UPDATE SET event_count = public.spendshift_report_daily.event_count + 1;
 END
-$;
+$$;
 
 REVOKE ALL ON FUNCTION public.spendshift_increment_report_daily(text)
   FROM PUBLIC, anon, authenticated;
