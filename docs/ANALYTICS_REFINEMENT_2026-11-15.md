@@ -55,9 +55,9 @@ Do not silently add Measurement Protocol purchase events: without confirmed cons
 ## Acceptance checks
 
 - Production `main` must remain unchanged until reviewed and approved.
-- On a properly isolated Vercel Preview, accepting optional cookies on `/reduce-electricity-bill-australia` and `/cancel-unused-subscriptions-australia` should load the existing GA4 and Clarity installations.
-- Rejecting optional cookies should not load either tracker.
-- With consent granted, clicking "Start my free savings check" on a public page should record `audit_cta_click` in GA4 Realtime / DebugView and Clarity smart events. Clarity loads lazily, so an extremely fast click may be missed by Clarity.
+- On Vercel Preview, GA4 and Clarity must remain disabled regardless of consent: the existing root layout explicitly enables public analytics only in Production. The preview can verify page rendering, safe code paths and automated regression tests but cannot send real GA4/Clarity events.
+- After an explicitly approved Production deployment, accepting optional cookies on `/reduce-electricity-bill-australia` and `/cancel-unused-subscriptions-australia` should load the existing GA4 and Clarity installations. Rejecting optional cookies should not load either tracker.
+- After an approved Production deployment, clicking "Start my free savings check" on a public page with consent granted should record `audit_cta_click` in GA4 Realtime / DebugView and Clarity smart events. Clarity loads lazily, so an extremely fast click may be missed by Clarity.
 - `/audit`, `/results`, `/success`, `/personalise`, `/report/...` and `/api/...` must not load third-party analytics scripts.
 - No private page URLs, query strings, financial answers, checkout IDs or report IDs should appear in GA4 / Clarity parameters.
 - Browser tests and TypeScript/build checks must pass. The newly created Git branch needs its own isolated Vercel Preview environment overrides before testing any paid flows; it must not inherit production payment/database credentials into Preview.
