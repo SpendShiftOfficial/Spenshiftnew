@@ -498,15 +498,18 @@ check('free audit separates meals from small treats, and goal drives free orderi
  const habits=[...high];habits[7]='Stop money disappearing so fast';
  assert.notDeepEqual(analyseSavings(bill,emptyRefinements()).opportunities.map(o=>o.area),analyseSavings(habits,emptyRefinements()).opportunities.map(o=>o.area));
 });
-check('paid first step explains why and has no Previous or free-audit escape',()=>{
+check('paid first step uses short instructions and no Previous or free-audit escape',()=>{
  const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
  assert.doesNotMatch(ui,/Check or change my first answers/);
  assert.doesNotMatch(ui,/auditReviewIndex|setAuditReviewIndex/);
  assert.doesNotMatch(ui,/import \{auditQuestions,/);
- assert.match(ui,/A few more details\. A plan made for you\./);
- assert.match(ui,/Your first 8 answers showed us where to start/);
- assert.match(ui,/A rough guess is fine/);
- assert.match(ui,/There is no extra charge/);
+ assert.match(ui,/Answer a few more questions/);
+ assert.match(ui,/Skip any amount you don't know/);
+ assert.match(ui,/We'll save your answers as you go/);
+ assert.match(ui,/You've already paid\. No extra charge/);
+ assert.doesNotMatch(ui,/A few more details\. A plan made for you\./);
+ assert.doesNotMatch(ui,/We’ll go through them one at a time/);
+ assert.match(ui,/aria-label="Before you start"/);
  assert.match(ui,/draft\.step===0&&!review/);
  assert.match(ui,/draft\.step>0&&<button className=\{styles\.secondary\} type='button' onClick=\{previous\}>Previous question/);
  assert.match(ui,/function previous\(\)\{if\(draft\.step===0\)return;/);
