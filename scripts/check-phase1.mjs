@@ -218,6 +218,16 @@ check('free results make the A$29 upgrade clear without hiding the free check',(
 });
 check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:29}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
 check('private layout does not load measurement scripts',()=>{const layout=fs.readFileSync('app/layout.tsx','utf8');assert.doesNotMatch(layout,/googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/plan-preview/);assert.match(fs.readFileSync('components/PublicAnalytics.tsx','utf8'),/isMarketingPath/);});
+check('consented public analytics covers new guides and measures audit CTA safely',()=>{
+  for(const path of ['/','/pricing','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia']) assert.equal(isMarketingPath(path),true);
+  for(const path of ['/audit','/results','/success','/personalise','/report/rpt_private','/api/analytics-event']) assert.equal(isMarketingPath(path),false);
+  const ga=fs.readFileSync('lib/gtag.ts','utf8');
+  const publicAnalytics=fs.readFileSync('components/PublicAnalytics.tsx','utf8');
+  assert.match(ga,/audit_cta_click/);
+  assert.match(publicAnalytics,/trackEvent\('audit_cta_click'\)/);
+  assert.match(publicAnalytics,/window\.clarity\?\.\('event','audit_cta_click'\)/);
+  assert.match(publicAnalytics,/if\(ok\)/);
+});
 check('checkout validates before calling Stripe and does not leak provider errors',()=>{const route=fs.readFileSync('app/api/checkout/route.ts','utf8');assert.ok(route.indexOf('validateAuditAnswers(data.answers)')<route.indexOf('.checkout.sessions.create'));assert.match(route,/acceptedTerms/);assert.match(route,/idempotencyKey/);assert.doesNotMatch(route,/error: e\.message/);});
 check('checkout pause does not block existing paid access',()=>{assert.doesNotMatch(fs.readFileSync('lib/paid-orders.ts','utf8'),/SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS/);});
 check('recovery leaves unpaid and unfinished drafts untouched',()=>{const cron=fs.readFileSync('app/api/cron/recover-paid-reports/route.ts','utf8');assert.match(cron,/refinements->>completed/);assert.match(cron,/completed===true/);assert.match(fs.readFileSync('lib/report-fulfillment.ts','utf8'),/Please finish or skip the questions/);});
