@@ -32,9 +32,9 @@ function insuranceAnnual(policy: InsuranceRefinement): number {
 function insuranceTip(type: string): string {
   if (type === "Car") return "Check the car's value, who can drive it, and what you pay if you claim.";
   if (type === "CTP / Green Slip") return "CTP generally covers injuries, not damage to your car. Check your state's requirements and the cover offered.";
-  if (type === "Home or contents") return "Check what your home and things are covered for. Look closely at flood and storm cover.";
+  if (type === "Home or contents") return "Check how much your home or belongings are insured for. Is it enough to rebuild or replace them? Check what is not covered, especially flood and storm damage.";
   if (type === "Health") return "Check hospital cover, waiting times, and extras you use. Don't drop cover just to pay less.";
-  if (type === "Life or income protection") return "Check when the cover pays, what it leaves out, and any waiting time. Get advice before dropping cover.";
+  if (type === "Life or income protection") return "Check how much you are covered for, what is not covered, and any waiting time. Speak to a licensed financial adviser before changing or cancelling this cover.";
   if (type === "Pet") return "Check yearly limits, what care is not covered, and what you pay for a claim.";
   if (type === "Travel") return "Check your trip dates, medical cover, and activities that are not covered.";
   return "Check what is covered, what is not, and what you pay for a claim.";
