@@ -96,7 +96,9 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
         ? "Start with your " + firstName + price + (first.renewal === "soon" ? ". It renews in the next 3 months." : ". Find its current cover.")
         : "Find the price and renewal date for your " + firstName + " in your insurer's app or renewal email.",
       "Ask for two quotes with the same cover and what you'd pay if you claim. Get the full yearly price.",
-      "Compare what's not covered and any fees before switching. Keep the protection you need.",
+      first?.type === "Life or income protection"
+        ? "Speak to a licensed financial adviser before changing or cancelling life or income protection cover."
+        : "Compare what's not covered and any fees before switching. Keep the protection you need.",
     ];
   }
   if (op.area === "phone") {
