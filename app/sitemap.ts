@@ -1,28 +1,30 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = "https://www.spendshift.com.au";
+const origin = "https://www.spendshift.com.au";
 
-const routes = [
-  "/",
-  "/how-it-works",
-  "/why-spendshift",
-  "/pricing",
-  "/whats-included",
-  "/save-money-australia",
-  "/services",
-  "/financial-information-ai-disclaimer",
-  "/privacy-policy",
-  "/terms-and-conditions",
-  "/cookies",
-  "/refund-policy",
-  "/audit",
+// Use a date only when the page content has been meaningfully updated.
+// Do not fabricate a fresh lastmod for legal pages on each build.
+const entries: Array<{ path: string; lastModified?: string }> = [
+  { path: "/", lastModified: "2026-11-14" },
+  { path: "/how-it-works", lastModified: "2026-11-14" },
+  { path: "/why-spendshift", lastModified: "2026-11-14" },
+  { path: "/pricing", lastModified: "2026-11-14" },
+  { path: "/whats-included", lastModified: "2026-11-14" },
+  { path: "/services", lastModified: "2026-11-14" },
+  { path: "/save-money-australia", lastModified: "2026-11-14" },
+  { path: "/reduce-electricity-bill-australia", lastModified: "2026-11-14" },
+  { path: "/cancel-unused-subscriptions-australia", lastModified: "2026-11-14" },
+  { path: "/financial-information-ai-disclaimer" },
+  { path: "/privacy-policy" },
+  { path: "/terms-and-conditions" },
+  { path: "/cookies" },
+  { path: "/refund-policy" },
 ];
 
+// Private /audit, /results, /personalise and report routes are deliberately excluded.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: route === "/" ? 1 : 0.8,
+  return entries.map(({ path, lastModified }) => ({
+    url: origin + path,
+    ...(lastModified ? { lastModified } : {}),
   }));
 }

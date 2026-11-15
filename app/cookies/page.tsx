@@ -112,15 +112,24 @@ export default function CookiePolicy() {
                         referral sources and website performance.
                       </td>
                       <td>
-                        Google Analytics first-party analytics cookies and
-                        related identifiers.
-                      </td>
+                Google Analytics and Microsoft Clarity analytics technologies and related identifiers.
+              </td>
                       <td>
                         Yes, through browser settings, Google opt-out tools or
                         consent controls where provided.
                       </td>
                     </tr>
 
+                    <tr>
+                      <td>Advertising measurement</td>
+                      <td>
+                        Measure visits and campaign results on eligible
+                        public marketing pages when you accept optional
+                        cookies.
+                      </td>
+                      <td>Meta Pixel and TikTok Pixel.</td>
+                      <td>Yes. These tools require your optional consent.</td>
+                    </tr>
                     <tr>
                       <td>Payment and fraud prevention</td>
                       <td>
@@ -147,20 +156,14 @@ export default function CookiePolicy() {
                 </table>
               </div>
 
-              <h3>4. Google Analytics</h3>
+              <h3>4. Analytics and advertising measurement</h3>
 
               <p>
-                We use Google Analytics to understand how people use the
-                website. Google Analytics may collect information such as IP
-                address, device and browser details, approximate location, pages
-                viewed, events, referral source and timestamps.
+                On eligible public marketing pages, Google Analytics and Microsoft Clarity help us understand website use, and Meta Pixel and TikTok Pixel measure marketing activity. These scripts load only after you accept optional cookies. Depending on the provider, they may collect device, browser, approximate location, page-view, event, referral and timestamp information. They do not run on free-check, free-results, paid-questionnaire or private-plan pages.
               </p>
 
               <p>
-                Google may process this information in accordance with its own
-                terms and privacy documentation. We use analytics to improve the
-                website, measure conversion performance and diagnose usability
-                issues.
+                These providers may process information under their own terms and privacy documents. We use measurement to improve public pages and marketing. We do not intentionally send your free-check answers, email address, paid-plan details or private report links to these measurement services.
               </p>
 
               <h3>5. Stripe Checkout</h3>
@@ -184,8 +187,8 @@ export default function CookiePolicy() {
 
               <ul>
                 <li>
-                  using any cookie or consent controls displayed on the website;
-                </li>
+                accepting or rejecting optional technologies through the website's cookie controls, which you can reopen from the footer;
+              </li>
 
                 <li>
                   changing browser settings to block, restrict or delete
@@ -235,7 +238,7 @@ export default function CookiePolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 14 July 2026</strong>
+                <strong>Last updated: 14 November 2026</strong>
               </p>
             </div>
           </div>

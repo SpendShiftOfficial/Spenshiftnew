@@ -66,17 +66,13 @@ export default function FinancialInformationAIDisclaimer() {
               </p>
 
               <p>
-                The fact that a report is described as personalised means it is
-                generated from your audit answers. It does not mean SpendShift
-                has completed the investigation or suitability assessment that
-                a licensed professional may be required to perform.
+                A plan is personalised because it uses your eight free-check answers and the optional details you choose to add. Unknown costs may be skipped. It does not mean SpendShift has considered all your circumstances or completed the suitability assessment that a licensed professional may be required to perform.
               </p>
 
               <h3>3. Estimates are not guarantees</h3>
 
               <p>
-                All savings figures, ranges, impact levels, confidence
-                indicators, comparisons and time estimates are indicative only.
+                Possible savings figures, where shown, are conditional calculations based on known costs and assumptions. When important figures are missing, SpendShift does not calculate a saving from those missing values.
               </p>
 
               <p>
@@ -88,19 +84,13 @@ export default function FinancialInformationAIDisclaimer() {
               </p>
 
               <p>
-                Phrases such as “recoverable cash”, “money leak”, “potential
-                annual savings”, “could save” or “what this could mean”
-                describe estimated opportunities, not money already owed to you
-                or guaranteed to be recovered.
+                Words such as “money leak”, “possible saving” and “could save” refer to things worth reviewing or conditional estimates, not money already saved, money owed to you or guaranteed results.
               </p>
 
               <h3>4. Artificial intelligence (“AI”)</h3>
 
               <p>
-                Reports are generated with assistance from Anthropic’s Claude
-                Application Programming Interface and automated rules.
-                AI-generated content can be wrong, incomplete, outdated or
-                unsuitable.
+                The current A$29 plan uses automated rules, calculations and prepared guidance. It does not call the Anthropic Claude API to generate new plans. Earlier versions may have included AI-assisted report text. Automated or earlier AI-generated content may be wrong, incomplete or outdated.
               </p>
 
               <p>
@@ -113,9 +103,7 @@ export default function FinancialInformationAIDisclaimer() {
               <h3>5. Provider, price and product information</h3>
 
               <p>
-                Any reference to a bank, insurer, telecommunications provider,
-                comparison service, subscription service, retailer, product or
-                price is illustrative unless expressly stated otherwise.
+                SpendShift does not connect to bank accounts, independently check live prices, rank live offers or switch providers on your behalf. References to products, providers or prices are examples or sources for you to check independently unless clearly stated otherwise.
               </p>
 
               <p>
@@ -194,7 +182,7 @@ export default function FinancialInformationAIDisclaimer() {
               </p>
 
               <p>
-                <strong>Last updated: 14 July 2026</strong>
+                <strong>Last updated: 14 November 2026</strong>
               </p>
             </div>
           </div>

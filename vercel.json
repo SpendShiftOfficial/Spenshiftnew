@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/recover-paid-reports",
+      "schedule": "0 1 * * *"
+    }
+  ]
+}

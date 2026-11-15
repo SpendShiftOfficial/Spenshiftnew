@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {isMarketingPath} from "@/lib/privacy";
 
 const CONSENT_KEY = "spendshift_cookie_consent";
 
@@ -24,7 +25,9 @@ export default function ConsentBanner() {
 const [visible, setVisible] = useState(false);
 
 useEffect(() => {
-const saved = localStorage.getItem(CONSENT_KEY) as ConsentChoice | null;
+if (!isMarketingPath(window.location.pathname)) return;
+let saved: ConsentChoice | null = null;
+try { saved = localStorage.getItem(CONSENT_KEY) as ConsentChoice | null; } catch {}
 
 if (saved === "granted" || saved === "denied") {
 updateGoogleConsent(saved);
@@ -46,11 +49,8 @@ window.removeEventListener("open-cookie-settings", openCookieSettings);
 }, []);
 
 function saveConsent(choice: ConsentChoice) {
-const previousChoice = localStorage.getItem(
-CONSENT_KEY
-) as ConsentChoice | null;
-
-localStorage.setItem(CONSENT_KEY, choice);
+let previousChoice:ConsentChoice|null=null;try{previousChoice=localStorage.getItem(CONSENT_KEY) as ConsentChoice|null;}catch{}
+try { localStorage.setItem(CONSENT_KEY, choice); } catch {}
 updateGoogleConsent(choice);
 
 const consentChanged =

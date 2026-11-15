@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Pricing - Free Audit & A$39 Savings Report",
-  description:
-    "Start with SpendShift's free 2-minute savings audit,then unlock your full personalised savings report for A$39 - one-time payment, no subscription.",
+  title: "Pricing: Free Check & A$29 Savings Plan",
+  description: "The SpendShift savings check is free. Upgrade after your results to a personalised A$29 plan. Pay once, with no subscription or recurring charge.",
+  alternates: { canonical: "https://www.spendshift.com.au/pricing" },
 };
 
 export default function PricingLayout({ children }: { children: ReactNode }) {

@@ -1,5 +1,8 @@
 import type React from "react";
 import Header from "@/components/Header";
+import SimpleSavingsReport from "./SimpleSavingsReport";
+import { validateRefinements } from "@/lib/report-refinements";
+import type { SavingsAnalysis } from "@/lib/savings-engine";
 import { supabaseAdmin } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import {
@@ -28,13 +31,12 @@ function cleanOldJson(report: string): string {
   }
 }
 
-function getSavings(report: string): string {
-  const match = report.match(/\$[\d,]+\/year/);
-  return match ? match[0] : "$4,276/year";
-}
-
-function getSavingsNumber(savings: string): number {
-  return Number(savings.replace("$", "").replace(",", "").replace("/year", ""));
+function getLegacySavingsNumber(report: string): number | null {
+  // Only accept a number explicitly present in the old report's total section.
+  const match = report.match(/## Estimated Annual Savings\s+\$([\d,]+)\/year/);
+  if (!match) return null;
+  const value = Number(match[1].replace(/,/g, ""));
+  return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
 function getSavingsEquivalent(amount: number) {
@@ -296,6 +298,7 @@ export default async function ReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  if (!/^rpt_[A-Za-z0-9_-]{8,72}$/.test(id)) notFound();
 
   const { data } = await supabaseAdmin
     .from("reports")
@@ -305,10 +308,64 @@ export default async function ReportPage({
 
   if (!data) notFound();
 
+  // Use the new short, action-first report for structured Phase 1 reports.
+  // Older saved reports without a structured summary keep their old renderer.
+  const saved = data.savings_summary;
+  if (saved && typeof saved === "object" && Array.isArray(saved.opportunities) &&
+      Array.isArray(data.answers) && data.answers.length === 8 &&
+      saved.opportunities.every((o: any) =>
+        o && typeof o.area === "string" &&
+        ["subscriptions", "insurance", "takeaway", "convenience", "phone", "energy", "unplanned"].includes(o.area) &&
+        typeof o.title === "string" && typeof o.firstAction === "string")) {
+    const refinements = validateRefinements(data.refinements);
+    const analysis: SavingsAnalysis = {
+      opportunities: saved.opportunities,
+      estimatedAnnualScenario: typeof saved.estimatedAnnualScenario === "number"
+        ? saved.estimatedAnnualScenario : null,
+      disclaimer: typeof saved.disclaimer === "string" ? saved.disclaimer : "",
+    };
+    return (
+      <div className="auditPage">
+        <Header simple />
+        <SimpleSavingsReport
+          reportId={id}
+          answers={data.answers}
+          analysis={analysis}
+          refinements={refinements}
+          revisionCount={typeof saved.revision_count === "number" ? saved.revision_count : 0}
+        />
+      </div>
+    );
+  }
+
   const reportText = cleanOldJson(data.report);
-  const savings = getSavings(reportText);
-  const savingsNumber = getSavingsNumber(savings);
-  const equivalent = getSavingsEquivalent(savingsNumber);
+  const model = data.savings_summary && typeof data.savings_summary === "object"
+    ? data.savings_summary as { estimatedAnnualScenario?: number | null; firstAction?: string }
+    : null;
+  const savingsNumber = model
+    ? (typeof model.estimatedAnnualScenario === "number" && Number.isFinite(model.estimatedAnnualScenario)
+      ? model.estimatedAnnualScenario : null)
+    : getLegacySavingsNumber(reportText);
+  const savings = savingsNumber === null
+    ? "To be verified"
+    : "$" + savingsNumber.toLocaleString("en-AU") + "/year";
+  const equivalent = model ? {
+    label: "Your next best action",
+    title: model.firstAction || "Review one bill or recurring charge.",
+    items: [
+      "Confirm the actual amount you currently pay",
+      "Compare equivalent alternatives before switching",
+      "Only count savings you have genuinely achieved",
+    ],
+  } : savingsNumber !== null ? getSavingsEquivalent(savingsNumber) : {
+    label: "Where to start",
+    title: "Check your top spending opportunity",
+    items: [
+      "Review your latest bills",
+      "Compare like-for-like options",
+      "Track confirmed savings only",
+    ],
+  };
 
   return (
     <div className="auditPage">
@@ -344,7 +401,7 @@ export default async function ReportPage({
 
                 <span>
                   <Sparkles size={18} color="#059625" />
-                  AI-generated insights
+                  Personalised insights
                 </span>
 
                 <span>
@@ -360,11 +417,10 @@ export default async function ReportPage({
                 backgroundImage: "url('/result/panelbg.png')",
               }}
             >
-              <span className="badge">Total Recoverable Cash Found</span>
+              <span className="badge">{model ? "Conditional savings scenario" : "Savings estimate"}</span>
               <h2>{savings}</h2>
               <p>
-                Your report includes priority leaks, action steps, scripts, and
-                a 30-day savings plan.
+                {model ? "Any figure shown is a conditional illustration, not money already recovered." : "Your report includes estimated opportunities, next steps and a savings plan."}
               </p>
 
               <div className="savingsEquivalent">
@@ -391,7 +447,7 @@ export default async function ReportPage({
               <div className="summaryBox">
                 <FileText size={34} color="#059625" />
                 <div>
-                  <b>Potential annual savings</b>
+                  <b>{model ? "Illustrative annual savings" : "Potential annual savings"}</b>
                   <strong>{savings}</strong>
                 </div>
               </div>

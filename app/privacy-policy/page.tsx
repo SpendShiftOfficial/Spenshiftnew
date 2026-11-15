@@ -38,12 +38,7 @@ export default function PrivacyPolicy() {
               <h3>1. Introduction</h3>
 
               <p>
-                This Privacy Policy explains how SpendShift Enterprises Pty Ltd
-                ACN 689 089 610 (“SpendShift”, “we”, “us” or “our”) collects,
-                holds, uses, discloses and protects personal information in
-                connection with www.spendshift.com.au, the SpendShift audit,
-                personalised savings reports, payment processing, report
-                delivery and related services.
+                This Privacy Policy explains how SpendShift Enterprises Pty Ltd ACN 689 089 610 (“SpendShift”, “we”, “us” or “our”) collects, holds, uses, discloses and protects personal information in connection with the website, the free savings check, optional personalised savings plans, payments, delivery and related services.
               </p>
 
               <p>
@@ -94,6 +89,13 @@ export default function PrivacyPolicy() {
                   internet or mobile plan review habits, electricity or gas plan comparison
                   habits, unplanned purchases and your stated savings goal;
                 </li>
+                <li>
+                  optional paid-report details you choose to provide, such as
+                  approximate electricity, gas, internet and mobile bills,
+                  subscription and takeaway costs, insurance types and premiums,
+                  insurer names, short cover descriptions and other spending
+                  categories you ask us to review;
+                </li>
 
                 <li>
                   your email address, including the email address collected
@@ -109,9 +111,8 @@ export default function PrivacyPolicy() {
                 </li>
 
                 <li>
-                  the generated personalised report, estimated savings figures,
-                  report URL and report access information;
-                </li>
+                the generated savings plan, any conditional savings figures, checklist and savings tracker records, private report URL and report access information;
+              </li>
 
                 <li>
                   communications you send to us, including support, refund,
@@ -119,12 +120,8 @@ export default function PrivacyPolicy() {
                 </li>
 
                 <li>
-                  technical and usage information, such as IP address, device
-                  and browser information, operating system, referring page,
-                  pages viewed, approximate location, session information,
-                  timestamps and website interaction data collected through
-                  server logs, hosting systems and Google Analytics;
-                </li>
+                technical and usage information such as IP address, device, browser, approximate location, referral source, pages viewed and timestamps. On eligible public pages, optional Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel may also collect usage and event information if you accept optional cookies;
+              </li>
 
                 <li>
                   cookie and similar technology information described in our
@@ -135,10 +132,7 @@ export default function PrivacyPolicy() {
               </ul>
 
               <p>
-                SpendShift does not receive or store your any payment card
-                number or security code. Those details are handled by Stripe
-                and, where used, Apple Pay and other relevant financial
-                institutions.
+                SpendShift does not receive or store your payment card number or security code. Stripe and, where applicable, other payment providers handle those details. Free-check answers are stored in your browser to show results. If you buy a plan, the answers and any additional details you provide are stored by our systems to create and save the plan.
               </p>
 
               <h3>4. How we collect personal information</h3>
@@ -185,9 +179,8 @@ export default function PrivacyPolicy() {
                 <li>operate the website and provide the free audit;</li>
 
                 <li>
-                  send audit answers to an artificial-intelligence (“AI”)
-                  provider so a personalised report can be generated;
-                </li>
+                produce personalised savings plans using automated rules, calculations and the answers and optional details you choose to provide;
+              </li>
 
                 <li>
                   calculate, present and explain estimated savings opportunities
@@ -243,28 +236,15 @@ export default function PrivacyPolicy() {
               <h3>6. AI and automated report generation</h3>
 
               <p>
-                SpendShift uses Anthropic’s Claude Application Programming
-                Interface (“API”) to assist with generating personalised
-                reports. The audit answers and related instructions necessary
-                to generate the report are transmitted to Anthropic for
-                processing.
+                The current A$29 personalised plan is generated using server-side rules and calculations based on your answers and optional details. It does not call the Anthropic Claude API for new plans, and the current generation process does not send your answers to Claude. Earlier versions may have used Claude to help write report explanations.
               </p>
 
               <p>
-                The report is generated using automated technology and may
-                contain errors, omissions, generalisations or estimates. The
-                use of AI does not preclude you from being required to review
-                the report critically and verify information before acting on
-                it. You must do your own due diligence before seeking to rely
-                on SpendShift reports or products.
+                The plan is prepared using automated technology and may contain errors, omissions or conditional estimates. Check important figures, contract terms and provider information independently before acting on it.
               </p>
 
               <p>
-                We do not intentionally use customer audit answers to train our
-                own machine-learning model. Anthropic may process and
-                temporarily retain API inputs and outputs in accordance with
-                its commercial terms, privacy documentation and security
-                practices.
+                We do not train a SpendShift machine-learning model on customer answers. Any data processed by Anthropic for earlier reports may have been retained under its applicable terms and privacy practices.
               </p>
 
               <h3>7. Third-party service providers</h3>
@@ -276,9 +256,8 @@ export default function PrivacyPolicy() {
 
               <ul>
                 <li>
-                  Anthropic PBC (“Anthropic”), for AI processing and report
-                  generation;
-                </li>
+                Anthropic PBC (“Anthropic”), where relevant to earlier AI-assisted reports;
+              </li>
                 <li>
                   Supabase Inc. (“Supabase”), for database and report storage;
                 </li>
@@ -300,9 +279,11 @@ export default function PrivacyPolicy() {
                   security and performance;
                 </li>
                 <li>
-                  Google Analytics and related Google LLC services, for website
-                  analytics;
-                </li>
+                Google Analytics and related Google LLC services, and Microsoft Clarity, for optional public-page analytics;
+              </li>
+              <li>
+                Meta Pixel and TikTok Pixel, for optional marketing measurement on eligible public pages, after consent;
+              </li>
                 <li>
                   professional advisers, insurers, accountants, auditors and
                   lawyers; and
@@ -330,12 +311,7 @@ export default function PrivacyPolicy() {
               <h3>8. Overseas processing and disclosure</h3>
 
               <p>
-                Some of our service providers operate or use infrastructure
-                outside Australia. As a result, personal information may be
-                processed, accessed or stored in countries other than Australia,
-                including the United States as well as other locations in which
-                Anthropic, Stripe, Vercel, Supabase, Resend, Google or their
-                subprocessors operate.
+                Some of our service providers operate or use infrastructure outside Australia. Personal information may be processed, accessed or stored in the United States and other countries where Stripe, Supabase, Vercel, Resend, Google, Microsoft, Meta, TikTok or, for earlier reports where applicable, Anthropic and their subprocessors operate.
               </p>
 
               <p>
@@ -349,10 +325,12 @@ export default function PrivacyPolicy() {
               <h3>9. Storage and retention</h3>
 
               <p>
-                Generated reports, audit answers, associated email addresses
-                and relevant transaction identifiers are stored in Supabase.
-                Each report is generated once and may be accessed again through
-                its saved report URL.
+                Generated reports, audit answers, optional paid-report details,
+                report calculation summaries, associated email addresses
+                and relevant purchase identifiers are stored in Supabase.
+                Paid orders may also be held in a processing queue so a report
+                can be delivered if a customer closes the website after payment.
+                Each saved report can be accessed again through its report URL.
               </p>
 
               <p>
@@ -412,13 +390,7 @@ export default function PrivacyPolicy() {
               <h3>12. Cookies and analytics</h3>
 
               <p>
-                We and our service providers may use cookies, pixels, local
-                storage, server logs and similar technologies. Google Analytics
-                may use first-party analytics cookies. Stripe may use cookies
-                and similar technologies when you visit Stripe Checkout for
-                checkout functionality, security and fraud prevention. Vercel
-                and other infrastructure providers may use essential
-                technologies for security and operation.
+                We and our providers use browser storage, cookies, pixels, logs and similar technologies. On eligible public marketing pages, optional Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel scripts load only after you accept optional cookies. They do not load on the free check, free results, paid questionnaire or private report pages. Stripe and infrastructure providers may use necessary technologies for payment, security and fraud prevention.
               </p>
 
               <p>
@@ -495,7 +467,7 @@ export default function PrivacyPolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 9 August 2026</strong>
+                <strong>Last updated: 14 November 2026</strong>
               </p>
 
             </div>
