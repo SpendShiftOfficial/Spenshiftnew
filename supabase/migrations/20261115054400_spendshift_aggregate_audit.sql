@@ -76,7 +76,7 @@ GRANT EXECUTE ON FUNCTION public.spendshift_increment_report_daily(text)
 CREATE OR REPLACE FUNCTION public.spendshift_prune_analytics_daily()
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER
 SET search_path = pg_catalog, public
-AS $
+AS $$
 DECLARE
   audit_removed bigint := 0;
   report_removed bigint := 0;
@@ -88,7 +88,7 @@ BEGIN
   GET DIAGNOSTICS report_removed = ROW_COUNT;
   RETURN jsonb_build_object('audit_deleted',audit_removed,'report_deleted',report_removed);
 END
-$;
+$$;
 
 REVOKE ALL ON FUNCTION public.spendshift_prune_analytics_daily() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.spendshift_prune_analytics_daily() TO service_role;
