@@ -185,7 +185,9 @@ export default function CookiePolicy() {
                 may separately process technical request details such as
                 IP addresses for operations and abuse protection.
                 Rejecting optional cookies also disables these
-                first-party activity counts.
+                first-party activity counts. We keep optional daily
+                analytics totals for up to 180 days and delete older
+                totals using our daily maintenance process.
               </p>
 
               <h3>5. Stripe Checkout</h3>
