@@ -355,8 +355,10 @@ export default function PrivacyPolicy() {
 
                 Optional analytics totals are held separately from purchase
                 and report records. They contain only dates, action types and
-                totals. We will review the period for keeping these counts
-                and delete them when they are no longer needed.
+                totals. We keep these optional analytics totals for up to
+                180 days. Our daily maintenance process removes older
+                totals. Purchase, tax and report records have separate
+                retention requirements.
               </p>
 
               <h3>10. Report links and access security</h3>
