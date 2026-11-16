@@ -6,7 +6,7 @@ export const auditQuestions = [
  {q:'How often do you buy coffee, snacks or other small treats?', options:['Rarely','1–2 times/week','3–5 times/week','Daily']},
  {q:'When did you last check your phone or internet price?', options:['Within 6 months','6-12 months ago','Over a year ago',"I honestly don't know","I don't pay either of these bills"]},
  {q:'When did you last check your power or gas price?', options:['Within 6 months','6-12 months ago','Over a year ago',"I honestly don't know","I don't pay these bills"]},
- {q:"How often do you buy things you didn't plan to buy while shopping? (Like clothes or online orders.)", options:['Rarely','1–2 times/week','3–5 times/week','Almost daily']},
+ {q:"How often do you buy things you didn't plan to buy, like clothes or online orders?", options:['Rarely','1–2 times/week','3–5 times/week','Almost daily']},
  {q:'What would help you most right now?', options:['Lower my bills','Save more money','Reduce stress','Stop money disappearing so fast','Feel more financially in control']},
 ];
 const normal = (s:string) => s.replace(/[‘’]/g,"'").replace(/[–—]/g,'-').trim();
