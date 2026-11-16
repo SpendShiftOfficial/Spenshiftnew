@@ -276,6 +276,26 @@ check('first-party report usage is gated, validated and aggregate-only',()=>{
   assert.equal(isMarketingPath('/report/rpt_private'),false);
   assert.equal(isMarketingPath('/api/report-metric'),false);
 });
+check('180-day first-party analytics retention is server-only and isolated',()=>{
+  const migration=fs.readFileSync('supabase/migrations/20261115054400_spendshift_aggregate_audit.sql','utf8');
+  const cron=fs.readFileSync('app/api/cron/recover-paid-reports/route.ts','utf8');
+  const schedule=fs.readFileSync('vercel.json','utf8');
+  const privacy=fs.readFileSync('app/privacy-policy/page.tsx','utf8');
+  const cookies=fs.readFileSync('app/cookies/page.tsx','utf8');
+  assert.match(migration,/CREATE OR REPLACE FUNCTION public\.spendshift_prune_analytics_daily\(\)/);
+  assert.match(migration,/cutoff date := \(now\(\) AT TIME ZONE 'Australia\/Sydney'\)::date - 180/);
+  assert.match(migration,/DELETE FROM public\.spendshift_audit_daily WHERE event_date <= cutoff/);
+  assert.match(migration,/DELETE FROM public\.spendshift_report_daily WHERE event_date <= cutoff/);
+  assert.match(migration,/REVOKE ALL ON FUNCTION public\.spendshift_prune_analytics_daily\(\) FROM PUBLIC, anon, authenticated/);
+  assert.match(migration,/GRANT EXECUTE ON FUNCTION public\.spendshift_prune_analytics_daily\(\) TO service_role/);
+  assert.match(cron,/SPENDSHIFT_AGGREGATE_RETENTION_ENABLED==='true'/);
+  assert.match(cron,/VERCEL_ENV==='production'/);
+  assert.match(cron,/supabaseAdmin\.rpc\('spendshift_prune_analytics_daily'\)/);
+  assert.ok(cron.indexOf("req.headers.get('authorization')")<cron.indexOf("spendshift_prune_analytics_daily"));
+  assert.match(schedule,/0 1 \* \* \*/);
+  assert.match(privacy,/180 days/);
+  assert.match(cookies,/180 days/);
+});
 check('checkout validates before calling Stripe and does not leak provider errors',()=>{const route=fs.readFileSync('app/api/checkout/route.ts','utf8');assert.ok(route.indexOf('validateAuditAnswers(data.answers)')<route.indexOf('.checkout.sessions.create'));assert.match(route,/acceptedTerms/);assert.match(route,/idempotencyKey/);assert.doesNotMatch(route,/error: e\.message/);});
 check('checkout pause does not block existing paid access',()=>{assert.doesNotMatch(fs.readFileSync('lib/paid-orders.ts','utf8'),/SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS/);});
 check('recovery leaves unpaid and unfinished drafts untouched',()=>{const cron=fs.readFileSync('app/api/cron/recover-paid-reports/route.ts','utf8');assert.match(cron,/refinements->>completed/);assert.match(cron,/completed===true/);assert.match(fs.readFileSync('lib/report-fulfillment.ts','utf8'),/Please finish or skip the questions/);});
