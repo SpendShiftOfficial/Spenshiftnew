@@ -787,8 +787,26 @@ check('unplanned shopping stays simple and older monthly answers remain valid',(
  const ordinary=[...high];ordinary[6]='Rarely';
  assert.equal(validateAuditAnswers(ordinary)[6],'Rarely');
  const audit=fs.readFileSync('app/audit/page.tsx','utf8');
- assert.match(audit,/Think of online orders, clothes or extra things you buy at the shops/);
+ assert.equal(auditQuestions[6].q,"How often do you buy things you didn't plan to buy while shopping? (Like clothes or online orders.)");
+ assert.match(audit,/Don't count lollies, coffee or snacks here/);
+ assert.match(audit,/<h1>\{q\.q\}<\/h1>/,'Shopping examples should be in the bold main question, not only in the small text');
  assert.match(audit,/i===6&&a==='1–2 times\/month'\?'Rarely':a/);
+});
+check('enjoyment is accepted in paid shopping and leads to relevant advice',()=>{
+ const detail=validateRefinements({details:{unplannedArea:'Online shopping',shoppingTrigger:'I enjoy shopping'}});
+ assert.equal(detail.details.shoppingTrigger,'I enjoy shopping');
+ const old=validateRefinements({details:{unplannedArea:'Online shopping',shoppingTrigger:'Social media'}});
+ assert.equal(old.details.shoppingTrigger,'Social media','Older paid answers stay valid');
+ const ui=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');
+ assert.match(ui,/'I enjoy shopping','Other','Not sure'/);
+ const {firstSteps}=loadTs('lib/report-steps');
+ const op=analyseSavings(high,detail).opportunities.find(x=>x.area==='unplanned');
+ assert.ok(op,'Expected unplanned shopping in the all-seven profile');
+ assert.match(op.firstAction,/spending limit for shopping you enjoy/i);
+ const advice=firstSteps(op,detail);
+ assert.match(advice.join(' '),/fine to enjoy shopping/i);
+ assert.match(advice.join(' '),/amount you can afford/i);
+ assert.doesNotMatch(advice.join(' '),/stop shopping|never shop|quit shopping/i);
 });
 check('one-dollar spinner steps keep exact typed cents and bill calculations',()=>{
  const paid=fs.readFileSync('app/personalise/PersonaliseClient.tsx','utf8');

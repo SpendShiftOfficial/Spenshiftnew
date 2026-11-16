@@ -253,7 +253,10 @@ try{
     const answers=['Never',"I don't have any subscriptions",'Within 6 months','Rarely','Within 6 months','Within 6 months','Rarely','Save more money'];
     for(let i=0;i<answers.length;i++){
       if(i===6){
-        assert.match(await page.locator('body').innerText(),/Think of online orders, clothes or extra things you buy at the shops/);
+        const boldQuestion=page.getByRole('heading',{level:1});
+        assert.equal(await boldQuestion.innerText(),"How often do you buy things you didn't plan to buy while shopping? (Like clothes or online orders.)");
+        assert.ok(await boldQuestion.evaluate(el=>Number(getComputedStyle(el).fontWeight)>=800),'The shopping examples must be in the bold headline');
+        assert.match(await page.locator('main').innerText(),/Don't count lollies, coffee or snacks here/);
         assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
         const choices=await page.locator('[role="group"] button').allTextContents();
         assert.deepEqual(choices,['Rarely','1–2 times/week','3–5 times/week','Almost daily']);
@@ -651,7 +654,7 @@ try{
     if(heading==='Insurance'){assert.match(await page.locator('section').last().innerText(),/What insurance do you pay for/);assert.ok((await page.locator('#policy-period-0').boundingBox()).y < (await page.locator('#policy-cost-0').boundingBox()).y);await page.locator('#policy-type-0').selectOption('Car');await page.locator('#policy-period-0').selectOption('fortnight');await page.locator('#policy-cost-0').fill('70');await page.locator('#policy-renewal-0').selectOption('soon');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$1,820/);await page.getByRole('button',{name:'Add another policy'}).click();await page.locator('#policy-type-1').selectOption('CTP / Green Slip');await page.locator('#policy-period-1').selectOption('quarter');assert.match(await page.locator('section').first().innerText(),/covers only the 1 policy with a price/);await page.locator('#policy-cost-1').fill('250');assert.match(await page.locator('section').first().innerText(),/Combined yearly cost so far: \$2,820/);}
     if(heading==='Phone and internet'){await page.locator('input[name=phoneService][value=both]').check();await page.locator('#mobileMonthly').fill('55');await page.locator('#internetMonthly').fill('90');await page.locator('input[name=phoneService][value=not_sure]').check();assert.equal(await page.locator('#mobileMonthly').count(),0);assert.equal(await page.locator('#internetMonthly').count(),0);await page.locator('input[name=phoneService][value=mobile]').check();assert.equal(await page.locator('#mobileMonthly').inputValue(),'');await page.locator('#mobileMonthly').fill('55');assert.equal(await page.locator('#internetMonthly').count(),0);}
     if(heading==='Power and gas'){await page.locator('#state').selectOption('NSW');assert.ok((await page.locator('#electricityPeriod').boundingBox()).y < (await page.locator('#electricityBill').boundingBox()).y);await page.locator('#electricityPeriod').selectOption('quarter');await page.locator('#electricityBill').fill('520');await page.locator('#hasGas').selectOption('yes');assert.ok((await page.locator('#gasPeriod').boundingBox()).y < (await page.locator('#gasMonthly').boundingBox()).y);await page.locator('#gasPeriod').selectOption('quarter');await page.locator('#gasMonthly').fill('300');}
-    if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('Social media');}
+    if(heading==='Unplanned shopping'){await page.locator('#unplannedArea').selectOption('Online shopping');await page.locator('#shoppingTrigger').selectOption('I enjoy shopping');assert.equal(await page.locator('#shoppingTrigger').inputValue(),'I enjoy shopping');}
     await noOverflow(page);await next(page);
    }
    assert.equal(await page.getByRole('button',{name:'Previous question',exact:true}).count(),0,'Final review has no Previous question');
@@ -661,6 +664,7 @@ try{
    const first=await page.locator('article h2').first().innerText();assert.equal(first,'Insurance');
    const subs=page.locator('#area-subscriptions');if(!await subs.isVisible())await page.locator('details').filter({has:subs}).locator('summary').first().click();assert.match(await subs.innerText(),/You pay about \$70 a month for subscriptions/);
    const takeaway=page.locator('#area-takeaway');if(!await takeaway.isVisible())await page.locator('details').filter({has:takeaway}).locator('summary').first().click();assert.match(await takeaway.innerText(),/Total usual weekly cost for the meals you listed: \$280/);assert.match(await takeaway.innerText(),/Possible total reduction: \$80 a week/);assert.match(await takeaway.innerText(),/Cafés and restaurants/);
+   const shoppingCard=page.locator('#area-unplanned');if(!await shoppingCard.isVisible())await page.locator('details').filter({has:shoppingCard}).locator('summary').first().click();assert.match(await shoppingCard.innerText(),/fine to enjoy shopping/i);
    const insuranceCard=page.locator('#area-insurance');assert.match(await insuranceCard.innerText(),/\$2,820/);
    const energyCard=page.locator('#area-energy');assert.match(await energyCard.innerText(),/\$300 \/ 3 months/);
    await noOverflow(page);await page.screenshot({path:'test-artifacts/seven-area-plan-'+viewport.width+'.png',fullPage:true});
