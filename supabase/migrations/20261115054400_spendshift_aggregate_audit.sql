@@ -70,4 +70,27 @@ REVOKE ALL ON FUNCTION public.spendshift_increment_report_daily(text)
 GRANT EXECUTE ON FUNCTION public.spendshift_increment_report_daily(text)
   TO service_role;
 
+
+-- Automatic privacy retention: remove anonymous aggregates older than 180
+-- complete Sydney-local calendar days. This affects only analytics totals.
+CREATE OR REPLACE FUNCTION public.spendshift_prune_analytics_daily()
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER
+SET search_path = pg_catalog, public
+AS $
+DECLARE
+  audit_removed bigint := 0;
+  report_removed bigint := 0;
+  cutoff date := (now() AT TIME ZONE 'Australia/Sydney')::date - 180;
+BEGIN
+  DELETE FROM public.spendshift_audit_daily WHERE event_date <= cutoff;
+  GET DIAGNOSTICS audit_removed = ROW_COUNT;
+  DELETE FROM public.spendshift_report_daily WHERE event_date <= cutoff;
+  GET DIAGNOSTICS report_removed = ROW_COUNT;
+  RETURN jsonb_build_object('audit_deleted',audit_removed,'report_deleted',report_removed);
+END
+$;
+
+REVOKE ALL ON FUNCTION public.spendshift_prune_analytics_daily() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.spendshift_prune_analytics_daily() TO service_role;
+
 COMMIT;
