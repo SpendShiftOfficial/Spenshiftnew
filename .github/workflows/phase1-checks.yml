@@ -16,9 +16,11 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: node scripts/check-phase1.mjs
+      - run: node scripts/test-analytics-endpoints.mjs
       - run: npm run build
         env:
           SUPABASE_URL: https://example.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
           STRIPE_SECRET_KEY: sk_test_ci_placeholder
           NEXT_PUBLIC_SITE_URL: https://example.com
+      - run: node scripts/test-analytics-http-preview.mjs

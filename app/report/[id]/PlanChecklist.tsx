@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./simple-report.module.css";
+import { recordReportEngagement } from "@/lib/first-party-report";
 
 export default function PlanChecklist({
   reportId,
@@ -40,6 +41,8 @@ export default function PlanChecklist({
       }
       return next;
     });
+    // Capture only that the checklist was used, never the task text or answer.
+    recordReportEngagement("checklist_interaction", reportId);
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { checkedDifference, roundMoney } from "@/lib/savings-math";
 import styles from "./simple-report.module.css";
+import { recordReportEngagement } from "@/lib/first-party-report";
 
 export type TrackerOption = { key: string; title: string };
 type Period = "week" | "month" | "year";
@@ -189,6 +190,8 @@ export default function SavingsTracker({ reportId, options }: { reportId: string
       ? entries.map(entry => entry.id === editId ? next : entry)
       : [next, ...entries].slice(0, 50);
     if (store(nextEntries, "Saved on this device.")) {
+      // The analytics event contains no amounts, notes or chosen spending area.
+      recordReportEngagement("tracker_saved", reportId);
       resetForm();
       setFormOpen(false);
     }

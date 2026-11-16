@@ -2,6 +2,7 @@ import type { SavingsAnalysis, SavingsOpportunity } from "@/lib/savings-engine";
 import type { ReportRefinements, InsuranceRefinement } from "@/lib/report-refinements";
 import { reasonForArea } from "@/lib/personalisation-questions";
 import PlanChecklist from "./PlanChecklist";
+import ReportEngagementOpen from "./ReportEngagementOpen";
 import ReportEditLink from "./ReportEditLink";
 import ReportFeedback from "./ReportFeedback";
 import SavingsTracker, { type TrackerOption } from "./SavingsTracker";
@@ -334,6 +335,7 @@ export default function SimpleSavingsReport({ reportId, answers, analysis, refin
 
   return (
     <main className={styles.page}>
+      <ReportEngagementOpen reportId={reportId} />
       <div className={styles.wrap}>
         <header className={styles.hero}>
           <span className={styles.kicker}>YOUR SPENDSHIFT SAVINGS PLAN</span>

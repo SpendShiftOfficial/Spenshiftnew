@@ -1,5 +1,5 @@
 /** Only public brochure pages may load optional third-party measurement. */
-export const publicMarketingPaths=['/','/pricing','/whats-included','/how-it-works','/save-money-australia'];
+export const publicMarketingPaths=['/','/pricing','/whats-included','/how-it-works','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia'];
 export function isMarketingPath(path:string){return publicMarketingPaths.includes(path.replace(/\/$/,'')||'/');}
 export function canTrack(){
  if(typeof window==='undefined'||!isMarketingPath(window.location.pathname)||window.location.search||window.location.hash) return false;

@@ -107,7 +107,10 @@ fontSize: "14px",
 >
 We use optional analytics and advertising technologies to understand
 how SpendShift is used, improve the experience and measure our
-marketing. You can accept or reject optional cookies.{" "}
+marketing. If you accept, we also count basic actions in the free check
+and paid reports on our own servers. We don't send your spending
+answers to analytics providers. You can accept or reject optional
+cookies.{" "}
 <Link
 href="/cookies"
 style={{
