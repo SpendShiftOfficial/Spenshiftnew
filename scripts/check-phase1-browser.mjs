@@ -132,7 +132,7 @@ try{
   await test('legal documents and phone readability '+viewport.width,async()=>{
    const docs=[
     ['/terms-and-conditions',['AUD $29','no subscription','Last updated: 14 November 2026']],
-    ['/privacy-policy',['Microsoft Clarity','Meta Pixel','TikTok Pixel','First-party','Last updated: 16 November 2026']],
+    ['/privacy-policy',['Microsoft Clarity','Meta Pixel','TikTok Pixel','daily counts','Last updated: 16 November 2026']],
     ['/refund-policy',['30-day money-back guarantee','AUD $29','Last updated: 14 November 2026']],
     ['/financial-information-ai-disclaimer',['conditional calculations','Anthropic Claude','Last updated: 14 November 2026']],
     ['/cookies',['Google Analytics','Microsoft Clarity','Meta Pixel','TikTok Pixel','first-party','Last updated: 16 November 2026']],
