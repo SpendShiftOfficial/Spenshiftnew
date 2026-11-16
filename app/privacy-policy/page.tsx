@@ -124,6 +124,10 @@ export default function PrivacyPolicy() {
               </li>
 
                 <li>
+                  when you accept optional analytics, counts of actions such as starting or finishing the free savings check, opening a paid report, using its checklist or savings tracker, and sending feedback. Our measurement tables hold daily totals and event types, not your spending answers, financial amounts, name, email address or private report URL;
+                </li>
+
+                <li>
                   cookie and similar technology information described in our
                   Cookie Policy; and
                 </li>
@@ -348,6 +352,11 @@ export default function PrivacyPolicy() {
                 periodically. Where the Privacy Act requires us to destroy or
                 de-identify personal information that is no longer needed for
                 a permitted purpose, we will take reasonable steps to do so.
+
+                Optional analytics totals are held separately from purchase
+                and report records. They contain only dates, action types and
+                totals. We will review the period for keeping these counts
+                and delete them when they are no longer needed.
               </p>
 
               <h3>10. Report links and access security</h3>
@@ -391,6 +400,26 @@ export default function PrivacyPolicy() {
 
               <p>
                 We and our providers use browser storage, cookies, pixels, logs and similar technologies. On eligible public marketing pages, optional Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel scripts load only after you accept optional cookies. They do not load on the free check, free results, paid questionnaire or private report pages. Stripe and infrastructure providers may use necessary technologies for payment, security and fraud prevention.
+              </p>
+
+              <p>
+                If you accept optional analytics, we may also record basic
+                use of the free check and paid reports through our own website
+                and Supabase database. These are daily counts, not recordings
+                of your answers. To count use of a paid report, your private
+                report reference is sent only to SpendShift's server to
+                confirm that the report is ready. We do not keep that
+                reference in our analytics totals or send it to Google
+                Analytics, Microsoft Clarity, Meta or TikTok.
+              </p>
+
+              <p>
+                If you reject optional analytics, these additional activity
+                counts are not sent by the website. Hosting, security, fraud
+                prevention and payment services may still process technical
+                information, including IP addresses, to operate and protect
+                the service. These processes are separate from optional
+                analytics.
               </p>
 
               <p>
@@ -467,7 +496,7 @@ export default function PrivacyPolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 14 November 2026</strong>
+                <strong>Last updated: 16 November 2026</strong>
               </p>
 
             </div>
