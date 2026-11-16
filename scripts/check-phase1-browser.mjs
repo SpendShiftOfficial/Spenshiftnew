@@ -18,6 +18,23 @@ async function next(page){await page.getByRole('button',{name:'Next',exact:true}
 try{
  for(let i=0;i<90;i++){try{const r=await fetch(base+'/');if(r.ok)break;}catch{}if(i===89)throw new Error('Local app did not start: '+logs.slice(-3000));await new Promise(r=>setTimeout(r,1000));}
  browser=await chromium.launch({headless:true});
+
+ await test('disabled private analytics endpoints return empty, no-store replies',async()=>{
+  // Preview uses placeholder credentials, so no real customer data can be touched.
+  for(const [endpoint,payload] of [
+    ['/api/audit-metric',{event:'audit_start'}],
+    ['/api/report-metric',{event:'report_open',reportId:'rpt_ANONTESTREPORT012345'}],
+  ]){
+    const response=await fetch(base+endpoint,{
+      method:'POST',
+      headers:{'content-type':'application/json','origin':base},
+      body:JSON.stringify(payload),
+    });
+    assert.equal(response.status,204,endpoint+' must stay disabled in preview');
+    assert.match(response.headers.get('cache-control')||'',/no-store/);
+    assert.equal(await response.text(),'');
+  }
+ });
  await test('quick report generation cycles loading steps without artificial waiting',async()=>{
   const context=await browser.newContext({viewport:{width:375,height:812}});
   const page=await context.newPage();
@@ -115,10 +132,10 @@ try{
   await test('legal documents and phone readability '+viewport.width,async()=>{
    const docs=[
     ['/terms-and-conditions',['AUD $29','no subscription','Last updated: 14 November 2026']],
-    ['/privacy-policy',['Microsoft Clarity','Meta Pixel','TikTok Pixel','Last updated: 14 November 2026']],
+    ['/privacy-policy',['Microsoft Clarity','Meta Pixel','TikTok Pixel','First-party','Last updated: 16 November 2026']],
     ['/refund-policy',['30-day money-back guarantee','AUD $29','Last updated: 14 November 2026']],
     ['/financial-information-ai-disclaimer',['conditional calculations','Anthropic Claude','Last updated: 14 November 2026']],
-    ['/cookies',['Google Analytics','Microsoft Clarity','Meta Pixel','TikTok Pixel','Last updated: 14 November 2026']],
+    ['/cookies',['Google Analytics','Microsoft Clarity','Meta Pixel','TikTok Pixel','first-party','Last updated: 16 November 2026']],
    ];
    for(const [route,phrases] of docs){
     await go(page,route);
