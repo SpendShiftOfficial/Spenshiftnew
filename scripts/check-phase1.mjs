@@ -802,6 +802,7 @@ check('enjoyment is accepted in paid shopping and leads to relevant advice',()=>
  const {firstSteps}=loadTs('lib/report-steps');
  const op=analyseSavings(high,detail).opportunities.find(x=>x.area==='unplanned');
  assert.ok(op,'Expected unplanned shopping in the all-seven profile');
+ assert.match(op.firstAction,/spending limit for shopping you enjoy/i);
  const advice=firstSteps(op,detail);
  assert.match(advice.join(' '),/fine to enjoy shopping/i);
  assert.match(advice.join(' '),/amount you can afford/i);
