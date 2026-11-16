@@ -66,7 +66,7 @@ const insuranceTypes = new Set(["", "Car", "Home or contents", "Health", "Life o
 const unplannedTypes = new Set(["", "Online shopping", "Clothes or accessories", "Entertainment or hobbies", "Other purchases"]);
 const unusedChoices = new Set(["", "yes", "no", "not_sure"]);
 const renewalChoices = new Set(["", "soon", "later", "not_sure"]);
-const triggerChoices = new Set(["", "Sales or deals", "Boredom", "Social media", "Other", "Not sure"]);
+const triggerChoices = new Set(["", "Sales or deals", "Boredom", "Social media", "I enjoy shopping", "Other", "Not sure"]);
 
 function record(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object" && !Array.isArray(value)) {
