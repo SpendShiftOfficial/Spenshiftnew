@@ -788,7 +788,7 @@ check('unplanned shopping stays simple and older monthly answers remain valid',(
  assert.equal(validateAuditAnswers(ordinary)[6],'Rarely');
  const audit=fs.readFileSync('app/audit/page.tsx','utf8');
  assert.equal(auditQuestions[6].q,"How often do you buy things you didn't plan to buy, like clothes or online orders?");
- assert.match(audit,/Don't count lollies, coffee or snacks here/);
+ assert.match(audit,/Don't count coffee, snacks or small treats. We asked about those earlier./);
  assert.match(audit,/<h1>\{q\.q\}<\/h1>/,'Shopping examples should be in the bold main question, not only in the small text');
  assert.match(audit,/i===6&&a==='1–2 times\/month'\?'Rarely':a/);
 });
