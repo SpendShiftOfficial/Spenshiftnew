@@ -256,7 +256,7 @@ try{
         const boldQuestion=page.getByRole('heading',{level:1});
         assert.equal(await boldQuestion.innerText(),"How often do you buy things you didn't plan to buy, like clothes or online orders?");
         assert.ok(await boldQuestion.evaluate(el=>Number(getComputedStyle(el).fontWeight)>=800),'The shopping examples must be in the bold headline');
-        assert.match(await page.locator('main').innerText(),/Don't count lollies, coffee or snacks here/);
+        assert.match(await page.locator('main').innerText(),/Don't count coffee, snacks or small treats. We asked about those earlier./);
         assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
         const choices=await page.locator('[role="group"] button').allTextContents();
         assert.deepEqual(choices,['Rarely','1–2 times/week','3–5 times/week','Almost daily']);
