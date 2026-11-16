@@ -20,7 +20,9 @@ export async function POST(req: Request) {
   }
   try {
     const expectedOrigin = new URL(req.url).origin;
-    if (req.headers.get("origin") !== expectedOrigin) {
+    if (req.headers.get("origin") !== expectedOrigin ||
+        (req.headers.get("sec-fetch-site") &&
+         req.headers.get("sec-fetch-site") !== "same-origin")) {
       throw new InputError("Request origin not accepted.", 403);
     }
     const body = await readJson(req, 128);
