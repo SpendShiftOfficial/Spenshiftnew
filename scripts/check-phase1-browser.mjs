@@ -254,7 +254,7 @@ try{
     for(let i=0;i<answers.length;i++){
       if(i===6){
         const boldQuestion=page.getByRole('heading',{level:1});
-        assert.equal(await boldQuestion.innerText(),"How often do you buy things you didn't plan to buy while shopping? (Like clothes or online orders.)");
+        assert.equal(await boldQuestion.innerText(),"How often do you buy things you didn't plan to buy, like clothes or online orders?");
         assert.ok(await boldQuestion.evaluate(el=>Number(getComputedStyle(el).fontWeight)>=800),'The shopping examples must be in the bold headline');
         assert.match(await page.locator('main').innerText(),/Don't count lollies, coffee or snacks here/);
         assert.equal(await page.getByRole('button',{name:'1–2 times/month',exact:true}).count(),0);
