@@ -131,6 +131,11 @@ export function firstSteps(op: SavingsOpportunity, r: ReportRefinements): string
       "Compare estimated costs over a full year, including daily charges, rates and any fees. One bill may not reflect every season.",
     ];
   }
+  if (d.shoppingTrigger === "I enjoy shopping") return [
+    "It's fine to enjoy shopping. Set an amount you can afford for extra buys.",
+    "Keep a list of things you want and wait a day before you buy.",
+    "Choose the items you enjoy most and leave the rest for another time.",
+  ];
   if (d.shoppingTrigger === "Sales or deals") return [
     "Turn off sale emails and shopping alerts for 7 days.",
     "Put any item you want on a list. Wait one day before buying.",
