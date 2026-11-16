@@ -112,6 +112,11 @@ try {
       { event: "audit_complete" }, 403, { headers: { origin: "https://example.org" } });
     assert.deepEqual(calls, []);
   });
+  await test("audit rejects cross-site fetch metadata", async () => {
+    await expectStatus("audit cross-site", audit, "/api/audit-metric",
+      { event: "audit_start" }, 403, { headers: { "sec-fetch-site": "cross-site" } });
+    assert.deepEqual(calls, []);
+  });
   await test("audit rejects unknown event", async () => {
     await expectStatus("audit unknown", audit, "/api/audit-metric", { event: "purchase" }, 400);
     assert.deepEqual(calls, []);
@@ -198,6 +203,53 @@ try {
     }
     assert.match(a, /JSON\.stringify\(\{ event \}\)/);
     assert.match(p, /JSON\.stringify\(\{ event, reportId \}\)/);
+  });
+  await test("client helpers respect optional consent and send no financial data", async () => {
+    const saved = { window: globalThis.window, localStorage: globalThis.localStorage,
+      sessionStorage: globalThis.sessionStorage, fetch: globalThis.fetch };
+    let consent = "denied";
+    const stored = new Map();
+    const sent = [];
+    try {
+      globalThis.window = {};
+      globalThis.localStorage = { getItem: key => key === "spendshift_cookie_consent" ? consent : null };
+      globalThis.sessionStorage = {
+        getItem: key => stored.has(key) ? stored.get(key) : null,
+        setItem: (key, value) => stored.set(key, value),
+      };
+      globalThis.fetch = (url, options) => {
+        sent.push({ url, options });
+        return Promise.resolve({ ok: true, status: 204 });
+      };
+      const auditClient = loadTsFile("lib/first-party-audit.ts");
+      const reportClient = loadTsFile("lib/first-party-report.ts");
+      auditClient.recordAggregateAuditEvent("audit_start");
+      reportClient.recordReportEngagement("report_open", paidReportId);
+      assert.equal(sent.length, 0, "denied consent sends nothing");
+      consent = "granted";
+      auditClient.recordAggregateAuditEvent("audit_start");
+      auditClient.recordAggregateAuditEvent("audit_start");
+      reportClient.recordReportEngagement("tracker_saved", paidReportId);
+      reportClient.recordReportEngagement("tracker_saved", paidReportId);
+      reportClient.recordReportEngagement("tracker_saved", "invalid_token");
+      assert.equal(sent.length, 2, "grant + per-tab deduplication");
+      assert.equal(sent[0].url, "/api/audit-metric");
+      assert.deepEqual(JSON.parse(sent[0].options.body), { event: "audit_start" });
+      assert.equal(sent[1].url, "/api/report-metric");
+      assert.deepEqual(JSON.parse(sent[1].options.body),
+        { event: "tracker_saved", reportId: paidReportId });
+      for (const item of sent) {
+        assert.equal(item.options.credentials, "same-origin");
+        assert.equal(item.options.referrerPolicy, "no-referrer");
+        assert.equal(item.options.keepalive, true);
+        assert.doesNotMatch(item.options.body, /insurance|email|answer|payment|amount/i);
+      }
+    } finally {
+      for (const key of ["window", "localStorage", "sessionStorage", "fetch"]) {
+        if (saved[key] === undefined) delete globalThis[key];
+        else globalThis[key] = saved[key];
+      }
+    }
   });
   console.log("PASS " + tests + " endpoint and privacy behaviour checks");
 } finally {
