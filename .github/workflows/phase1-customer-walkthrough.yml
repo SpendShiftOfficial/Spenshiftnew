@@ -49,6 +49,7 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: node scripts/check-phase1.mjs
+      - run: node scripts/test-analytics-endpoints.mjs
       - run: npm run build
       - name: Install isolated browser
         run: |
