@@ -108,11 +108,12 @@ export default function CookiePolicy() {
                     <tr>
                       <td>Analytics</td>
                       <td>
-                        Measure visits, pages viewed, device information,
-                        referral sources and website performance.
+                        Measure public website visits and, if you opt in,
+                        count basic free-check and paid-report actions.
                       </td>
                       <td>
-                Google Analytics and Microsoft Clarity analytics technologies and related identifiers.
+                Google Analytics and Microsoft Clarity on public pages;
+                SpendShift first-party daily action totals on private pages.
               </td>
                       <td>
                         Yes, through browser settings, Google opt-out tools or
@@ -164,6 +165,27 @@ export default function CookiePolicy() {
 
               <p>
                 These providers may process information under their own terms and privacy documents. We use measurement to improve public pages and marketing. We do not intentionally send your free-check answers, email address, paid-plan details or private report links to these measurement services.
+              </p>
+
+              <p>
+                If you accept optional analytics, we may also count free-check
+                starts and completions and whether a paid report was opened,
+                its checklist used, a tracker entry saved or feedback sent.
+                These are first-party events sent to SpendShift only; no
+                third-party analytics script runs on private customer pages.
+                Our analytics database holds dates, action types and daily
+                totals, not your spending answers or report reference.
+              </p>
+
+              <p>
+                To check that an interaction relates to a real paid report,
+                the private report reference is sent to SpendShift's own
+                server. It is used for verification and is not saved in
+                the daily analytics totals. Hosting and security services
+                may separately process technical request details such as
+                IP addresses for operations and abuse protection.
+                Rejecting optional cookies also disables these
+                first-party activity counts.
               </p>
 
               <h3>5. Stripe Checkout</h3>
@@ -238,7 +260,7 @@ export default function CookiePolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 14 November 2026</strong>
+                <strong>Last updated: 16 November 2026</strong>
               </p>
             </div>
           </div>
