@@ -151,6 +151,7 @@ export function analyseSavings(answers: string[], refinements: ReportRefinements
       if (trigger === "Sales or deals") firstAction = "Mute sale emails for 7 days and wait before buying.";
       else if (trigger === "Boredom") firstAction = "Write a short free-to-do list for when you're bored.";
       else if (trigger === "Social media") firstAction = "Hide shopping ads and wait a day before you buy.";
+      else if (trigger === "I enjoy shopping") firstAction = "Set a spending limit for shopping you enjoy, and choose what matters most.";
       else if (d.unplannedArea === "Online shopping") firstAction = "Take saved cards off shopping sites. Wait a day before checkout.";
       else if (d.unplannedArea === "Clothes or accessories") firstAction = "Check what you already own before buying more.";
       else firstAction = "Wait one day before an unplanned buy.";
