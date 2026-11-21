@@ -43,6 +43,7 @@ export default async function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           width: 735,
+          boxSizing: "border-box",
           height: "100%",
           padding: "52px 0 50px 68px",
         }}
@@ -109,6 +110,7 @@ export default async function OpenGraphImage() {
           position: "relative",
           margin: "41px 36px 37px 20px",
           width: 409,
+          boxSizing: "border-box",
           padding: "34px 30px 31px",
           background: "#073C31",
           borderRadius: 30,
