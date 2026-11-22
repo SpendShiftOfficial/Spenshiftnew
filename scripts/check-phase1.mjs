@@ -239,8 +239,14 @@ check('first-party aggregate audit counters contain no customer data',()=>{
   assert.match(route,/allowedEvents\.has\(body\.event\)/);
   assert.match(client,/JSON\.stringify\(\{ event \}\)/);
   assert.doesNotMatch(client,/email|reportId|sessionId|amount|gtag\(|clarity\(/i);
+  assert.match(audit,/recordAggregateAuditEvent\('audit_arrival'\)/);
   assert.match(audit,/recordAggregateAuditEvent\('audit_start'\)/);
   assert.match(audit,/recordAggregateAuditEvent\('audit_complete'\)/);
+  const arrivalMigration=fs.readFileSync('supabase/migrations/20261123071500_spendshift_audit_arrival.sql','utf8');
+  assert.match(arrivalMigration,/CHECK \(event_name IN \('audit_arrival', 'audit_start', 'audit_complete'\)\)/);
+  assert.match(arrivalMigration,/SECURITY INVOKER/);
+  assert.match(arrivalMigration,/GRANT EXECUTE ON FUNCTION public\.spendshift_increment_audit_daily\(text\)\s+TO service_role/);
+  assert.doesNotMatch(arrivalMigration,/report_orders|spendshift_report_daily|DROP TABLE|TRUNCATE/i,'Only the audit counter allowlist should change');
   assert.match(migration,/ENABLE ROW LEVEL SECURITY/);
   assert.match(migration,/REVOKE ALL ON public\.spendshift_audit_daily FROM PUBLIC, anon, authenticated/);
   assert.match(migration,/GRANT EXECUTE ON FUNCTION public\.spendshift_increment_audit_daily\(text\) TO service_role/);
