@@ -55,7 +55,12 @@ try{
      assert.equal(await visit.getByRole('heading',{name:'How often do you buy takeaway or go out for a meal?'}).count(),1);
      await visit.reload({waitUntil:'networkidle'});
      assert.equal(posted.length,consent==='granted'?1:0,'Reloads in one tab must not inflate arrivals');
+     const startReply=consent==='granted'?visit.waitForResponse(res=>
+       new URL(res.url()).pathname==='/api/audit-metric' &&
+       res.request().postDataJSON()?.event==='audit_start'
+     ):null;
      await visit.getByRole('button',{name:'Never',exact:true}).click();
+     if(startReply)await startReply;
      assert.deepEqual(posted.map(x=>x.data),consent==='granted'?
        [{event:'audit_arrival'},{event:'audit_start'}]:[],
        'Arrival counts separately from answering the first question');
