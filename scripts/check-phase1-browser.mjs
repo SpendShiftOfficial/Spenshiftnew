@@ -36,13 +36,13 @@ try{
   }
  });
  await test('direct audit arrivals are consent-gated, anonymous and deduplicated',async()=>{
-   for(const consent of ['denied','granted']){
+   for(const consent of ['unset','denied','granted']){
      const ctx=await browser.newContext({viewport:{width:375,height:812}});
-     await ctx.addInitScript(choice=>localStorage.setItem('spendshift_cookie_consent',choice),consent);
+     await ctx.addInitScript(choice=>{if(choice!=='unset')localStorage.setItem('spendshift_cookie_consent',choice);},consent);
      const visit=await ctx.newPage();
      const posted=[];const thirdParty=[];
      visit.on('request',req=>{
-       if(/googletagmanager|google-analytics|clarity\\.ms|connect\\.facebook|analytics\\.tiktok/.test(req.url()))thirdParty.push(req.url());
+       if(/googletagmanager|google-analytics|clarity[.]ms|connect[.]facebook|analytics[.]tiktok/.test(req.url()))thirdParty.push(req.url());
      });
      await visit.route('**/api/audit-metric',async route=>{
        posted.push({url:route.request().url(),data:route.request().postDataJSON()});
