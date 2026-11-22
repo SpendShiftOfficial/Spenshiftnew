@@ -81,6 +81,7 @@ try {
   process.env.VERCEL_ENV = "preview";
   process.env.SPENDSHIFT_AGGREGATE_METRICS_ENABLED = "true";
   await test("preview never writes, even when flag is enabled", async () => {
+    await expectStatus("audit preview arrival", audit, "/api/audit-metric", { event: "audit_arrival" }, 204);
     await expectStatus("audit preview", audit, "/api/audit-metric", { event: "audit_start" }, 204);
     await expectStatus("report preview", report, "/api/report-metric",
       { event: "report_open", reportId: paidReportId }, 204);
@@ -100,6 +101,12 @@ try {
     await expectStatus("audit valid", audit, "/api/audit-metric", { event: "audit_start" }, 204);
     assert.deepEqual(calls, [
       { type: "rpc", name: "spendshift_increment_audit_daily", args: { p_event: "audit_start" } },
+    ]);
+  });
+  await test("audit arrival is a valid atomic aggregate with no visitor details", async () => {
+    await expectStatus("audit arrival", audit, "/api/audit-metric", { event: "audit_arrival" }, 204);
+    assert.deepEqual(calls, [
+      { type: "rpc", name: "spendshift_increment_audit_daily", args: { p_event: "audit_arrival" } },
     ]);
   });
   await test("audit rejects missing origin", async () => {
@@ -223,20 +230,25 @@ try {
       };
       const auditClient = loadTsFile("lib/first-party-audit.ts");
       const reportClient = loadTsFile("lib/first-party-report.ts");
+      auditClient.recordAggregateAuditEvent("audit_arrival");
       auditClient.recordAggregateAuditEvent("audit_start");
       reportClient.recordReportEngagement("report_open", paidReportId);
       assert.equal(sent.length, 0, "denied consent sends nothing");
       consent = "granted";
+      auditClient.recordAggregateAuditEvent("audit_arrival");
+      auditClient.recordAggregateAuditEvent("audit_arrival");
       auditClient.recordAggregateAuditEvent("audit_start");
       auditClient.recordAggregateAuditEvent("audit_start");
       reportClient.recordReportEngagement("tracker_saved", paidReportId);
       reportClient.recordReportEngagement("tracker_saved", paidReportId);
       reportClient.recordReportEngagement("tracker_saved", "invalid_token");
-      assert.equal(sent.length, 2, "grant + per-tab deduplication");
+      assert.equal(sent.length, 3, "grant + per-tab deduplication for arrival, start and report");
       assert.equal(sent[0].url, "/api/audit-metric");
-      assert.deepEqual(JSON.parse(sent[0].options.body), { event: "audit_start" });
-      assert.equal(sent[1].url, "/api/report-metric");
-      assert.deepEqual(JSON.parse(sent[1].options.body),
+      assert.deepEqual(JSON.parse(sent[0].options.body), { event: "audit_arrival" });
+      assert.equal(sent[1].url, "/api/audit-metric");
+      assert.deepEqual(JSON.parse(sent[1].options.body), { event: "audit_start" });
+      assert.equal(sent[2].url, "/api/report-metric");
+      assert.deepEqual(JSON.parse(sent[2].options.body),
         { event: "tracker_saved", reportId: paidReportId });
       for (const item of sent) {
         assert.equal(item.options.credentials, "same-origin");

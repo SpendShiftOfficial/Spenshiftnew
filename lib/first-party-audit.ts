@@ -1,5 +1,5 @@
 /** First-party, aggregate-only telemetry. No tracking identifiers or answers. */
-type AggregateAuditEvent = "audit_start" | "audit_complete";
+type AggregateAuditEvent = "audit_arrival" | "audit_start" | "audit_complete";
 
 export function recordAggregateAuditEvent(event: AggregateAuditEvent) {
   if (typeof window === "undefined") return;

@@ -7,6 +7,8 @@ import styles from './audit.module.css';
 const key='spendshift_free_draft_v2';
 export default function Audit(){
  const [index,setIndex]=useState(0);const [answers,setAnswers]=useState<string[]>([]);const [loaded,setLoaded]=useState(false);const [error,setError]=useState('');
+ // Count consenting arrivals even when someone leaves before answering question one.
+ useEffect(()=>{recordAggregateAuditEvent('audit_arrival');},[]);
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.answers)&&saved.answers.length<=8&&saved.answers.every((a:unknown,i:number)=>typeof a==='string'&&(auditQuestions[i].options.includes(a)||(i===0&&a==='Less than once a week')||(i===1&&['None','1–2','3–5','6–10','10+','0–2'].includes(a))||(i===6&&a==='1–2 times/month')))){setAnswers(saved.answers.map((a:string,i:number)=>i===0&&a==='Less than once a week'?'Rarely':i===6&&a==='1–2 times/month'?'Rarely':a));setIndex(Math.max(0,Math.min(7,Number(saved.index)||0)));}}catch{}setLoaded(true);},[]);
  useEffect(()=>{if(loaded){try{localStorage.setItem(key,JSON.stringify({answers,index}));}catch{}}},[answers,index,loaded]);
  function choose(value:string){if(index===0)recordAggregateAuditEvent('audit_start');setAnswers(prev=>{const next=[...prev];next[index]=value;return next;});setError('');}

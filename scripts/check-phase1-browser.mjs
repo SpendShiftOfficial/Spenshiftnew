@@ -35,6 +35,43 @@ try{
     assert.equal(await response.text(),'');
   }
  });
+ await test('direct audit arrivals are consent-gated, anonymous and deduplicated',async()=>{
+   for(const consent of ['unset','denied','granted']){
+     const ctx=await browser.newContext({viewport:{width:375,height:812}});
+     await ctx.addInitScript(choice=>{if(choice!=='unset')localStorage.setItem('spendshift_cookie_consent',choice);},consent);
+     const visit=await ctx.newPage();
+     const posted=[];const thirdParty=[];
+     visit.on('request',req=>{
+       if(/googletagmanager|google-analytics|clarity[.]ms|connect[.]facebook|analytics[.]tiktok/.test(req.url()))thirdParty.push(req.url());
+     });
+     await visit.route('**/api/audit-metric',async route=>{
+       posted.push({url:route.request().url(),data:route.request().postDataJSON()});
+       await route.fulfill({status:204,headers:{'Cache-Control':'no-store'}});
+     });
+     await visit.goto(base+'/audit?utm_source=facebook&fbclid=synthetic_ad_click',{waitUntil:'networkidle'});
+     assert.deepEqual(posted.map(x=>x.data),consent==='granted'?[{event:'audit_arrival'}]:[],
+       'Only consented visitors should generate the first-party arrival event');
+     assert.deepEqual(thirdParty,[],'No third-party tracking on private audit even with ad query parameters');
+     assert.equal(await visit.getByRole('heading',{name:'How often do you buy takeaway or go out for a meal?'}).count(),1);
+     await visit.reload({waitUntil:'networkidle'});
+     assert.equal(posted.length,consent==='granted'?1:0,'Reloads in one tab must not inflate arrivals');
+     const startReply=consent==='granted'?visit.waitForResponse(res=>
+       new URL(res.url()).pathname==='/api/audit-metric' &&
+       res.request().postDataJSON()?.event==='audit_start'
+     ):null;
+     await visit.getByRole('button',{name:'Never',exact:true}).click();
+     if(startReply)await startReply;
+     assert.deepEqual(posted.map(x=>x.data),consent==='granted'?
+       [{event:'audit_arrival'},{event:'audit_start'}]:[],
+       'Arrival counts separately from answering the first question');
+     for(const item of posted){
+       assert.equal(new URL(item.url).pathname,'/api/audit-metric');
+       assert.equal(new URL(item.url).search,'','Never send the ad query or click id');
+       assert.deepEqual(Object.keys(item.data),['event'],'No spending answers or identifiers');
+     }
+     await ctx.close();
+   }
+ });
  await test('quick report generation cycles loading steps without artificial waiting',async()=>{
   const context=await browser.newContext({viewport:{width:375,height:812}});
   const page=await context.newPage();
