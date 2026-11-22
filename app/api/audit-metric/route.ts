@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const allowedEvents = new Set(["audit_start", "audit_complete"]);
+const allowedEvents = new Set(["audit_arrival", "audit_start", "audit_complete"]);
 
 /**
  * Aggregate-only first-party audit counter.
