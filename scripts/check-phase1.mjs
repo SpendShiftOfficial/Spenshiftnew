@@ -222,6 +222,8 @@ check('public ad links can be tracked without exposing click IDs or private quer
  assert.deepEqual(cleanPublicMarketingQuery('?fbclid=synthetic_click'),{allowed:true,sanitizedSearch:''});
  assert.deepEqual(cleanPublicMarketingQuery('?gclid=synthetic&utm_campaign=Summer+Savings'),{
    allowed:true,sanitizedSearch:'?utm_campaign=Summer+Savings'});
+ assert.deepEqual(cleanPublicMarketingQuery('?utm_source=instagram&utm_content=video_1&ttclid=synthetic'),{
+   allowed:true,sanitizedSearch:'?utm_source=instagram&utm_content=video_1'});
  assert.deepEqual(cleanPublicMarketingQuery(''),{allowed:true,sanitizedSearch:''});
  for(const url of [
    '?session_id=cs_test_private','?reportId=rpt_private&fbclid=someid',
