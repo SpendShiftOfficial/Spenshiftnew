@@ -6,6 +6,7 @@ on:
       - 'app/**'
       - 'lib/**'
       - 'scripts/check-phase1-browser.mjs'
+      - 'scripts/test-public-marketing-tracking-browser.mjs'
       - 'scripts/check-phase1.mjs'
       - '.github/workflows/phase1-customer-walkthrough.yml'
   pull_request:
@@ -14,6 +15,7 @@ on:
       - 'app/**'
       - 'lib/**'
       - 'scripts/check-phase1-browser.mjs'
+      - 'scripts/test-public-marketing-tracking-browser.mjs'
       - 'scripts/check-phase1.mjs'
       - '.github/workflows/phase1-customer-walkthrough.yml'
   workflow_dispatch:
@@ -59,6 +61,19 @@ jobs:
         run: node scripts/check-phase1-browser.mjs
         env:
           PLAYWRIGHT_INSTALL_PATH: /tmp/spendshift-pw/package.json
+      - name: Build isolated production-mode marketing tracking (placeholder keys)
+        run: npm run build
+        env:
+          VERCEL_ENV: production
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3159
+          SPENDSHIFT_AGGREGATE_METRICS_ENABLED: 'false'
+      - name: Verify Facebook ad links, privacy and consent in a real browser
+        run: node scripts/test-public-marketing-tracking-browser.mjs
+        env:
+          VERCEL_ENV: production
+          PLAYWRIGHT_INSTALL_PATH: /tmp/spendshift-pw/package.json
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3159
+          SPENDSHIFT_AGGREGATE_METRICS_ENABLED: 'false'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
