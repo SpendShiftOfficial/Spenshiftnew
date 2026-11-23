@@ -2,13 +2,24 @@
 import Script from 'next/script';
 import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {isMarketingPath} from '@/lib/privacy';
+import {cleanPublicMarketingQuery,isMarketingPath} from '@/lib/privacy';
 import {trackEvent} from '@/lib/gtag';
 export default function PublicAnalytics({enabled}:{enabled:boolean}){
  const pathname=usePathname();const [allowed,setAllowed]=useState(false);
  useEffect(()=>{
   let consent=false;try{consent=localStorage.getItem('spendshift_cookie_consent')==='granted';}catch{}
-  const ok=enabled&&consent&&isMarketingPath(pathname)&&!location.search&&!location.hash;
+  const query=cleanPublicMarketingQuery(location.search);
+  const publicPage=enabled&&consent&&isMarketingPath(pathname)&&!location.hash;
+  // Strip Meta/Google click IDs before allowing GA4, Clarity or ad pixels to
+  // load; preserve only validated UTM campaign labels for attribution.
+  let cleanUrl=location.search===query.sanitizedSearch;
+  if(publicPage&&query.allowed&&!cleanUrl){
+   try{
+    history.replaceState(history.state,'',location.pathname+query.sanitizedSearch+location.hash);
+    cleanUrl=location.search===query.sanitizedSearch;
+   }catch{cleanUrl=false;}
+  }
+  const ok=publicPage&&query.allowed&&cleanUrl;
   if(!ok&&(window as any).__spendshiftPublicTracking){location.replace(location.href);return;}
   (window as any).__spendshiftPublicTracking=ok;setAllowed(ok);
   // Full navigation creates a fresh, tracker-free document before any answers are entered.
