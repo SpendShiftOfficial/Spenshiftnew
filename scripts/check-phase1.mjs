@@ -267,6 +267,10 @@ check('consented public analytics covers new guides and measures audit CTA safel
   assert.match(publicAnalytics,/trackEvent\('audit_cta_click'\)/);
   assert.match(publicAnalytics,/window\.clarity\?\.\('event','audit_cta_click'\)/);
   assert.match(publicAnalytics,/if\(ok\)/);
+  assert.match(publicAnalytics,/cleanPublicMarketingQuery\(location\.search\)/);
+  assert.match(publicAnalytics,/history\.replaceState\(/);
+  assert.ok(publicAnalytics.indexOf('history.replaceState(') < publicAnalytics.indexOf('setAllowed(ok)'),
+    'Strip ad click IDs before enabling public GA4, Clarity or advertising pixels');
 });
 check('first-party aggregate audit counters contain no customer data',()=>{
   const route=fs.readFileSync('app/api/audit-metric/route.ts','utf8');
