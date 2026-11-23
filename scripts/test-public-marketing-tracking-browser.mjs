@@ -101,7 +101,7 @@ try{
      await expectGoogleAndClarity(page,requests);
      assert.equal(new URL(page.url()).search,'','Click ID is removed on Facebook-only URLs');
      requests.length=0;
-     const auditLink=page.locator('a[href="/audit"]').first();
+     const auditLink=page.locator('a[href="/audit"]:visible').first();
      assert.ok(await auditLink.count()>0,'Home CTA should remain available');
      await auditLink.click();
      await page.waitForURL('**/audit',{timeout:10000});
