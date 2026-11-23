@@ -33,7 +33,7 @@ const {analyseSavings}=loadTs('lib/savings-engine');
 const {takeawayMath,checkedDifference,quoteDifference}=loadTs('lib/savings-math');
 const {rankOpportunities,goalIntro,priorityReason}=loadTs('lib/plan-priority');
 const {makeReportMarkdown}=loadTs('lib/report-writing');
-const {safeEventParams,isMarketingPath}=loadTs('lib/privacy');
+const {safeEventParams,isMarketingPath,cleanPublicMarketingQuery,canTrack}=loadTs('lib/privacy');
 let cases=0;function check(name,fn){fn();cases++;console.log('PASS '+name);}
 const sample=previewProfiles['subscriptions-insurance'].answers;
 const high=previewProfiles['all-seven'].answers;
@@ -215,6 +215,46 @@ check('free results make the A$29 upgrade clear without hiding the free check',(
  assert.match(results,/We don't recommend paying based on these answers alone/);
  assert.match(results,/We don't check live prices or promise savings/);
  assert.doesNotMatch(results,/setTimeout\(resolve, 350\)/);
+});
+check('public ad links can be tracked without exposing click IDs or private query fields',()=>{
+ const result=cleanPublicMarketingQuery('?utm_source=facebook&utm_medium=paid_social&fbclid=IwARsynthetic123');
+ assert.deepEqual(result,{allowed:true,sanitizedSearch:'?utm_source=facebook&utm_medium=paid_social'});
+ assert.deepEqual(cleanPublicMarketingQuery('?fbclid=synthetic_click'),{allowed:true,sanitizedSearch:''});
+ assert.deepEqual(cleanPublicMarketingQuery('?gclid=synthetic&utm_campaign=Summer+Savings'),{
+   allowed:true,sanitizedSearch:'?utm_campaign=Summer+Savings'});
+ assert.deepEqual(cleanPublicMarketingQuery(''),{allowed:true,sanitizedSearch:''});
+ for(const url of [
+   '?session_id=cs_test_private','?reportId=rpt_private&fbclid=someid',
+   '?utm_source=facebook&unknown=private','?utm_source=jane%40example.com',
+   '?utm_campaign=rpt_secret','?utm_medium=one&utm_medium=two',
+   '?fbclid=', '?utm_source=https%3A%2F%2Fsomewhere.com',
+   '?utm_campaign='+('a'.repeat(100)),
+ ]){
+   assert.equal(cleanPublicMarketingQuery(url).allowed,false,'Must refuse untrusted URL: '+url.slice(0,50));
+ }
+ const saved={window:globalThis.window,localStorage:globalThis.localStorage};
+ try{
+   globalThis.window={location:{pathname:'/',search:'?utm_source=facebook',hash:''},
+     __spendshiftPublicTracking:true};
+   globalThis.localStorage={getItem:key=>key==='spendshift_cookie_consent'?'granted':null};
+   assert.equal(canTrack(),true,'Validated campaign labels should allow GA audit CTA event');
+   globalThis.window.location.search='?fbclid=not_yet_removed';
+   assert.equal(canTrack(),false,'Click IDs must be removed before tracking');
+   globalThis.window.location.search='';
+   globalThis.window.location.pathname='/audit';
+   assert.equal(canTrack(),false,'Never track the private audit');
+   globalThis.window.location.pathname='/';
+   globalThis.window.location.hash='#customer_private';
+   assert.equal(canTrack(),false,'Hash fragments remain excluded');
+   globalThis.window.location.hash='';
+   globalThis.localStorage={getItem:()=> 'denied'};
+   assert.equal(canTrack(),false,'Rejected optional cookies must disable events');
+ }finally{
+   for(const key of ['window','localStorage']){
+     if(saved[key]===undefined)delete globalThis[key];
+     else globalThis[key]=saved[key];
+   }
+ }
 });
 check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:29}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
 check('private layout does not load measurement scripts',()=>{const layout=fs.readFileSync('app/layout.tsx','utf8');assert.doesNotMatch(layout,/googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/plan-preview/);assert.match(fs.readFileSync('components/PublicAnalytics.tsx','utf8'),/isMarketingPath/);});
