@@ -17,7 +17,7 @@ export function cleanPublicMarketingQuery(search:string):{allowed:boolean;saniti
   seen.add(key);
   if(campaignFields.has(key)){
    // Marketing labels only: no free text, URLs, emails or report/payment tokens.
-   if(!/^[A-Za-z0-9][A-Za-z0-9 _.\\-]{0,79}$/.test(value)||
+   if(!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,79}$/.test(value)||
       /(?:rpt_|cs_(?:test|live)_|sk_(?:test|live)_)/i.test(value)){
     return {allowed:false,sanitizedSearch:''};
    }
