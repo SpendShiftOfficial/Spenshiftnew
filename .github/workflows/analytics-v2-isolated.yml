@@ -56,6 +56,6 @@ jobs:
         run: |
           python3 -m venv /tmp/analytics-test-venv
           source /tmp/analytics-test-venv/bin/activate
-          pip install playwright==1.56.1
+          pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-browser.py
