@@ -21,7 +21,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
         }}
       >
         {/* Brand Logo */}
-        <Link href="/" data-ss-nav="true" className="logo">
+        <Link href="/" className="logo">
           <Image
             src="/logo.png"
             alt="SpendShift"
