@@ -9,7 +9,7 @@ jobs:
   synthetic:
     if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:17
@@ -44,6 +44,7 @@ jobs:
           node scripts/analytics-v2-fixture/test-client.mjs
           node scripts/analytics-v2-fixture/test-ingest.mjs
           node scripts/analytics-v2-fixture/test-report.mjs
+          node scripts/analytics-v2-fixture/test-dashboard.mjs
       - name: Disposable database only
         run: |
           test "$PGHOST" = 127.0.0.1
@@ -59,3 +60,43 @@ jobs:
           pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-browser.py
+
+      - name: Build and check unchanged product with collection disabled
+        env:
+          SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+          VERCEL_ENV: preview
+          SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+          SPENDSHIFT_ANALYTICS_V2_FIXTURE: 'false'
+          PHASE1_TEST_EMAILS: disabled
+          PHASE1_TEST_AI: disabled
+        run: |
+          npm ci
+          npx tsc --noEmit
+          node scripts/check-phase1.mjs
+          node scripts/test-analytics-endpoints.mjs
+          npm run build
+          npm install --prefix /tmp/spendshift-pw --no-audit --no-fund playwright@1.56.1
+          node /tmp/spendshift-pw/node_modules/playwright/cli.js install --with-deps chromium
+          PLAYWRIGHT_INSTALL_PATH=/tmp/spendshift-pw/package.json node scripts/check-phase1-browser.mjs
+      - name: Build and verify actual product with isolated v2 events
+        env:
+          SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3162
+          VERCEL_ENV: preview
+          SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+          SPENDSHIFT_AGGREGATE_METRICS_ENABLED: 'false'
+          SPENDSHIFT_ANALYTICS_V2_FIXTURE: 'true'
+          PHASE1_TEST_EMAILS: disabled
+          PHASE1_TEST_AI: disabled
+        run: |
+          test "$PGHOST" = 127.0.0.1
+          test "$PGDATABASE" = analytics_v2_test
+          psql -X -v ON_ERROR_STOP=1 -c "TRUNCATE public.spendshift_metrics_v2_daily;"
+          npm run build
+          source /tmp/analytics-test-venv/bin/activate
+          python scripts/analytics-v2-fixture/test-app.py

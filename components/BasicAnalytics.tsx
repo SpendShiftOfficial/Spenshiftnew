@@ -23,14 +23,16 @@ export function useBasicMetricScope(){
  return {record,reset,ready,revision};
 }
 export function useForegroundClock(active:boolean,run:number){
- const total=useRef(0),start=useRef<number|null>(null);
+ const {allowed,revision}=useContext(Context);
+ const total=useRef(0),start=useRef<number|null>(null),invalid=useRef(true);
  useEffect(()=>{
-   total.current=0;start.current=null;if(!active)return;
-   const update=()=>{const now=performance.now();if(start.current!==null)total.current+=Math.max(0,now-start.current);start.current=visible()?now:null;};
+   total.current=0;start.current=null;invalid.current=!active||!allowed();if(!active)return;
+   const update=()=>{const now=performance.now();if(!allowed())invalid.current=true;if(start.current!==null)total.current+=Math.max(0,now-start.current);start.current=!invalid.current&&visible()?now:null;};
    update();document.addEventListener("visibilitychange",update);
    return()=>{document.removeEventListener("visibilitychange",update);start.current=null;};
- },[active,run]);
- return useCallback(()=>total.current+(start.current===null?0:Math.max(0,performance.now()-start.current)),[]);
+ },[active,run,allowed]);
+ useEffect(()=>{if(!allowed())invalid.current=true;},[revision,allowed]);
+ return useCallback(()=>invalid.current||!allowed()?null:total.current+(start.current===null?0:Math.max(0,performance.now()-start.current)),[allowed]);
 }
 export const durationBucket=(ms:number)=>ms<30000?"under_30":ms<60000?"30_59":ms<120000?"60_119":ms<240000?"120_239":"240_plus";
 function PublicObserver({path,entry}:{path:string;entry:()=>void}){
