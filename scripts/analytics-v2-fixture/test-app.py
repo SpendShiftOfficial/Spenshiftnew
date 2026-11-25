@@ -30,8 +30,8 @@ def http(path,auth=False):
     except urllib.error.HTTPError as e:return e.code,e.read().decode(),e.headers
 try:
     wait_server()
-    assert http('/internal/analytics')[0]==401
-    assert http('/internal/analytics?period=invalid',True)[0]==400
+    unauth=http('/internal/analytics');assert unauth[0]==401,('dashboard authentication',unauth[0],unauth[1][:200])
+    invalid=http('/internal/analytics?period=invalid',True);assert invalid[0]==400,('dashboard period',invalid[0])
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True)
         def setup(legacy=None):

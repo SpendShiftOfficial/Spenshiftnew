@@ -11,7 +11,7 @@ function authorized(value:string|null){
  return actual.length===expected.length&&timingSafeEqual(actual,expected);
 }
 export async function GET(req:Request){
- if(!analyticsFixtureEnabled()||new URL(req.url).origin!==FIXTURE_ORIGIN)return new Response(null,{status:404,headers});
+ if(!analyticsFixtureEnabled()||req.headers.get("host")!==new URL(FIXTURE_ORIGIN).host||new URL(req.url).pathname!=="/internal/analytics")return new Response(null,{status:404,headers});
  if(!authorized(req.headers.get("authorization")))return new Response(null,{status:401,headers:{...headers,"WWW-Authenticate":'Basic realm="Synthetic analytics"'}});
  const url=new URL(req.url);const period=url.searchParams.get("period")??"7";const range=rangeFor(period);
  if(!range||[...url.searchParams.keys()].some(k=>k!=="period")||url.searchParams.getAll("period").length>1)return new Response(null,{status:400,headers});
