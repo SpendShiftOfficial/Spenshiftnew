@@ -73,7 +73,7 @@ try:
           const seen=[];document.addEventListener('securitypolicyviolation',e=>seen.push(e.effectiveDirective));
           const script=document.createElement('script');script.src='https://measurement.invalid/probe.js';document.head.append(script);
           try{await fetch('https://measurement.invalid/probe',{mode:'no-cors'});}catch{}
-          await new Promise(r=>setTimeout(r,350));return seen;
+          await new Promise(r=>setTimeout(r,350));script.remove();return seen;
         }""")
         assert any(x.startswith('script-src') for x in result) and 'connect-src' in result,result
         assert not external,external
@@ -84,6 +84,9 @@ try:
         assert (len(basic),len(old))==(n,m),(basic,old)
         assert 'Almost daily' not in json.dumps(basic) and 'Almost daily' not in json.dumps(old)
         no_trackers(other);no_trackers(page);assert not external
+        # A new audit document in the other tab must also send neither class of counters.
+        open_page(other,'/audit');other.get_by_text('Question 3 of 8',exact=True).wait_for();other.wait_for_timeout(500)
+        assert (len(basic),len(old))==(n,m),(basic,old)
         ctx.close();cases+=1
         ctx,page,external,basic,old,requests=setup('granted')
         open_page(page,'/');page.get_by_role('button',name='Reject optional',exact=True).click()
