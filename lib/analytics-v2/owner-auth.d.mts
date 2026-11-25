@@ -1,0 +1,1 @@
+export function authorizeOwner(header:string|null,opts:{ownerId?:string;verifyUser:(jwt:string)=>Promise<{id:string}|null>;verifyMfa:(jwt:string)=>Promise<{currentLevel:string|null;nextLevel:string|null}|null>;sessionActive:(user:string,session:string)=>Promise<boolean>;now?:number}):Promise<boolean>;

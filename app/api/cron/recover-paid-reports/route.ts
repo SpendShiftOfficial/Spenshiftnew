@@ -1,6 +1,8 @@
 import {NextResponse} from 'next/server';
 import {supabaseAdmin} from '@/lib/supabase';
 import {generatePaidReport} from '@/lib/report-fulfillment';
+import {releaseCapabilities} from '@/lib/analytics-v2/release-config.mjs';
+import {releaseAdapter} from '@/lib/analytics-v2/production-server';
 export const runtime='nodejs';export const maxDuration=180;
 export async function GET(req:Request){
  const secret=process.env.CRON_SECRET;
@@ -14,6 +16,10 @@ export async function GET(req:Request){
    const {error:pruneError}=await supabaseAdmin.rpc('spendshift_prune_analytics_daily');
    analyticsRetention=pruneError?'failed':'pruned';
   }catch{analyticsRetention='failed';}
+ }
+ let v2Retention:'disabled'|'pruned'|'failed'='disabled';
+ if(releaseCapabilities(process.env).prune){
+  try{await (await releaseAdapter()).prune();v2Retention='pruned';}catch{v2Retention='failed';}
  }
  try{
   const now=Date.now();
@@ -30,6 +36,6 @@ export async function GET(req:Request){
   const ready=(data||[]).filter(o=>(o.refinements as any)?.completed===true||(o.status==='failed'&&!(o.refinements as any)?.draft));
   let recovered=0,failed=0;
   for(let i=0;i<ready.length;i+=3){const results=await Promise.allSettled(ready.slice(i,i+3).map(o=>generatePaidReport(o.stripe_session_id)));for(const result of results){if(result.status==='fulfilled'&&result.value.status==='ready')recovered++;else if(result.status==='rejected')failed++;}}
-  return NextResponse.json({recovered,failed,unfinishedDraftsLeftEditable:(data||[]).length-ready.length,analyticsRetention});
+  return NextResponse.json({recovered,failed,unfinishedDraftsLeftEditable:(data||[]).length-ready.length,analyticsRetention,v2Retention});
  }catch{return NextResponse.json({error:'Recovery could not finish. It will be retried.'},{status:503});}
 }

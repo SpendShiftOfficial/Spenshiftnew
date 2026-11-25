@@ -9,7 +9,7 @@ jobs:
   synthetic:
     if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17
@@ -46,6 +46,7 @@ jobs:
           node scripts/analytics-v2-fixture/test-report.mjs
           node scripts/analytics-v2-fixture/test-dashboard.mjs
           node scripts/analytics-v2-fixture/test-operational.mjs
+          node scripts/analytics-v2-fixture/test-release.mjs
       - name: Disposable database only
         run: |
           test "$PGHOST" = 127.0.0.1
@@ -54,6 +55,12 @@ jobs:
           seq 1 40 | xargs -P 8 -I '{}' psql -X -v ON_ERROR_STOP=1 -qAt -c "SET ROLE service_role; SELECT public.spendshift_increment_metrics_v2('audit_start');"
           test "$(psql -X -qAt -c "SELECT event_count FROM public.spendshift_metrics_v2_daily WHERE metric_code='audit_start' AND dimension_code='all' AND bucket_code='all'")" = 40
           echo "PASS 40/40 real PostgreSQL concurrent increments"
+      - name: Candidate release security and operational database
+        run: |
+          test "$PGHOST" = 127.0.0.1
+          test "$PGDATABASE" = analytics_v2_test
+          createdb analytics_v2_release_test
+          PGDATABASE=analytics_v2_release_test psql -X -v ON_ERROR_STOP=1 -f scripts/analytics-v2-fixture/test-release-db.sql
       - name: Synthetic Chromium journey (not actual product)
         run: |
           python3 -m venv /tmp/analytics-test-venv
@@ -62,6 +69,17 @@ jobs:
           python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-browser.py
 
+  baseline:
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
       - name: Build and check unchanged product with collection disabled
         env:
           SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
@@ -82,6 +100,37 @@ jobs:
           npm install --prefix /tmp/spendshift-pw --no-audit --no-fund playwright@1.56.1
           node /tmp/spendshift-pw/node_modules/playwright/cli.js install --with-deps chromium
           PLAYWRIGHT_INSTALL_PATH=/tmp/spendshift-pw/package.json node scripts/check-phase1-browser.mjs
+  integrated:
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic_only
+          POSTGRES_DB: analytics_v2_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d analytics_v2_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: synthetic_only
+      PGDATABASE: analytics_v2_test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
       - name: Build and verify actual product with isolated v2 events
         env:
           SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
@@ -97,8 +146,14 @@ jobs:
         run: |
           test "$PGHOST" = 127.0.0.1
           test "$PGDATABASE" = analytics_v2_test
+          psql -X -v ON_ERROR_STOP=1 -f scripts/analytics-v2-fixture/test-db.sql
           psql -X -v ON_ERROR_STOP=1 -c "TRUNCATE public.spendshift_metrics_v2_daily;"
           psql -X -v ON_ERROR_STOP=1 -f scripts/analytics-v2-fixture/seed-operations.sql
+          npm ci
+          npx tsc --noEmit
           npm run build
+          python3 -m venv /tmp/analytics-test-venv
           source /tmp/analytics-test-venv/bin/activate
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-app.py

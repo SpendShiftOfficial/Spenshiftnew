@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {releaseCapabilities,RELEASE_AUTHORIZED,PRODUCTION_ORIGIN,NOTICE_VERSION} from '../../lib/analytics-v2/release-config.mjs';
+import {createReleaseAdapter} from '../../lib/analytics-v2/release-adapter.mjs';
+import {authorizeOwner} from '../../lib/analytics-v2/owner-auth.mjs';
+import {createIngestion} from '../../lib/analytics-v2/ingest.mjs';
+let n=0;const check=(condition,label)=>{assert.ok(condition,label);n++;};
+const env={VERCEL_ENV:'production',VERCEL:'1',NEXT_PUBLIC_SITE_URL:PRODUCTION_ORIGIN,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'true',SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION:NOTICE_VERSION,SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'true',SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_RETENTION_ENABLED:'true'};
+check(RELEASE_AUTHORIZED===false,'source lock');check(Object.values(releaseCapabilities(env)).every(x=>x===false),'source lock wins');check(Object.values(releaseCapabilities(env,true)).every(Boolean),'approved synthetic config');
+for(const [k,v] of [['VERCEL_ENV','preview'],['VERCEL',''],['NEXT_PUBLIC_SITE_URL','https://example.invalid'],['SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY','false']])check(Object.values(releaseCapabilities({...env,[k]:v},true)).every(x=>!x),k);
+for(const [k,v] of [['SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED','false'],['SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION','wrong'],['SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED','false']]){const result=releaseCapabilities({...env,[k]:v},true);check(!result.collect&&result.prune,k+' independent retention');}
+check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'false'},true).read,'dashboard gate');
+const calls=[];let response='accepted';const adapter=createReleaseAdapter(async(name,args)=>{calls.push({name,args});return {data:response,error:null};});
+check(await adapter.increment({p_event:'audit_start'})==='accepted','accepted');
+check(calls[0].name==='spendshift_accept_metrics_v2'&&Object.keys(calls[0].args).length===1,'RPC only');
+for(const bad of [{p_event:'audit_start',email:'synthetic@example.invalid'},{p_event:'personalisation_view'},{p_event:'optional_choice',p_choice:'accept_all'},{p_event:'audit_question_seen',p_question:99}]){await assert.rejects(()=>adapter.increment(bad));n++;}
+response='limited';check(await adapter.increment({p_event:'audit_start'})==='limited','cap returned');
+response='disabled';check(await adapter.increment({p_event:'audit_start'})==='disabled','DB disabled');
+response='bad';await assert.rejects(()=>adapter.increment({p_event:'audit_start'}));n++;
+response={rows:[],operations:{}};check(Array.isArray((await adapter.read({from:'2026-11-24',to:'2026-11-25'})).rows),'aggregate response');
+response=null;await adapter.prune();check(calls.at(-1).name==='spendshift_prune_metrics_v2_release','prune call');
+const fails=createReleaseAdapter(async()=>({error:{message:'synthetic secret'},data:null}));await assert.rejects(()=>fails.prune(),{message:'analytics unavailable'});n++;
+const id='11111111-1111-4111-8111-111111111111',sid='22222222-2222-4222-8222-222222222222',now=1795580000;
+const claims={sub:id,session_id:sid,role:'authenticated',aal:'aal2',iat:now-20,exp:now+1000};
+const token=c=>'Bearer e30.'+Buffer.from(JSON.stringify(c)).toString('base64url')+'.synthetic';
+let verifyCalls=0;const opts={ownerId:id,now,verifyUser:async()=>{verifyCalls++;return {id}},verifyMfa:async()=>({currentLevel:'aal2',nextLevel:'aal2'}),sessionActive:async(user,session)=>user===id&&session===sid};
+check(await authorizeOwner(token(claims),opts),'verified owner');
+for(const change of [{aal:'aal1'},{role:'anon'},{sub:'wrong'},{session_id:'bad'},{exp:now},{iat:now-901},{iat:now+31}])check(!await authorizeOwner(token({...claims,...change}),opts),'reject invalid claims');
+for(const change of [{ownerId:undefined},{verifyUser:async()=>null},{verifyUser:async()=>({id:'other'})},{verifyMfa:async()=>({currentLevel:'aal1',nextLevel:'aal2'})},{verifyMfa:async()=>({currentLevel:'aal2',nextLevel:'aal1'})},{sessionActive:async()=>false},{verifyUser:async()=>{throw Error('unavailable')}}])check(!await authorizeOwner(token(claims),{...opts,...change}),'deny owner verification');
+check(!await authorizeOwner('Basic synthetic',opts),'deny basic');check(!await authorizeOwner(null,opts),'deny missing');check(verifyCalls>0,'remote verified before claims');
+const origin='http://127.0.0.1:3162',handler=createIngestion({enabled:true,origin,canonicalHost:'127.0.0.1:3162',increment:()=>Promise.resolve('limited')});
+const req=(host,requestOrigin)=>new Request('http://localhost:3162/api/analytics-v2',{method:'POST',headers:{Host:host,Origin:requestOrigin,'Content-Type':'application/json'},body:JSON.stringify({v:2,event:'audit_start'})});
+check((await handler(req('127.0.0.1:3162',origin))).status===429,'normalized URL accepted only with exact host');
+check((await handler(req('evil.invalid',origin))).status===403,'wrong host');check((await handler(req('127.0.0.1:3162','https://evil.invalid'))).status===403,'wrong origin');
+console.log('PASS '+n+' release lock, RPC, owner authentication and host checks');
