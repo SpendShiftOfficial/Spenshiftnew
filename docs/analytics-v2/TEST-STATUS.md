@@ -1,21 +1,23 @@
-# Analytics v2 integration status — isolated only
+# Analytics v2 test status — first-party-only candidate
 
-25 November 2026. Baseline: 214650f8830780bbeb20741d945058de7d8c3275. Implementation under verification: b1f985c36342921146403924d204e10a7c57e6a7; docs and granular test-only correction through a7bc0a90d4959c4433fdbcd6ea73b7f66c55674b.
+25 November 2026. Production baseline 214650f8830780bbeb20741d945058de7d8c3275. First-party-only implementation e2cac2e0b380ca4a30dfa8b0b9c01a4d3a589e1b; docs-only and test-only corrections through 7aec879409f6e3f25bb3ca38444628b694607679. Source release lock remains false.
 
-## Verified
-- Prior run 45596636675 on 97279dd89c33aab12a36c863d95d0d7d47ef3861: all three jobs passed, including real local application journeys, baseline build/regression and disposable PostgreSQL.
-- Run 45598613557: synthetic job passed 377 explicitly numbered checks (including 45 Chromium fixture assertions), plus PostgreSQL concurrency (40/40), role/grant checks, release gates, MFA-session authorization, financial source constraints and retention. Integrated job passed six real local product journeys using disposable DB and mocked payment. Baseline job was still running at this inspection.
-- Granular job failed at a Playwright checkbox action after the intentional document reload. Logs show click performed and navigation completed; Playwright retried the checked-state operation with the details panel collapsed. No full granular pass claimed. Test-only correction now waits for navigation, verifies all expected inert script nodes, verifies persisted choices, and reopens details to assert both checkboxes. Full rerun 45599229253 launched; no final result at this inspection.
-- Previous production verification: main and live deployment unchanged at baseline; zero Vercel deployments for development branch; production v2 metrics, gate and financial source tables absent; original counters present. No production mutations, real tracking, accounts or transactions.
+## Verified results
+- Previous granular-provider implementation run 45599229253: all four jobs green. This is historical evidence, not the first-party-only release.
+- First-party-only implementation run 45600860233: baseline passed (102 product test groups, 20 endpoint/privacy checks and full desktop/mobile regression). Synthetic job passed 377 numbered checks, 40/40 concurrent PostgreSQL increments, database permissions, retention, release gates, session checks and financial import constraints.
+- Initial first-party-only browser job reached its successful external-script/connect CSP denial probe, but later failed because the intentionally blocked test script element remained in the DOM. Test-only correction removes that probe after verifying denial and additionally checks no v1 or v2 requests after all-off in a new tab.
+- Corrected first-party-only browser job in 45601265076 passed all 12 real local browser cases: old consent, saved synthetic audit draft, enforced CSP denial, cross-tab opt-out, public/private pages and locked owner interface. Its synthetic job also passed. This is not a real Supabase owner login.
+- Initial integrated test failed when its own init script wrote the legacy grant on every navigation and undid the tested rejection. Corrected fixture now seeds the old consent only when no stored value exists; the assertion that rejection persists is unchanged. No product/security control was weakened.
+- Final combined rerun 45601391618 on 7aec879409f6e3f25bb3ca38444628b694607679: synthetic: success; baseline: in_progress; integrated: success; first_party_only: success. Check actual run conclusion before certifying all tests.
 
-## Candidate implementation
-- Separate basic opt-out, analytics consent and advertising consent; conservative legacy rollback behavior; independent privacy mode; private-route loading restriction; known cookie withdrawal cleanup and full reload. Vendor tests use inert scripts, not live provider SDKs.
-- Source lock remains false (release not authorized). Owner interface uses memory-only auth, password and TOTP UI, server identity allowlist, AAL2 and session checks. Actual hosted authentication/enrollment has not been performed. Finance source import is manual, fixed-schema, owner-only aggregate entry; not an automated live feed.
-- Revised solicitor drafts, privacy impact review and runbook are in this directory; published policy pages remain unchanged.
+## Production verification
+Read-only checks confirmed main and live deployment on baseline; no development Vercel deployments; no v2 analytics/gate/financial tables on production; original counters present. No production credentials, transactions, data collection or account provisioning. Only the live Supabase project/default branch exists. No additional hosted project or branch was purchased/created.
 
-## Outstanding
-Final corrected test run results; actual isolated Auth and vendor permission/withdrawal tests; existing origin-shared browser-storage exposure (see privacy review/checklist); real financial source alignment and reconciliation; WAF/capacity and production retention configuration; provider terms, actual logs/overseas handling; legal approval and publication of matching notices; owner approval. No merge, deployment, production mutation or activation authorized. Keep source lock false.
+## Remaining release gates
+- All latest CI jobs pass; actual hosted owner Auth + MFA enrolment/login/revocation and tracker-free deployment verification in separately authorised environment. WAF and retention config, source reconciliation, historical data and old already-running pages, contract/log/backup review, legal sign-off and explicit owner approval.
+- Vendor scripts are absent in this candidate; this eliminates the identified intentional browser vendor-execution path in newly loaded pages, not all shared-origin exposure or historical tracking. No return to vendor-enabled builds absent separate storage isolation and approval.
+- Actual production policy remains unchanged. Draft pages and review schedules are not effective.
 
-Previous full green run: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45596636675
-New implementation run: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45598613557
-Corrected test rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45599229253
+Prior first-party baseline and synthetic: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45600860233
+Passing first-party-only browser job: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601265076
+Final combined rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601391618

@@ -13,5 +13,7 @@ Implementation commit e2cac2e0b380ca4a30dfa8b0b9c01a4d3a589e1b. Source release l
 ## Verification
 Prior green suite: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45599229253
 New suite: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45600860233
-Tests must pass against exact candidate code. Local test authentication is synthetic only; real owner sign-in/MFA remains a separate isolated provider verification.
+Corrected browser test: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601265076
+Final combined rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601391618
+See TEST-STATUS.md for precise test evidence. Tests must pass against exact candidate code. Local test authentication is synthetic only; real owner sign-in/MFA remains a separate isolated provider verification.
 Production approval, WAF, actual provider configuration/logging, retention, privacy notices, legacy document cutover, payment/marketing reconciliation and real-device verification remain release gates.
