@@ -4,5 +4,10 @@
       "path": "/api/cron/recover-paid-reports",
       "schedule": "0 1 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "internal-analytics-v2-2026-11-25": false
+    }
+  }
 }
