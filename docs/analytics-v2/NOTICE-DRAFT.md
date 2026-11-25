@@ -1,26 +1,22 @@
-# Privacy notice and settings — draft for approval
+# First-party-only privacy notice and settings — draft for approval
 
-Proposed compact, in-flow design; no overlay covering the main savings CTA. Do not publish until approved and the implementation is tested.
+**25 November 2026 — NOT APPROVED OR EFFECTIVE.**
 
-## Public page notice
+The approved candidate UI is in components/BasicAnalytics.tsx. It is an in-flow notice, not a blocking overlay. For disabled v2 mode the fallback consent banner explains optional first-party counts only.
+
+## Proposed notice
 
 **Your privacy choices**
 
-We use limited first-party statistics to improve SpendShift. These do not create individual browsing profiles. You can turn off basic statistics in Privacy settings. Optional website analytics and advertising tracking are off unless you allow them. Your choices do not affect the savings check.
+We use limited first-party statistics to improve SpendShift without creating individual browsing profiles. No third-party analytics or advertising pixels run in this version. Basic statistics are separate from the optional audit and report activity counts. You can turn either off without affecting your savings check or purchased plan.
 
-[Accept optional]  [Reject optional]  
-[Turn off basic statistics]  [Explicitly enable basic statistics]
-[Separate optional preferences] · [Privacy Policy] · [Cookie Policy]
+- Accept optional — grants only the existing first-party audit/report counts, never a vendor tracker.
+- Reject optional — denies only those counts; basic-statistics choice remains independent.
+- Turn off basic statistics — stops new v2 events, not separately permitted optional counts.
+- Explicitly enable basic statistics — affirmative action required for a browser with an earlier cookie choice; does not grant optional counts.
+- Turn off all statistics — withdraws both first-party categories.
+- Privacy Policy and Cookie Policy links.
 
-Accept and reject: equal visual prominence, same number of actions, keyboard operable, screen-reader labels. No pre-ticked optional choices. Privacy settings remains available on all eligible pages. On first direct audit/results entry, show the basic-statistics disclosure before any new approved event without blocking the product.
+For earlier choices: “Your earlier privacy choice is preserved. Basic statistics remain off unless you explicitly enable them under this notice.” Basic stats off when collection unavailable. Optional choices do not affect service. Preserve prior valid permission only within its previous first-party scope. No new legacy vendor grant. Show test-only status in fixture and draft status on proposed legal pages. No vendor cookie removal or historical-data deletion promise.
 
-## Detailed settings
-
-- Basic statistics: On / Off for newly informed visitors only; OFF by default if an earlier choice exists or storage is unavailable.
-- Optional website analytics: Off until permission; Google Analytics and Microsoft Clarity plus existing consented first-party action counts.
-- Optional advertising measurement: Off until permission; Meta and TikTok on eligible public pages.
-- Save choices; show an accessible confirmation.
-
-Legacy visitor message: “Your earlier privacy choice is preserved. New basic statistics are off. If you want to allow the limited statistics described in this updated notice, you can enable them here.” The in-flow notice remains available without an obstructive pop-up. Do not automatically reverse a prior choice. Preserve existing valid permission only within its original scope. A separate affirmative control is required for a legacy visitor to enable basic statistics. Withdrawal stops future collection; do not queue events for later replay.
-
-The candidate has separate analytics and advertising script gates, granular controls, rollback protection and known first-party cookie cleanup. The test-only build uses inert local scripts. It has a separate privacy-mode switch so disabling basic collection does not revert the revised consent controls. The final notice and policy must be approved and the real providers' behavior verified before publication.
+Privacy mode remains independent of the basic collection switch. Do not publish until solicitor approval, owner release approval and the staged tracker-free cutover are confirmed.

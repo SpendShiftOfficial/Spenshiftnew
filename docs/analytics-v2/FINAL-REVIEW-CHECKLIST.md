@@ -1,16 +1,16 @@
 # Final candidate — solicitor and owner review, 25 November 2026
 
-The development candidate is source-locked. No production changes or data collection are authorised. The published policy remains unchanged; the revised replacement schedules must be reviewed and then incorporated into the actual legal pages in a separately authorised release. This document records engineering decisions, not a compliance certificate.
+The development candidate is source-locked. No production changes or data collection are authorised. The live published policy remains unchanged; the branch now contains complete proposed policy pages marked draft/not effective. Counsel must approve the final wording before any separately authorised release. This document records engineering decisions, not a compliance certificate.
 
-## Consent
-- Separate basic-statistics choice, optional website analytics (GA4/Clarity and existing consented v1 counts), optional advertising (Meta/TikTok). Old grants are limited to their original scope; prior choices block new basic measurement until an explicit legacy transition.
-- Basic opt-out is independent. The privacy mode is independent of the collection flag and schema availability. A restricting split or rejection conservatively downgrades an old all-granted marker for rollback. Known first-party cookies are expired on withdrawal; full document refresh removes active scripts. A third-party script already loaded may still emit an in-flight or unload request. Real provider cookies, network behavior, cross-tab/browser differences and product-specific account terms must be checked.
-- GA4 advertising flags denied, Google Signals and ad personalization disabled; Clarity consentv2 analytics granted only on analytics opt-in and ad storage denied. The fixture uses inert same-origin scripts, not vendor requests. Confirm actual account settings, destinations, automatic events, sensitive data restrictions and Clarity consent mode before production.
-- No expanded financial-answer measurement, unique identifiers, private report event expansion, or opt-choice counts. Basic event requests omit credentials and referrer; hosting/security may still process metadata. Referrer gaps, reloads, duplicate documents, bots and lost events limit counts. No unique-person or matched CAC claims.
+## First-party-only consent and protection
+- Separate new basic-statistics choice and existing optional first-party audit/report counts. Existing cookie choices block new basic collection unless explicitly transitioned. Valid older first-party consent may be honoured within its original scope; new optional choices never create a legacy vendor grant. All-statistics opt-out withdraws both categories. No visitor option or environment flag re-enables Google Analytics, Clarity, Meta or TikTok.
+- Basic opt-out and independent privacy mode preserved. Vendor loader components are inert, event-forwarding functions are no-ops and global CSP denies remote scripts/frames/connect requests. Owner authentication retains a narrowly scoped Supabase connection exception. No third-party forwarding or server-side conversion pings introduced.
+- No expanded financial-answer measurement, unique IDs, private paid-stage/report expansion or opt-choice counts. Basic requests omit credentials and referrer; hosting/security may process metadata. Counts are observations, not unique people or matched conversions.
 
-## Browser storage isolation — release gate
-- Existing audit drafts and completed free answers are saved in localStorage by app/audit/page.tsx, and completed answers may fall back to sessionStorage. These are website-origin stores. Third-party scripts executing on that origin have the browser privileges of the page; a public-page-only loading rule or private-route CSP does not by itself deny access to answers stored earlier, including across tabs. No evidence of actual access or disclosure was found in the inert fixtures, which do not execute real vendor code.
-- Before enabling optional vendor scripts in a release, verify a genuine storage/origin isolation design or approve a first-party-only release with vendor loaders disabled. Review the existing production tracking configuration separately; do not change it without explicit approval. Do not claim the current loader scope guarantees financial answer isolation.
+## Browser storage isolation — mitigated in candidate, cutover review required
+- Existing free drafts and completed answers use origin-shared localStorage or sessionStorage. Previously loaded third-party JS could potentially access these stores on the same origin. There is no established evidence of disclosure.
+- Removal of all vendor execution paths and site-wide CSP address this risk in newly loaded candidate documents without deleting drafts or changing how the product works. Previously opened old pages, browser extensions, XSS and other same-origin code are not eliminated by this design. No claims of full storage isolation or retrospective deletion.
+- Plan an authorised tracker-free cutover and first-party-only rollback. Do not return to vendor-enabled builds or add providers unless separate origin isolation and legal/security review are complete. Review old vendor data/cookies and account terms separately.
 
 ## Owner access
 - Source lock false; hosted owner path unavailable until separately reviewed release. The production page requires an exact project URL and a dedicated Supabase publishable key, never the service-role key.
@@ -18,14 +18,14 @@ The development candidate is source-locked. No production changes or data collec
 - Real Supabase Auth provisioning, MFA enrollment, session expiry/revocation, provider security configuration and owner access must be verified on approved isolated infrastructure before activation. Unit/server authorization tests do not substitute for provider login. No production account created.
 
 ## Financial reporting
-- Read-only operational order aggregates are independent from Stripe financial truth. Imported daily sources: Stripe confirmed paid orders, gross AUD cents, refund cents, failed payment attempts; Meta spend cents, reported LPV and outbound clicks; GA4 consented sessions.
+- Read-only operational order aggregates are independent from Stripe financial truth. Imported daily sources: Stripe confirmed paid orders, gross AUD cents, refund cents, failed payment attempts; Meta spend cents, reported LPV and outbound clicks; historical GA4 consented sessions (no new GA4 site tracking in this candidate).
 - Owner must verify product scope, currency, Sydney date boundaries, refunds by refund date, and payment counts before entry. No raw exports or identifiers. Missing dates are N/A; explicit zero only if verified. Replacing a source/date is idempotent. Current day can be partial. Gross less refunds is not profit; spend/all orders is not attributed CAC.
 - Only an authenticated owner with the separately enabled import flag may save. Source-specific SQL tables, RLS, fixed numeric fields, strict request validation, service-role RPC, aggregate read and 180-day prune. The reporting cache does not replace accounting source records.
 - No automated provider feeds or real figures were connected. Real reconciliation and provider report timezone definitions remain outstanding.
 
 ## Release hold
 1. Review the exact candidate CI results and fix all failures.
-2. Complete an approved isolated Auth and real-provider review, WAF/capacity tests, source alignment and operational reconciliation.
+2. Complete an approved isolated Auth review and tracker-free deployment checks, WAF/capacity tests, source alignment and operational reconciliation.
 3. Obtain Australian legal approval for the actual notice, policy, legacy treatment, provider contracts and overseas/log retention. Publish approved legal wording only with matching functionality.
 4. Obtain separate explicit owner approval for migration, configuration, deployment and activation. Keep current production untouched until then.
 
