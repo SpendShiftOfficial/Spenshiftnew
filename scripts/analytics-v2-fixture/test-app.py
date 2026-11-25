@@ -36,7 +36,7 @@ try:
         browser=p.chromium.launch(headless=True)
         def setup(legacy=None):
             ctx=browser.new_context(viewport={'width':390,'height':844})
-            if legacy:ctx.add_init_script('localStorage.setItem("spendshift_cookie_consent",'+json.dumps(legacy)+')')
+            if legacy:ctx.add_init_script('if(localStorage.getItem("spendshift_cookie_consent")===null)localStorage.setItem("spendshift_cookie_consent",'+json.dumps(legacy)+')')
             sent=[]; replies=[]; external=[]
             def intercept(route):
                 url=route.request.url
