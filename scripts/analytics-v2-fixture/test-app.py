@@ -106,6 +106,8 @@ try:
     assert status==200 and 'SYNTHETIC DATA ONLY' in body and 'Website arrivals' in body
     assert 'no-store' in headers.get('Cache-Control','') and 'noindex' in headers.get('X-Robots-Tag','')
     assert 'Question breakdown suppressed' in body
+    assert 'Refund-adjusted gross (not profit)' in body and '$97.00' in body
+    assert 'Stripe paid orders' in body and '$126.00' in body
     print('PASS '+str(count)+' real local product browser journeys with database persistence; protected dashboard and sparse-cell suppression')
 finally:
     app.terminate();bridge.terminate()

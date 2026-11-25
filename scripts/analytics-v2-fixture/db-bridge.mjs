@@ -4,6 +4,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {validEvent,events} from '../../lib/analytics-v2/core.mjs';
 import {rangeFor} from '../../lib/analytics-v2/dashboard.mjs';
+import {operationalQuery} from '../../lib/analytics-v2/operational.mjs';
 const exec=promisify(execFile);
 if(process.env.CI!=='true'||process.env.PGHOST!=='127.0.0.1'||process.env.PGDATABASE!=='analytics_v2_test'||process.env.PGUSER!=='postgres'||process.env.PGPASSWORD!=='synthetic_only')throw Error('disposable test DB required');
 const sql=async statement=>(await exec('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','-c',statement],{timeout:2500,maxBuffer:1000000})).stdout.trim();
@@ -26,7 +27,8 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='GET'&&url.pathname==='/report'){
    const range=rangeFor(url.searchParams.get('period')??'7');if(!range)return reply(400);
    const result=await sql("SET ROLE service_role; SELECT COALESCE(json_agg(t),'[]'::json) FROM (SELECT metric_code,dimension_code,bucket_code,SUM(event_count)::text AS event_count FROM public.spendshift_metrics_v2_daily WHERE metric_date BETWEEN "+q(range.from)+"::date AND "+q(range.to)+"::date GROUP BY 1,2,3) t;");
-   return reply(200,result);
+   const ops=await sql('SET ROLE service_role; '+operationalQuery(range));
+   return reply(200,JSON.stringify({rows:JSON.parse(result),operations:JSON.parse(ops)}));
   }
   return reply(404);
  }catch{return reply(503);}

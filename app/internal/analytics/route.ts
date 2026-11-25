@@ -17,7 +17,7 @@ export async function GET(req:Request){
  if(!range||[...url.searchParams.keys()].some(k=>k!=="period")||url.searchParams.getAll("period").length>1)return new Response(null,{status:400,headers});
  try{
   const response=await fetch(BRIDGE_ORIGIN+"/report?period="+period,{headers:{"Authorization":"Bearer synthetic-only"},cache:"no-store",redirect:"error",signal:AbortSignal.timeout(3000)});
-  if(!response.ok)throw Error("fixture unavailable");const rows=await response.json();if(!Array.isArray(rows))throw Error("invalid fixture");
-  return new Response(renderDashboard(rows,period,range),{headers:{...headers,"Content-Type":"text/html; charset=utf-8"}});
+  if(!response.ok)throw Error("fixture unavailable");const data=await response.json();if(!data||!Array.isArray(data.rows))throw Error("invalid fixture");
+  return new Response(renderDashboard(data.rows,period,range,data.operations),{headers:{...headers,"Content-Type":"text/html; charset=utf-8"}});
  }catch{return new Response("Synthetic aggregate report unavailable.",{status:503,headers});}
 }

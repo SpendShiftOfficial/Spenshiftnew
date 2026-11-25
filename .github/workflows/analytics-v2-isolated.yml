@@ -45,6 +45,7 @@ jobs:
           node scripts/analytics-v2-fixture/test-ingest.mjs
           node scripts/analytics-v2-fixture/test-report.mjs
           node scripts/analytics-v2-fixture/test-dashboard.mjs
+          node scripts/analytics-v2-fixture/test-operational.mjs
       - name: Disposable database only
         run: |
           test "$PGHOST" = 127.0.0.1
@@ -97,6 +98,7 @@ jobs:
           test "$PGHOST" = 127.0.0.1
           test "$PGDATABASE" = analytics_v2_test
           psql -X -v ON_ERROR_STOP=1 -c "TRUNCATE public.spendshift_metrics_v2_daily;"
+          psql -X -v ON_ERROR_STOP=1 -f scripts/analytics-v2-fixture/seed-operations.sql
           npm run build
           source /tmp/analytics-test-venv/bin/activate
           python scripts/analytics-v2-fixture/test-app.py

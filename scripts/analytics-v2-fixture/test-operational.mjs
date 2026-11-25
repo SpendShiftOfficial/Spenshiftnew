@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';
+import {operationalFields,operationalData,operationalQuery} from '../../lib/analytics-v2/operational.mjs';
+const raw=Object.fromEntries(operationalFields.map(k=>[k,0]));Object.assign(raw,{order_cohort:4,stripe_paid_orders:4,gross_cents:12600,refund_cents:2900,meta_lpv:18,meta_spend_cents:800});
+const v=operationalData(raw);assert.equal(v.net_cents,9700);assert.equal(v.blended_spend_per_order,200);assert.equal(v.meta_cost_per_lpv,800/18);assert.equal(v.order_difference,0);assert.equal(operationalData({...raw,meta_lpv:0}).meta_cost_per_lpv,null);assert.equal(operationalData({...raw,gross_cents:null}).net_cents,null);assert.throws(()=>operationalData({...raw,email:'fake'}));assert.throws(()=>operationalQuery({from:"2026-11-25';DROP TABLE",to:'2026-11-25'}));assert.match(operationalQuery({from:'2026-11-19',to:'2026-11-25'}),/Australia\/Sydney/);console.log('PASS 9 operational aggregation and denominator checks');
