@@ -1,0 +1,1 @@
+export function createIngestion(options?:{enabled?:boolean;origin?:string;increment?:(args:Record<string,string|number>)=>Promise<unknown>|unknown;allowChoice?:boolean;allowPrivate?:boolean}):(req:Request)=>Promise<Response>;

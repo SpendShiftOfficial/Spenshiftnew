@@ -126,7 +126,7 @@ export default function WhySpendShiftPage() {
                 and choose an A$29 plan if you want more help.
                 For more ideas, explore our{" "}
 <Link
-href="/save-money-australia"
+href="/save-money-australia" data-ss-nav="true"
 style={{
 color: "inherit",
 fontWeight: 700,
@@ -155,7 +155,7 @@ Australian money-saving guide
                 </span>
               </div>
 
-              <Link href="/audit" className="btn">
+              <Link href="/audit" data-ss-cta="body" className="btn">
                 Start my free savings check
                 <ArrowRight size={18} />
               </Link>
@@ -403,7 +403,7 @@ Australian money-saving guide
               </div>
 
               <div className="">
-                <Link href="/audit" className="btn white">
+                <Link href="/audit" data-ss-cta="body" className="btn white">
                   Start my free savings check
                   <ArrowRight size={18} />
                 </Link>

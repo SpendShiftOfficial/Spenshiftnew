@@ -47,8 +47,8 @@ const faqs = [
   ["Is A$29 a monthly charge?", "No. It's one payment for the full personalised plan. There is no subscription."],
   ["What happens after I pay?", "Answer a few more questions about your relevant spending areas. Your progress is saved. Then view your plan, which you can return to with your private link."],
 ];
-function Start() {
-  return <a className={styles.primary} href="/audit">Start my free savings check</a>;
+function Start({placement="body"}:{placement?:"hero"|"body"}) {
+  return <a className={styles.primary} href="/audit" data-ss-cta={placement}>Start my free savings check</a>;
 }
 function Tiles({ items }: { items: string[][] }) {
   return <div className={styles.tileGrid}>
@@ -64,7 +64,7 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
   return <div className={styles.page}><Header/><main className={styles.wrap}>
     <section className={styles.hero}>
       <span className={styles.eyebrow}>{label}</span><h1>{heading}</h1>
-      <p>{intro}</p><Start/><p className={styles.small}>8 free questions · No bank login · No card for free results</p>
+      <p>{intro}</p><Start placement="hero"/><p className={styles.small}>8 free questions · No bank login · No card for free results</p>
     </section>
     {page==="home"&&<>
       <section aria-labelledby="benefits-heading">
@@ -80,7 +80,7 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
           <h2>Your next three steps, made for you.</h2>
           <p>Free results show where to look. The paid plan shows what to do and how to check the result.</p>
           <ul>{included.slice(0,4).map(x=><li key={x}>{x}</li>)}</ul>
-          <a className={styles.textLink} href="/whats-included">See what's included</a>
+          <a className={styles.textLink} href="/whats-included" data-ss-nav="true">See what's included</a>
         </div>
         <div className={styles.priceBox}><strong>A$29</strong><span>One payment · No subscription</span>
           <p>Start free. Choose the full plan only if you want more help.</p>
@@ -131,7 +131,7 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
     </>}
     <section className={styles.faq} id={page==="home"?"faq":undefined}>
       <h2>Questions before you start</h2>
-      {faqs.map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}
+      {faqs.map(([q,a],i)=><details key={q} data-ss-faq={["free_check","live_prices","unknown_amount","savings_guarantee","pricing","after_payment"][i]}><summary>{q}</summary><p>{a}</p></details>)}
       <p>Need help? <a href="mailto:info@spendshift.com.au">Email SpendShift</a>.</p>
     </section>
     <section className={styles.last}><h2>See where to start.</h2><Start/>

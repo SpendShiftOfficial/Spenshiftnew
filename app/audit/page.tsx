@@ -1,18 +1,21 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useEffect,useState,useRef} from 'react';
 import Header from '@/components/Header';
 import {auditQuestions,validateAuditAnswers} from '@/lib/audit-schema';
 import {recordAggregateAuditEvent} from '@/lib/first-party-audit';
 import styles from './audit.module.css';
+import {useBasicMetricScope,useForegroundClock,durationBucket} from '@/components/BasicAnalytics';
 const key='spendshift_free_draft_v2';
 export default function Audit(){
  const [index,setIndex]=useState(0);const [answers,setAnswers]=useState<string[]>([]);const [loaded,setLoaded]=useState(false);const [error,setError]=useState('');
+ const metric=useBasicMetricScope();const [run,setRun]=useState(0);const resumed=useRef(false);const duration=useForegroundClock(loaded&&metric.ready,run);
+ useEffect(()=>{if(!loaded||!metric.ready)return;const observe=()=>{metric.record('audit_arrival');metric.record('audit_question_seen',{question:index+1});};observe();document.addEventListener('visibilitychange',observe);return()=>document.removeEventListener('visibilitychange',observe);},[loaded,index,run,metric.ready,metric.revision,metric.record]);
  // Count consenting arrivals even when someone leaves before answering question one.
  useEffect(()=>{recordAggregateAuditEvent('audit_arrival');},[]);
- useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.answers)&&saved.answers.length<=8&&saved.answers.every((a:unknown,i:number)=>typeof a==='string'&&(auditQuestions[i].options.includes(a)||(i===0&&a==='Less than once a week')||(i===1&&['None','1–2','3–5','6–10','10+','0–2'].includes(a))||(i===6&&a==='1–2 times/month')))){setAnswers(saved.answers.map((a:string,i:number)=>i===0&&a==='Less than once a week'?'Rarely':i===6&&a==='1–2 times/month'?'Rarely':a));setIndex(Math.max(0,Math.min(7,Number(saved.index)||0)));}}catch{}setLoaded(true);},[]);
+ useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.answers)&&saved.answers.length<=8&&saved.answers.every((a:unknown,i:number)=>typeof a==='string'&&(auditQuestions[i].options.includes(a)||(i===0&&a==='Less than once a week')||(i===1&&['None','1–2','3–5','6–10','10+','0–2'].includes(a))||(i===6&&a==='1–2 times/month')))){resumed.current=true;setAnswers(saved.answers.map((a:string,i:number)=>i===0&&a==='Less than once a week'?'Rarely':i===6&&a==='1–2 times/month'?'Rarely':a));setIndex(Math.max(0,Math.min(7,Number(saved.index)||0)));}}catch{}setLoaded(true);},[]);
  useEffect(()=>{if(loaded){try{localStorage.setItem(key,JSON.stringify({answers,index}));}catch{}}},[answers,index,loaded]);
- function choose(value:string){if(index===0)recordAggregateAuditEvent('audit_start');setAnswers(prev=>{const next=[...prev];next[index]=value;return next;});setError('');}
- function next(){if(!answers[index])return;if(index<7){setIndex(index+1);return;}try{const valid=validateAuditAnswers(answers);let saved=false;try{localStorage.setItem('spendshift_answers',JSON.stringify(valid));localStorage.removeItem(key);saved=true;}catch{}if(!saved){try{sessionStorage.setItem('spendshift_answers',JSON.stringify(valid));saved=true;}catch{}}if(!saved){setError('Your browser is blocking saved answers. Allow website storage to view your free results.');return;}recordAggregateAuditEvent('audit_complete');window.location.assign('/results');}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');}}
+ function choose(value:string){if(index===0){recordAggregateAuditEvent('audit_start');if(loaded)metric.record('audit_start');}setAnswers(prev=>{const next=[...prev];next[index]=value;return next;});setError('');}
+ function next(){if(!answers[index])return;if(index<7){if(loaded)metric.record('audit_question_advanced',{question:index+1});setIndex(index+1);return;}try{const valid=validateAuditAnswers(answers);let saved=false;try{localStorage.setItem('spendshift_answers',JSON.stringify(valid));localStorage.removeItem(key);saved=true;}catch{}if(!saved){try{sessionStorage.setItem('spendshift_answers',JSON.stringify(valid));saved=true;}catch{}}if(!saved){metric.record('safe_ui_error',{error:'audit_storage_unavailable'});setError('Your browser is blocking saved answers. Allow website storage to view your free results.');return;}recordAggregateAuditEvent('audit_complete');metric.record('audit_question_advanced',{question:8});metric.record('audit_complete');if(!resumed.current)metric.record('audit_duration_bucket',{duration:durationBucket(duration())});window.location.assign('/results');}catch(e){setError(e instanceof Error?e.message:'Please check your answers.');}}
  const q=auditQuestions[index];const visibleOptions=q.options.filter(a=>a!=='Never / not sure'||answers[index]===a);
  // Historical count-based choices remain visible only when reopening a saved draft.
  if(index===1&&answers[index]&&!visibleOptions.includes(answers[index])&&['None','1–2','3–5','6–10','10+','0–2'].includes(answers[index]))visibleOptions.push(answers[index]);
@@ -20,8 +23,8 @@ export default function Audit(){
   <p className={styles.progress}>Question {index+1} of 8</p><div className={styles.track} role='progressbar' aria-label='Your free check' aria-valuenow={Math.round(index/8*100)} aria-valuemin={0} aria-valuemax={100}><span style={{width:index/8*100+'%'}}/></div>
   <h1>{q.q}</h1><p>{index===0?"Count takeaway, delivery and meals at cafés or restaurants. Don't count coffee or snacks on their own.":index===1?"Think of paid apps, streaming services and memberships. No need to know the prices yet.":index===3?"Count coffee, snacks and small treats, not full meals.":index===6?"Don't count coffee, snacks or small treats. We asked about those earlier.":"Choose the answer that fits you best."}</p>
   <div className={styles.options} role='group' aria-label={q.q}>{visibleOptions.map(a=><button key={a} type='button' aria-pressed={answers[index]===a} onClick={()=>choose(a)}>{a==='Yes — at least one unused'?'Yes, at least one is unused':a==='No — I use them all'?'No, I use them all':a}</button>)}</div>
-  <div className={styles.actions}>{index>0?<button type='button' onClick={()=>setIndex(index-1)}>Previous question</button>:<a href='/'>Back home</a>}<button className={styles.next} type='button' disabled={!answers[index]} onClick={next}>{index===7?'See my free results':'Next question'}</button></div>
+  <div className={styles.actions}>{index>0?<button type='button' onClick={()=>{metric.record('audit_back',{question:index+1});setIndex(index-1);}}>Previous question</button>:<a href='/'>Back home</a>}<button className={styles.next} type='button' disabled={!answers[index]} onClick={next}>{index===7?'See my free results':'Next question'}</button></div>
   {error&&<p role='alert'>{error}</p>}<p className={styles.small}>No bank login. No payment for your free results.</p>
-  <button className={styles.reset} type='button' onClick={()=>{setAnswers([]);setIndex(0);setError('');try{localStorage.removeItem(key);}catch{}}}>Start a new check</button>
+  <button className={styles.reset} type='button' onClick={()=>{metric.record('audit_reset');metric.reset();resumed.current=false;setRun(r=>r+1);setAnswers([]);setIndex(0);setError('');try{localStorage.removeItem(key);}catch{}}}>Start a new check</button>
  </main></div>;
 }

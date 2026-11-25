@@ -196,6 +196,7 @@ INSERT INTO public.spendshift_metrics_v2_registry VALUES
 ('checkout_opened','all','all'),
 ('personalisation_view','all','all'),
 ('personalisation_step_advanced','all','all');
+INSERT INTO public.spendshift_metrics_v2_registry VALUES ('faq_open','faq','live_prices'),('faq_open','faq','unknown_amount'),('faq_open','faq','savings_guarantee'),('faq_open','faq','after_payment');
 CREATE TABLE public.spendshift_metrics_v2_daily (metric_date date NOT NULL,metric_code text NOT NULL,dimension_code text NOT NULL,bucket_code text NOT NULL,event_count bigint NOT NULL CHECK(event_count>=0),PRIMARY KEY(metric_date,metric_code,dimension_code,bucket_code),FOREIGN KEY(metric_code,dimension_code,bucket_code) REFERENCES public.spendshift_metrics_v2_registry);
 ALTER TABLE public.spendshift_metrics_v2_registry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.spendshift_metrics_v2_daily ENABLE ROW LEVEL SECURITY;

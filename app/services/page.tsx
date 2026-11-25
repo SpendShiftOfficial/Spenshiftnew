@@ -78,7 +78,7 @@ export default function ServicesPage() {
               </span>
             </div>
 
-            <Link href="/audit" className="btn">
+            <Link href="/audit" data-ss-cta="body" className="btn">
               Start my free savings check
               <ArrowRight size={18} />
             </Link>
@@ -151,7 +151,7 @@ export default function ServicesPage() {
                 Start with free results. The paid plan adds step-by-step help.
 We don't check live offers or promise a saving. For more ideas, explore our{" "}
 <Link
-href="/save-money-australia"
+href="/save-money-australia" data-ss-nav="true"
 style={{
 color: "inherit",
 fontWeight: 700,
@@ -212,7 +212,7 @@ guide to saving money in Australia
                 </span>
               </div>
 
-              <Link href="/audit" className="btn white">
+              <Link href="/audit" data-ss-cta="body" className="btn white">
                 Start my free savings check
                 <ArrowRight size={18} />
               </Link>
@@ -255,7 +255,7 @@ guide to saving money in Australia
               </div>
 
               <div>
-                <Link href="/audit" className="btn white">
+                <Link href="/audit" data-ss-cta="body" className="btn white">
                   Start my free savings check
                   <ArrowRight size={18} />
                 </Link>

@@ -3,6 +3,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Mona_Sans } from "next/font/google";
 import ConsentBanner from "@/components/ConsentBanner";
+import BasicAnalytics from "@/components/BasicAnalytics";
+import {analyticsFixtureEnabled} from "@/lib/analytics-v2/fixture-mode";
 
 const inter = Inter({
 subsets: ["latin"],
@@ -96,8 +98,7 @@ export default function RootLayout({
       </head>
 
       <body>
-        {children}
-        <ConsentBanner />
+        {analyticsFixtureEnabled() ? <BasicAnalytics>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
 <PublicAnalytics enabled={process.env.VERCEL_ENV === "production"} />
 
 

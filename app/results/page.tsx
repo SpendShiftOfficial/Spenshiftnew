@@ -11,7 +11,8 @@ import { areaNames, reasonForArea, type PersonalisationArea } from "@/lib/person
 import { analyseSavings } from "@/lib/savings-engine";
 import { emptyRefinements } from "@/lib/report-refinements";
 import styles from "./results.module.css";
-import {TERMS_VERSION,PLAN_PRICE_CENTS} from "@/lib/audit-schema";
+import {useBasicMetricScope} from "@/components/BasicAnalytics";
+import {TERMS_VERSION,PLAN_PRICE_CENTS,validateAuditAnswers} from "@/lib/audit-schema";
 
 const firstChecks:Record<PersonalisationArea,string>={
  takeaway:"Check how much your takeaway and restaurant meals cost in a normal week.",
@@ -68,6 +69,8 @@ const previewExamples:Record<PersonalisationArea,PreviewExample>={
  },
 };
 export default function Results() {
+  const metric=useBasicMetricScope();
+  const offerRef=useRef<HTMLElement|null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const checkoutAttempt=useRef({answers:"",id:""});
   const [loaded, setLoaded] = useState(false);
@@ -101,6 +104,17 @@ export default function Results() {
     [answers]
   );
 
+  const validForMetrics=useMemo(()=>{if(!loaded)return false;try{validateAuditAnswers(answers);return true;}catch{return false;}},[loaded,answers]);
+  useEffect(()=>{
+    if(!loaded||!metric.ready)return;
+    const observe=()=>{if(validForMetrics)metric.record("results_view");else metric.record("safe_ui_error",{error:"results_unavailable"});};
+    observe();document.addEventListener("visibilitychange",observe);return()=>document.removeEventListener("visibilitychange",observe);
+  },[loaded,validForMetrics,metric.ready,metric.revision,metric.record]);
+  useEffect(()=>{
+    if(!validForMetrics||!metric.ready||!offerRef.current||typeof IntersectionObserver==="undefined")return;
+    const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))metric.record("upgrade_offer_view");});
+    observer.observe(offerRef.current);return()=>observer.disconnect();
+  },[validForMetrics,metric.ready,metric.revision,metric.record,areas.length,additionalArea]);
   const previewArea: PersonalisationArea = areas[0] || additionalArea || "subscriptions";
   const shownAreas = areas.length ? areas : additionalArea ? [additionalArea] : [];
   const extraAreaChoice = (
@@ -118,6 +132,7 @@ export default function Results() {
 
   async function checkout() {
     if (busy || !acceptedTerms || (areas.length === 0 && !additionalArea)) return;
+    if(validForMetrics)metric.record("upgrade_cta_click");
     setBusy(true);
     setError("");
     try {
@@ -131,6 +146,7 @@ export default function Results() {
           !data.url.startsWith("https://checkout.stripe.com/")) {
         throw new Error(data.error || "We couldn't open checkout. Please try again.");
       }
+      if(validForMetrics)metric.record("checkout_opened");
       trackEvent("begin_checkout", {
         currency: "AUD", value: PLAN_PRICE_CENTS / 100,
         items: [{ item_id: "spendshift_full_report", item_name: "SpendShift Full Savings Report", price: PLAN_PRICE_CENTS / 100, quantity: 1 }],
@@ -142,6 +158,7 @@ export default function Results() {
       trackMetaStandard("InitiateCheckout", { value: PLAN_PRICE_CENTS / 100, currency: "AUD" });
       window.location.assign(data.url);
     } catch (err) {
+      metric.record("safe_ui_error",{error:"checkout_open_failed"});
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setBusy(false);
     }
@@ -224,7 +241,7 @@ export default function Results() {
                   : null}
             </section>
 
-            <section className={styles.purchase} id="unlock-full-report" aria-labelledby="paid-plan-title">
+            <section ref={offerRef} className={styles.purchase} id="unlock-full-report" aria-labelledby="paid-plan-title">
               <div className={styles.purchaseHeader}>
                 <span className={styles.eyebrow}><ShieldCheck size={16} /> OPTIONAL PERSONALISED PLAN</span>
                 <h2 id="paid-plan-title">Turn your checks into a plan you can use.</h2>

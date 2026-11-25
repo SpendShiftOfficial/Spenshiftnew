@@ -21,7 +21,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
         }}
       >
         {/* Brand Logo */}
-        <Link href="/" className="logo">
+        <Link href="/" data-ss-nav="true" className="logo">
           <Image
             src="/logo.png"
             alt="SpendShift"
@@ -47,14 +47,14 @@ export default function Header({ simple = false }: { simple?: boolean }) {
           <>
             {/* Desktop Navigation */}
             <nav className="nav desktop-only">
-              <a href="/how-it-works">How it Works</a>
-              <a href="/whats-included">What’s Included</a>
-              <a href="/why-spendshift">Why SpendShift</a>
-              <a href="/pricing">Pricing</a>
+              <a href="/how-it-works" data-ss-nav="true">How it Works</a>
+              <a href="/whats-included" data-ss-nav="true">What’s Included</a>
+              <a href="/why-spendshift" data-ss-nav="true">Why SpendShift</a>
+              <a href="/pricing" data-ss-nav="true">Pricing</a>
               <a href="/#faq">FAQ</a>
             </nav>
 
-            <Link className="btn desktop-only" href="/audit">
+            <Link className="btn desktop-only" href="/audit" data-ss-cta="other">
               Start my free savings check
             </Link>
 
@@ -99,14 +99,14 @@ export default function Header({ simple = false }: { simple?: boolean }) {
               {/* Top Links Block */}
               <div className="" style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
                 <nav style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <a href="/how-it-works" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
-                  <a href="/whats-included" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
-                  <a href="/why-spendshift" onClick={toggleMenu}><Circle size={12} color="#059625" /> Why SpendShift</a>
-                  <a href="/pricing" onClick={toggleMenu}><Circle size={12} color="#059625" /> Pricing</a>
+                  <a href="/how-it-works" data-ss-nav="true" onClick={toggleMenu}><Circle size={12} color="#059625" /> How it Works</a>
+                  <a href="/whats-included" data-ss-nav="true" onClick={toggleMenu}><Circle size={12} color="#059625" /> What’s Included</a>
+                  <a href="/why-spendshift" data-ss-nav="true" onClick={toggleMenu}><Circle size={12} color="#059625" /> Why SpendShift</a>
+                  <a href="/pricing" data-ss-nav="true" onClick={toggleMenu}><Circle size={12} color="#059625" /> Pricing</a>
                   <a href="/#faq" onClick={toggleMenu}><Circle size={12} color="#059625" /> FAQ</a>
                 </nav>
                 
-                <Link className="btn" href="/audit" onClick={toggleMenu} style={{ textAlign: "center" }}>
+                <Link className="btn" href="/audit" data-ss-cta="other" onClick={toggleMenu} style={{ textAlign: "center" }}>
                   Start my free savings check
                 </Link>
               </div>

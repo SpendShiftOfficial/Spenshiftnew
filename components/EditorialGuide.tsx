@@ -32,8 +32,8 @@ export default function EditorialGuide({ guide }: { guide: EditorialGuideData })
       <article>
         <header className={styles.hero}>
           <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-            <Link href="/">Home</Link><span aria-hidden="true">/</span>
-            <Link href="/save-money-australia">Money-saving guides</Link>
+            <Link href="/" data-ss-nav="true">Home</Link><span aria-hidden="true">/</span>
+            <Link href="/save-money-australia" data-ss-nav="true">Money-saving guides</Link>
           </nav>
           <span className={styles.eyebrow}>{guide.label}</span>
           <h1>{guide.title}</h1>
@@ -90,7 +90,7 @@ export default function EditorialGuide({ guide }: { guide: EditorialGuideData })
         <section className={styles.cta} aria-labelledby="cta-heading">
           <h2 id="cta-heading">Want help checking your own spending?</h2>
           <p>Answer eight free questions. See which costs may be worth checking and where to start. You can stop after your free results.</p>
-          <Link href="/audit" className={styles.button}>Start my free savings check</Link>
+          <Link href="/audit" data-ss-cta="body" className={styles.button}>Start my free savings check</Link>
           <p className={styles.small}>No bank login. No card for free results. The optional full plan costs A$29 once.</p>
         </section>
       </article>

@@ -43,7 +43,7 @@ Cookie settings
       <div className="container footerGrid">
         <div className="footerBrand">
           <div className="footerLogo">
-            <Link href="/" className="logo">
+            <Link href="/" data-ss-nav="true" className="logo">
               <Image
                 src="/logo.png"
                 alt="SpendShift"
@@ -87,19 +87,19 @@ Cookie settings
 
         <div className="">
           <h4>Learn</h4>
-          <Link href="/how-it-works"><Circle size={10} color="#fff" /> How It Works</Link>
-          <Link href="/whats-included"><Circle size={10} color="#fff" /> What’s Included</Link>
-          <Link href="/why-spendshift"><Circle size={10} color="#fff" /> Why SpendShift</Link>
-          <Link href="/pricing"><Circle size={10} color="#fff" /> Pricing</Link>
+          <Link href="/how-it-works" data-ss-nav="true"><Circle size={10} color="#fff" /> How It Works</Link>
+          <Link href="/whats-included" data-ss-nav="true"><Circle size={10} color="#fff" /> What’s Included</Link>
+          <Link href="/why-spendshift" data-ss-nav="true"><Circle size={10} color="#fff" /> Why SpendShift</Link>
+          <Link href="/pricing" data-ss-nav="true"><Circle size={10} color="#fff" /> Pricing</Link>
           <Link href="/#faq"><Circle size={10} color="#fff" /> Frequently Asked Questions</Link>
-         <Link href="/save-money-australia"><Circle size={10} color="#fff" /> Save Money Australia</Link>
+         <Link href="/save-money-australia" data-ss-nav="true"><Circle size={10} color="#fff" /> Save Money Australia</Link>
         </div>
 
         <div className="">
           <h4>Services</h4>
-          <Link href="/audit"><Circle size={10} color="#fff" /> Free savings check</Link>
-          <Link href="/whats-included"><Circle size={10} color="#fff" /> A$29 savings plan</Link>
-          <Link href="/services"><Circle size={10} color="#fff" /> Our services</Link>
+          <Link href="/audit" data-ss-cta="footer"><Circle size={10} color="#fff" /> Free savings check</Link>
+          <Link href="/whats-included" data-ss-nav="true"><Circle size={10} color="#fff" /> A$29 savings plan</Link>
+          <Link href="/services" data-ss-nav="true"><Circle size={10} color="#fff" /> Our services</Link>
         </div>
 
         <div className="">
