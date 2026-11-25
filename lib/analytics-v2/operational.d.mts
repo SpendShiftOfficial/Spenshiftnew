@@ -1,0 +1,1 @@
+export function operationalData(raw:unknown):Record<string,number|null>|null;

@@ -23,6 +23,7 @@ function loadAnalytics(w:ProviderWindow,allowed:()=>boolean){
  if(!allowed())return;
  const c:any=function(...args:unknown[]){(c.q=c.q||[]).push(args);};
  w.clarity=w.clarity||c;
+ w.clarity?.('consentv2',{ad_Storage:'denied',analytics_Storage:'granted'});
  if(allowed())script("ss-v2-clarity","https://www.clarity.ms/tag/ykimmnar80");
 }
 function loadAds(w:ProviderWindow,allowed:()=>boolean){

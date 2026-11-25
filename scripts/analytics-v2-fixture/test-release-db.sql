@@ -51,3 +51,31 @@ SET ROLE service_role;
 DO $$ BEGIN IF public.spendshift_owner_session_active('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222') THEN RAISE EXCEPTION 'revoked session accepted'; END IF; END $$;
 RESET ROLE;
 SELECT 'PASS release DB gate, atomic cap, read aggregation, MFA session revocation, grants and pruning';
+-- Append to the disposable release database tests only.
+\ir ../../docs/analytics-v2/candidate-financial.sql
+DO $$ BEGIN
+ IF has_table_privilege('anon','public.spendshift_v2_stripe_daily','SELECT,INSERT,UPDATE,DELETE') OR has_table_privilege('authenticated','public.spendshift_v2_meta_daily','SELECT,INSERT,UPDATE,DELETE') OR has_function_privilege('authenticated','public.spendshift_save_source_v2(date,text,jsonb)','EXECUTE') OR has_function_privilege('anon','public.spendshift_read_financial_v2(date,date)','EXECUTE') THEN RAISE EXCEPTION 'unexpected source permissions'; END IF;
+END $$;
+SET ROLE service_role;
+DO $$ DECLARE d date:=(now() AT TIME ZONE 'Australia/Sydney')::date; r jsonb;
+BEGIN
+ PERFORM public.spendshift_save_source_v2(d,'stripe','{"stripe_paid_orders":4,"gross_cents":12600,"refund_cents":2900,"payment_failures":2}');
+ PERFORM public.spendshift_save_source_v2(d,'stripe','{"stripe_paid_orders":3,"gross_cents":8700,"refund_cents":2900,"payment_failures":1}');
+ PERFORM public.spendshift_save_source_v2(d,'meta','{"meta_spend_cents":800,"meta_lpv":18,"meta_outbound_clicks":21}');
+ PERFORM public.spendshift_save_source_v2(d,'ga4','{"ga4_sessions":0}');
+ r:=public.spendshift_read_financial_v2(d,d);
+ IF r->'values'->>'stripe_paid_orders'<>'3' OR r->'values'->>'gross_cents'<>'8700' OR r->'values'->>'ga4_sessions'<>'0' OR r->'coverage'->>'stripe'<>'1' THEN RAISE EXCEPTION 'replacement or zero'; END IF;
+ r:=public.spendshift_read_financial_v2(d-1,d);
+ IF r->'values'->>'gross_cents' IS NOT NULL OR r->'coverage'->>'expected_days'<>'2' OR r->'coverage'->>'stripe'<>'1' THEN RAISE EXCEPTION 'incomplete totals'; END IF;
+ PERFORM public.spendshift_save_source_v2(d-1,'stripe','{"stripe_paid_orders":0,"gross_cents":0,"refund_cents":0,"payment_failures":0}');
+ r:=public.spendshift_read_financial_v2(d-1,d);
+ IF r->'values'->>'gross_cents'<>'8700' OR r->'values'->>'meta_lpv' IS NOT NULL THEN RAISE EXCEPTION 'source coverage'; END IF;
+ BEGIN PERFORM public.spendshift_save_source_v2(d,'ga4','{"ga4_sessions":2,"email":"synthetic@example.invalid"}');RAISE EXCEPTION 'extra accepted';EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_source' THEN RAISE;END IF;END;
+ BEGIN PERFORM public.spendshift_save_source_v2(d,'ga4','{"ga4_sessions":-1}');RAISE EXCEPTION 'negative accepted';EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_source' THEN RAISE;END IF;END;
+ BEGIN PERFORM public.spendshift_save_source_v2(d+1,'ga4','{"ga4_sessions":0}');RAISE EXCEPTION 'future accepted';EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_source' THEN RAISE;END IF;END;
+ INSERT INTO public.spendshift_v2_ga4_daily(metric_date,ga4_sessions) VALUES(d-180,11),(d-179,2);
+ PERFORM public.spendshift_prune_metrics_v2_release();
+ IF EXISTS(SELECT 1 FROM public.spendshift_v2_ga4_daily WHERE metric_date=d-180) OR NOT EXISTS(SELECT 1 FROM public.spendshift_v2_ga4_daily WHERE metric_date=d-179) THEN RAISE EXCEPTION 'source retention'; END IF;
+END $$;
+RESET ROLE;
+SELECT 'PASS financial aggregate source permissions, replacement, source coverage, explicit zeros, validation and retention';
