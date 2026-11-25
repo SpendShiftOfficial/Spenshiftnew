@@ -3,23 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {isMarketingPath} from "@/lib/privacy";
+import {optionalPermissions,protectRollback} from "@/lib/analytics-v2/optional";
+import {browserCollector} from "@/lib/analytics-v2/browser.mjs";
 
 const CONSENT_KEY = "spendshift_cookie_consent";
 
 type ConsentChoice = "granted" | "denied";
-
-function updateGoogleConsent(choice: ConsentChoice) {
-if (typeof window === "undefined" || !window.gtag) return;
-
-const granted = choice === "granted" ? "granted" : "denied";
-
-window.gtag("consent", "update", {
-analytics_storage: granted,
-ad_storage: granted,
-ad_user_data: granted,
-ad_personalization: granted,
-});
-}
 
 export default function ConsentBanner() {
 const [visible, setVisible] = useState(false);
@@ -27,10 +16,10 @@ const [visible, setVisible] = useState(false);
 useEffect(() => {
 if (!isMarketingPath(window.location.pathname)) return;
 let saved: ConsentChoice | null = null;
-try { saved = localStorage.getItem(CONSENT_KEY) as ConsentChoice | null; } catch {}
+try { const raw=localStorage.getItem("spendshift_privacy_v2"); saved=raw!==null?(optionalPermissions(localStorage).analytics?"granted":"denied"):localStorage.getItem(CONSENT_KEY) as ConsentChoice | null; } catch {}
 
 if (saved === "granted" || saved === "denied") {
-updateGoogleConsent(saved);
+
 return;
 }
 
@@ -49,19 +38,13 @@ window.removeEventListener("open-cookie-settings", openCookieSettings);
 }, []);
 
 function saveConsent(choice: ConsentChoice) {
-let previousChoice:ConsentChoice|null=null;try{previousChoice=localStorage.getItem(CONSENT_KEY) as ConsentChoice|null;}catch{}
-try { localStorage.setItem(CONSENT_KEY, choice); } catch {}
-updateGoogleConsent(choice);
-
-const consentChanged =
-previousChoice !== null && previousChoice !== choice;
-
-if (choice === "granted" || consentChanged) {
-window.location.reload();
-return;
-}
-
-setVisible(false);
+ try {
+   protectRollback(localStorage,choice,"denied");
+   // In this disabled/basic-pre-release state preserve the earlier basic choice.
+   // Do not create a legacy vendor grant.
+   const c=browserCollector({enabled:false,noticeVisible:()=>false});
+   if(c.choose({analytics:choice,ads:"denied"}))setVisible(false);
+ } catch {}
 }
 
 if (!visible) {
@@ -105,12 +88,8 @@ lineHeight: 1.5,
 fontSize: "14px",
 }}
 >
-We use optional analytics and advertising technologies to understand
-how SpendShift is used, improve the experience and measure our
-marketing. If you accept, we also count basic actions in the free check
-and paid reports on our own servers. We don't send your spending
-answers to analytics providers. You can accept or reject optional
-cookies.{" "}
+No third-party analytics or advertising scripts run in this version.
+If you accept optional activity counts, we count certain free-check and paid-report actions on SpendShift's own servers. We do not include your answers in these totals. Basic website statistics are currently disabled. You can accept or reject these optional first-party counts.{" "}
 <Link
 href="/cookies"
 style={{
@@ -142,7 +121,7 @@ background: "#059625",
 color: "#ffffff",
 }}
 >
-Accept optional cookies
+Accept optional activity counts
 </button>
 
 <button
@@ -158,7 +137,7 @@ background: "#ffffff",
 color: "#1f2937",
 }}
 >
-Reject optional cookies
+Reject optional activity counts
 </button>
 </div>
 </div>

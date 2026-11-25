@@ -5,9 +5,9 @@ const storage=(old=null,pref=null)=>{const map=new Map();if(old!==null)map.set(l
 function check(actual,expected){assert.deepEqual(actual,expected);n++;}
 const pref=(analytics,ads,basicOff=false,legacyTransition=false)=>JSON.stringify({version:'2026-11-v2',basicOff,legacyTransition,analytics,ads});
 check(optionalPermissions(storage()),{analytics:false,ads:false});
-check(optionalPermissions(storage('granted')),{analytics:true,ads:true});
+check(optionalPermissions(storage('granted')),{analytics:true,ads:false});
 check(optionalPermissions(storage('denied')),{analytics:false,ads:false});
-for(const a of ['unset','granted','denied'])for(const b of ['unset','granted','denied'])for(const off of [true,false])check(optionalPermissions(storage('granted',pref(a,b,off))),{analytics:a==='granted',ads:b==='granted'});
+for(const a of ['unset','granted','denied'])for(const b of ['unset','granted','denied'])for(const off of [true,false])check(optionalPermissions(storage('granted',pref(a,b,off))),{analytics:a==='granted',ads:false});
 for(const malformed of ['{}','null','bad','[]',JSON.stringify({version:'old',analytics:'granted',ads:'granted',basicOff:false,legacyTransition:true}),pref('granted','unexpected')])check(optionalPermissions(storage('granted',malformed)),{analytics:false,ads:false});
 check(optionalPermissions({getItem(){throw Error('blocked')}}),{analytics:false,ads:false});
 check(optionalPermissions(storage('unknown',pref('granted','granted'))),{analytics:false,ads:false});

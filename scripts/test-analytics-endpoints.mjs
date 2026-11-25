@@ -205,7 +205,7 @@ try {
     const a = fs.readFileSync("lib/first-party-audit.ts", "utf8");
     const p = fs.readFileSync("lib/first-party-report.ts", "utf8");
     for (const code of [a, p]) {
-      assert.match(code, /spendshift_cookie_consent/);
+      assert.match(code, /optionalPermissions\(localStorage\)\.analytics/);
       assert.doesNotMatch(code, /\bgtag\(|\bclarity\(|\bfbq\(|\bttq\(/);
     }
     assert.match(a, /JSON\.stringify\(\{ event \}\)/);
@@ -214,12 +214,12 @@ try {
   await test("client helpers respect optional consent and send no financial data", async () => {
     const saved = { window: globalThis.window, localStorage: globalThis.localStorage,
       sessionStorage: globalThis.sessionStorage, fetch: globalThis.fetch };
-    let consent = "denied";
+    let consent = "denied", preference = null;
     const stored = new Map();
     const sent = [];
     try {
       globalThis.window = {};
-      globalThis.localStorage = { getItem: key => key === "spendshift_cookie_consent" ? consent : null };
+      globalThis.localStorage = { getItem: key => key === "spendshift_cookie_consent" ? consent : key === "spendshift_privacy_v2" ? preference : null };
       globalThis.sessionStorage = {
         getItem: key => stored.has(key) ? stored.get(key) : null,
         setItem: (key, value) => stored.set(key, value),
@@ -250,6 +250,15 @@ try {
       assert.equal(sent[2].url, "/api/report-metric");
       assert.deepEqual(JSON.parse(sent[2].options.body),
         { event: "tracker_saved", reportId: paidReportId });
+      // A newer rejection must override an old all-granted choice, even without v2 collection.
+      preference=JSON.stringify({version:"2026-11-v2",basicOff:false,legacyTransition:false,analytics:"denied",ads:"denied"});
+      auditClient.recordAggregateAuditEvent("audit_complete");
+      reportClient.recordReportEngagement("report_open", paidReportId);
+      assert.equal(sent.length,3,"new rejection overrides old grant");
+      preference=JSON.stringify({version:"2026-11-v2",basicOff:true,legacyTransition:false,analytics:"granted",ads:"denied"});
+      consent="denied";
+      auditClient.recordAggregateAuditEvent("audit_complete");
+      assert.equal(sent.length,4,"independently permitted optional counts remain distinct");
       for (const item of sent) {
         assert.equal(item.options.credentials, "same-origin");
         assert.equal(item.options.referrerPolicy, "no-referrer");

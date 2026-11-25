@@ -16,6 +16,7 @@ export default function CookiePolicy() {
       <div className="privacy-policy-content">
         <div className="container">
           <h1>Cookie Policy</h1>
+          <p><strong>Proposed first-party-only policy — draft for legal review, 25 November 2026. Not yet in effect.</strong></p>
 
           <div className="row">
             <div className="policy-content">
@@ -106,30 +107,22 @@ export default function CookiePolicy() {
                     </tr>
 
                     <tr>
-                      <td>Analytics</td>
-                      <td>
-                        Measure public website visits and, if you opt in,
-                        count basic free-check and paid-report actions.
-                      </td>
-                      <td>
-                Google Analytics and Microsoft Clarity on public pages;
-                SpendShift first-party daily action totals on private pages.
-              </td>
-                      <td>
-                        Yes, through browser settings, Google opt-out tools or
-                        consent controls where provided.
-                      </td>
+                      <td>Basic first-party statistics</td>
+                      <td>Limited approved website and audit actions, aggregated into daily totals when enabled under the revised notice.</td>
+                      <td>SpendShift's own website and Supabase database; no new visitor tracking identifier.</td>
+                      <td>Separate basic-statistics control; earlier privacy choices are preserved.</td>
                     </tr>
-
                     <tr>
-                      <td>Advertising measurement</td>
-                      <td>
-                        Measure visits and campaign results on eligible
-                        public marketing pages when you accept optional
-                        cookies.
-                      </td>
-                      <td>Meta Pixel and TikTok Pixel.</td>
-                      <td>Yes. These tools require your optional consent.</td>
+                      <td>Optional first-party activity counts</td>
+                      <td>Count certain free-check and paid-report interactions in the existing consent-based system.</td>
+                      <td>SpendShift's own servers and daily totals.</td>
+                      <td>Accept or reject optional counts; separate from basic statistics.</td>
+                    </tr>
+                    <tr>
+                      <td>Third-party advertising and analytics tracking</td>
+                      <td>Not active in this version, regardless of previous preferences.</td>
+                      <td>Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel were used in earlier versions.</td>
+                      <td>Disabled; no control enables these scripts in this version.</td>
                     </tr>
                     <tr>
                       <td>Payment and fraud prevention</td>
@@ -157,37 +150,18 @@ export default function CookiePolicy() {
                 </table>
               </div>
 
-              <h3>4. Analytics and advertising measurement</h3>
-
+              <h3>4. First-party statistics and historical tracking</h3>
               <p>
-                On eligible public marketing pages, Google Analytics and Microsoft Clarity help us understand website use, and Meta Pixel and TikTok Pixel measure marketing activity. These scripts load only after you accept optional cookies. Depending on the provider, they may collect device, browser, approximate location, page-view, event, referral and timestamp information. They do not run on free-check, free-results, paid-questionnaire or private-plan pages.
+                This version does not load third-party website analytics or advertising scripts or send measurement events to those providers. Cookies and data from earlier versions may remain subject to browser and provider retention or deletion settings. We do not promise to erase previously transmitted information by switching off scripts.
               </p>
-
               <p>
-                These providers may process information under their own terms and privacy documents. We use measurement to improve public pages and marketing. We do not intentionally send your free-check answers, email address, paid-plan details or private report links to these measurement services.
+                Basic first-party statistics, when enabled after the revised notice, use fixed event categories and broad labels, stored as daily counts. They do not need optional tracking cookies or create a persistent visitor identifier. You may turn basic statistics off. An earlier cookie choice is respected: new basic statistics remain off until you expressly enable them under the revised notice.
               </p>
-
               <p>
-                If you accept optional analytics, we may also count free-check
-                starts and completions and whether a paid report was opened,
-                its checklist used, a tracker entry saved or feedback sent.
-                These are first-party events sent to SpendShift only; no
-                third-party analytics script runs on private customer pages.
-                Our analytics database holds dates, action types and daily
-                totals, not your spending answers or report reference.
+                Optional first-party activity counts remain separate and record limited audit and paid-report interactions only with permission. A private report reference is sent to SpendShift's own server for verification and is not stored in the daily counts. Rejecting optional counts disables this existing measurement. The separate basic opt-out or all-statistics control can stop new basic collection.
               </p>
-
               <p>
-                To check that an interaction relates to a real paid report,
-                the private report reference is sent to SpendShift's own
-                server. It is used for verification and is not saved in
-                the daily analytics totals. Hosting and security services
-                may separately process technical request details such as
-                IP addresses for operations and abuse protection.
-                Rejecting optional cookies also disables these
-                first-party activity counts. We keep optional daily
-                analytics totals for up to 180 days and delete older
-                totals using our daily maintenance process.
+                Browser storage remembers preferences and saves audit answers for the requested service. Hosting and security services may process IP addresses and technical request details. We retain daily analytics totals and the separate aggregate reporting cache for up to 180 days under the approved maintenance process; other operational and financial records have separate retention requirements.
               </p>
 
               <h3>5. Stripe Checkout</h3>
@@ -211,7 +185,7 @@ export default function CookiePolicy() {
 
               <ul>
                 <li>
-                accepting or rejecting optional technologies through the website's cookie controls, which you can reopen from the footer;
+                accepting or rejecting optional first-party activity counts, turning off basic statistics, or turning off all statistics through Privacy settings, which you can reopen from the footer on eligible pages;
               </li>
 
                 <li>
@@ -221,7 +195,7 @@ export default function CookiePolicy() {
 
                 <li>using browser privacy or tracking-protection features;</li>
 
-                <li>using available Google Analytics opt-out tools; or</li>
+                <li>using browser or provider controls to manage cookies and data remaining from earlier versions; or</li>
 
                 <li>
                   avoiding Stripe Checkout if you do not wish to accept
@@ -262,7 +236,7 @@ export default function CookiePolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 16 November 2026</strong>
+                <strong>Draft prepared: 25 November 2026 — not effective</strong>
               </p>
             </div>
           </div>

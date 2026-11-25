@@ -1,4 +1,4 @@
-import {granularMode,optionalAllowed} from './analytics-v2/optional';
+import {optionalPermissions} from './analytics-v2/optional';
 /**
  * Consent-based first-party aggregate usage events.
  * The private report token is sent only to the first-party verification API;
@@ -11,8 +11,7 @@ export function recordReportEngagement(event: ReportEngagement, reportId: string
       !/^rpt_[A-Za-z0-9_-]{8,72}$/.test(reportId)) return;
   try {
     // Respect the existing optional-analytics consent choice on private pages.
-    if (granularMode()) { if (!optionalAllowed("analytics")) return; }
-    else if (localStorage.getItem("spendshift_cookie_consent") !== "granted") return;
+    if (!optionalPermissions(localStorage).analytics) return;
     const key = "spendshift_report_metric_" + event + "_" + reportId;
     if (sessionStorage.getItem(key) === "1") return;
     // At most one attempt per report, event and browser tab. Not unique users.

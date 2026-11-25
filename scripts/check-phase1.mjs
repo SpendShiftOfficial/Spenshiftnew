@@ -239,7 +239,8 @@ check('public ad links can be tracked without exposing click IDs or private quer
    globalThis.window={location:{pathname:'/',search:'?utm_source=facebook',hash:''},
      __spendshiftPublicTracking:true};
    globalThis.localStorage={getItem:key=>key==='spendshift_cookie_consent'?'granted':null};
-   assert.equal(canTrack(),true,'Validated campaign labels should allow GA audit CTA event');
+   assert.equal(canTrack(),false,'Even a valid legacy grant cannot enable vendor tracking in this candidate');
+   assert.equal(canTrack('ads'),false,'Ads are unconditionally disabled');
    globalThis.window.location.search='?fbclid=not_yet_removed';
    assert.equal(canTrack(),false,'Click IDs must be removed before tracking');
    globalThis.window.location.search='';
@@ -259,20 +260,15 @@ check('public ad links can be tracked without exposing click IDs or private quer
  }
 });
 check('analytics excludes access IDs, URLs and private fields',()=>{assert.deepEqual(safeEventParams({session_id:'cs_test_secret',report_id:'rpt_secret',transaction_id:'cs_test_secret',page_location:'https://x/report/rpt_secret',email:'x@example.com',answers:high,currency:'AUD',value:29}),{currency:'AUD'});for(const p of ['/audit','/results','/success','/personalise','/report/rpt_private','/plan-preview'])assert.equal(isMarketingPath(p),false);assert.equal(isMarketingPath('/pricing'),true);});
-check('private layout does not load measurement scripts',()=>{const layout=fs.readFileSync('app/layout.tsx','utf8');assert.doesNotMatch(layout,/googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/plan-preview/);assert.match(fs.readFileSync('components/PublicAnalytics.tsx','utf8'),/isMarketingPath/);});
-check('consented public analytics covers new guides and measures audit CTA safely',()=>{
-  for(const path of ['/','/pricing','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia']) assert.equal(isMarketingPath(path),true);
-  for(const path of ['/audit','/results','/success','/personalise','/report/rpt_private','/api/analytics-event']) assert.equal(isMarketingPath(path),false);
-  const ga=fs.readFileSync('lib/gtag.ts','utf8');
-  const publicAnalytics=fs.readFileSync('components/PublicAnalytics.tsx','utf8');
-  assert.match(ga,/audit_cta_click/);
-  assert.match(publicAnalytics,/trackEvent\('audit_cta_click'\)/);
-  assert.match(publicAnalytics,/window\.clarity\?\.\('event','audit_cta_click'\)/);
-  assert.match(publicAnalytics,/if\(ok\)/);
-  assert.match(publicAnalytics,/cleanPublicMarketingQuery\(location\.search\)/);
-  assert.match(publicAnalytics,/history\.replaceState\(/);
-  assert.ok(publicAnalytics.indexOf('history.replaceState(') < publicAnalytics.indexOf('setAllowed(ok)'),
-    'Strip ad click IDs before enabling public GA4, Clarity or advertising pixels');
+check('site-wide first-party candidate has no external analytics loaders',()=>{
+ const layout=fs.readFileSync('app/layout.tsx','utf8');
+ assert.doesNotMatch(layout,/PublicAnalytics|googletagmanager\.com|connect\.facebook|clarity\.ms\/tag|ttq\.load/);
+ const csp=fs.readFileSync('next.config.ts','utf8');assert.match(csp,/connect-src 'self'/);assert.match(csp,/script-src 'self'/);assert.match(csp,/source:'\/:path\*'/);
+ for(const path of ['components/PublicAnalytics.tsx','components/GranularPublicAnalytics.tsx'])assert.doesNotMatch(fs.readFileSync(path,'utf8'),/createElement|next\/script|https:\/\/|fetch\(/);
+ for(const path of ['/','/pricing','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia'])assert.equal(isMarketingPath(path),true);
+ for(const path of ['/audit','/results','/success','/personalise','/report/rpt_private','/api/analytics-event'])assert.equal(isMarketingPath(path),false);
+ const basic=fs.readFileSync('components/BasicAnalytics.tsx','utf8');assert.match(basic,/record\("public_cta_click"/);
+ for(const file of ['lib/gtag.ts','lib/meta.ts','lib/tiktok.ts'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/window\.|fetch\(|sendBeacon/);
 });
 check('first-party aggregate audit counters contain no customer data',()=>{
   const route=fs.readFileSync('app/api/audit-metric/route.ts','utf8');
@@ -313,7 +309,7 @@ check('first-party report usage is gated, validated and aggregate-only',()=>{
   assert.match(route,/\.eq\("report_id", body\.reportId\)/);
   assert.match(route,/\.eq\("status", "ready"\)/);
   assert.match(route,/spendshift_increment_report_daily/);
-  assert.match(client,/spendshift_cookie_consent"\) !== "granted"/);
+  assert.match(client,/optionalPermissions\(localStorage\)\.analytics/);
   assert.match(client,/fetch\("\/api\/report-metric"/);
   assert.match(client,/JSON\.stringify\(\{ event, reportId \}\)/);
   assert.doesNotMatch(client,/\bgtag\(|\bclarity\(|\bf bq\(/i);

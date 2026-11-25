@@ -16,6 +16,7 @@ export default function PrivacyPolicy() {
       <div className="privacy-policy-content">
         <div className="container">
           <h1>Privacy Policy</h1>
+          <p><strong>Proposed first-party-only policy — draft for legal review, 25 November 2026. Not yet in effect.</strong></p>
 
           <div className="row">
             <div className="policy-content">
@@ -120,11 +121,11 @@ export default function PrivacyPolicy() {
                 </li>
 
                 <li>
-                technical and usage information such as IP address, device, browser, approximate location, referral source, pages viewed and timestamps. On eligible public pages, optional Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel may also collect usage and event information if you accept optional cookies;
+                technical and usage information, including IP addresses and request metadata handled by hosting and security services. If basic statistics are enabled under the revised notice, we record limited daily counts by approved page, referral, campaign, device or browser category, predefined actions, audit progress and performance range;
               </li>
 
                 <li>
-                  when you accept optional analytics, counts of actions such as starting or finishing the free savings check, opening a paid report, using its checklist or savings tracker, and sending feedback. Our measurement tables hold daily totals and event types, not your spending answers, financial amounts, name, email address or private report URL;
+                  when you accept optional first-party activity counts, counts of actions such as starting or finishing the free savings check, opening a paid report, using its checklist or savings tracker, and sending feedback. Our measurement tables hold daily totals and event types, not your spending answers, financial amounts, name, email address or private report URL;
                 </li>
 
                 <li>
@@ -163,7 +164,7 @@ export default function PrivacyPolicy() {
                 <li>
                   from our third-party service providers when they process
                   information on our behalf, including Anthropic, Supabase,
-                  Resend, Vercel and Google (see cl 7 of the Privacy Policy);
+                  Resend and Vercel (see cl 7 of the Privacy Policy);
                   and
                 </li>
 
@@ -212,8 +213,7 @@ export default function PrivacyPolicy() {
                 </li>
 
                 <li>
-                  perform analytics and understand website usage and conversion
-                  performance;
+                  perform limited first-party analytics and understand website usage and conversion performance, without linking these observations to customer records; and prepare internal aggregate payment, fulfilment and marketing reports;
                 </li>
 
                 <li>
@@ -263,7 +263,7 @@ export default function PrivacyPolicy() {
                 Anthropic PBC (“Anthropic”), where relevant to earlier AI-assisted reports;
               </li>
                 <li>
-                  Supabase Inc. (“Supabase”), for database and report storage;
+                  Supabase Inc. (“Supabase”), for database, report storage, aggregate statistics and internal administrator authentication;
                 </li>
                 <li>
                   Stripe Inc. (“Stripe”), for hosted checkout, payment
@@ -283,11 +283,8 @@ export default function PrivacyPolicy() {
                   security and performance;
                 </li>
                 <li>
-                Google Analytics and related Google LLC services, and Microsoft Clarity, for optional public-page analytics;
-              </li>
-              <li>
-                Meta Pixel and TikTok Pixel, for optional marketing measurement on eligible public pages, after consent;
-              </li>
+                  Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel were used in earlier versions. This first-party-only version does not load those scripts or send new website measurement events to those providers. Previous data remains subject to the relevant retention and deletion arrangements. Authorised staff may separately enter verified aggregate business totals from Stripe, Meta Ads and Google Analytics; no individual visitor or transaction identifiers are imported into the reporting cache.
+                </li>
                 <li>
                   professional advisers, insurers, accountants, auditors and
                   lawyers; and
@@ -315,15 +312,14 @@ export default function PrivacyPolicy() {
               <h3>8. Overseas processing and disclosure</h3>
 
               <p>
-                Some of our service providers operate or use infrastructure outside Australia. Personal information may be processed, accessed or stored in the United States and other countries where Stripe, Supabase, Vercel, Resend, Google, Microsoft, Meta, TikTok or, for earlier reports where applicable, Anthropic and their subprocessors operate.
+                Some of our service providers operate or use infrastructure outside Australia. Personal information may be processed, accessed or stored in the United States and other countries where Stripe, Supabase, Vercel, Resend and, for earlier processing where applicable, Anthropic and previous analytics providers or their subprocessors operate.
               </p>
 
               <p>
                 The exact locations may change over time and may depend on
                 provider infrastructure and the selected hosting region. Where
                 required by law, we will take reasonable steps in the
-                circumstances to protect sensitive information before making
-                disclosures to an overseas recipient.
+                circumstances to ensure overseas recipients handle personal information consistently with applicable Australian privacy requirements, subject to any lawful exceptions.
               </p>
 
               <h3>9. Storage and retention</h3>
@@ -353,12 +349,7 @@ export default function PrivacyPolicy() {
                 de-identify personal information that is no longer needed for
                 a permitted purpose, we will take reasonable steps to do so.
 
-                Optional analytics totals are held separately from purchase
-                and report records. They contain only dates, action types and
-                totals. We keep these optional analytics totals for up to
-                180 days. Our daily maintenance process removes older
-                totals. Purchase, tax and report records have separate
-                retention requirements.
+                First-party analytics totals and the separate aggregate reporting cache are held separately from purchase and report records. We retain these daily totals for up to 180 days when the approved retention process is active. Operational logs, provider copies, backups and original purchase, tax and report records have separate retention requirements.
               </p>
 
               <h3>10. Report links and access security</h3>
@@ -399,34 +390,20 @@ export default function PrivacyPolicy() {
               </p>
 
               <h3>12. Cookies and analytics</h3>
-
               <p>
-                We and our providers use browser storage, cookies, pixels, logs and similar technologies. On eligible public marketing pages, optional Google Analytics, Microsoft Clarity, Meta Pixel and TikTok Pixel scripts load only after you accept optional cookies. They do not load on the free check, free results, paid questionnaire or private report pages. Stripe and infrastructure providers may use necessary technologies for payment, security and fraud prevention.
+                We use browser storage, limited first-party statistics and necessary service technologies. No third-party website analytics or advertising tracking scripts run in this version, even if you previously permitted them. Stripe and infrastructure providers may use necessary technologies for payments, security and fraud prevention.
               </p>
-
               <p>
-                If you accept optional analytics, we may also record basic
-                use of the free check and paid reports through our own website
-                and Supabase database. These are daily counts, not recordings
-                of your answers. To count use of a paid report, your private
-                report reference is sent only to SpendShift's server to
-                confirm that the report is ready. We do not keep that
-                reference in our analytics totals or send it to Google
-                Analytics, Microsoft Clarity, Meta or TikTok.
+                When basic statistics are enabled after the revised notice, we count approved public-page arrivals, broad referral and device categories, fixed campaign labels, page engagement and performance ranges, predefined actions, free-check progress and purchase-offer observations. The requests do not contain financial answers, names, email addresses, individual visitor identifiers, full URLs, advertising click identifiers or report references. Accepted observations are stored as daily counts by category, not individual browsing profiles.
               </p>
-
               <p>
-                If you reject optional analytics, these additional activity
-                counts are not sent by the website. Hosting, security, fraud
-                prevention and payment services may still process technical
-                information, including IP addresses, to operate and protect
-                the service. These processes are separate from optional
-                analytics.
+                Basic statistics are separate from optional first-party activity counts. Newly informed visitors can turn basic statistics off. If you made an earlier cookie choice, the new basic statistics remain off for that browser until you explicitly enable them under the revised notice. Optional choices do not override a separate basic-statistics opt-out. If preferences cannot be read reliably, new basic statistics remain off.
               </p>
-
               <p>
-                More information is available in our{" "}
-                <a href="/cookies">Cookie Policy</a>.
+                With permission for optional first-party activity counts, we retain the existing audit and report engagement counters. A private report reference is sent only to SpendShift's server to verify a ready report and is not stored in the daily counts. Rejecting optional counts disables these existing optional events. You can also turn off all statistics. Choices do not affect the free check or purchased plans.
+              </p>
+              <p>
+                Hosting, security and payment providers may still process technical information, including IP addresses, for operations and abuse prevention. Staff may enter verified daily aggregate reporting totals from external business reports without importing customer-level records. More information is available in our{" "}<a href="/cookies">Cookie Policy</a>.
               </p>
 
               <h3>13. Access, correction and deletion requests</h3>
@@ -498,7 +475,7 @@ export default function PrivacyPolicy() {
               </p>
 
               <p>
-                <strong>Last updated: 16 November 2026</strong>
+                <strong>Draft prepared: 25 November 2026 — not effective</strong>
               </p>
 
             </div>

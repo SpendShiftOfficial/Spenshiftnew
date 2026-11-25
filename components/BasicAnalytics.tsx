@@ -123,7 +123,9 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  },[ready,path,revision,emit]);
  function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
    const c=collector.current;if(!c)return;
-   try{if(granular)protectRollback(localStorage,analytics,ads);}catch{setStatus("Preferences unavailable. Measurement remains restricted.");return;}
+   // Ads are never enabled. Preserve the old all-or-nothing grant only until a user changes their choices.
+   ads="denied";
+   try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{setStatus("Preferences unavailable. Measurement remains restricted.");return;}
    if(c.choose({analytics,ads,basicOff,transition})){
       setPref(c.state().pref);setLegacy(c.state().legacy);setRevision(v=>v+1);setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
       if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));
@@ -134,25 +136,25 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    const open=()=>{setSettings(true);requestAnimationFrame(()=>{notice.current?.focus();notice.current?.scrollIntoView({block:"start"});});};
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
- const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset"),currentAds=pref?.ads??(granular&&legacy==="granted"?"granted":"unset");
+ const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset");
+ const basicOff=pref?.basicOff===true||(legacy!==null&&!pref?.legacyTransition);
  const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
  return <Context.Provider value={{emit,allowed,ready,revision}}>
    {privateSettings&&!settings&&<button type="button" onClick={()=>setSettings(true)} style={{margin:"8px"}}>Privacy settings</button>}
-   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Synthetic privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
+   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
      <strong>{fixture?"Test environment only — privacy choices":"Your privacy choices"}</strong>
-     <p>{fixture?"Limited aggregate statistics help improve SpendShift. No individual browsing profiles. Optional analytics and advertising are separate. This is draft wording, not a published privacy notice.":"We use limited first-party statistics to improve SpendShift, without creating individual browsing profiles. You can turn basic statistics off. Optional website analytics and advertising tracking are off unless you allow them. Your choices do not affect the savings check."}</p>
+     <p>We use limited first-party statistics to improve SpendShift without creating individual browsing profiles. No third-party analytics or advertising pixels run in this version. Basic statistics are separate from the optional audit and report activity counts. You can turn either off without affecting your savings check or purchased plan.</p>
+     {fixture&&<p>This is a test environment. Proposed privacy wording is not yet approved.</p>}
      {!collectionEnabled&&<p>Basic statistics collection is currently disabled.</p>}
      {granular&&<p><Link href="/privacy-policy">Privacy Policy</Link>{" · "}<Link href="/cookies">Cookie Policy</Link></p>}
+     <p>Basic statistics: {ready&&collectionEnabled&&!basicOff?"available subject to your stored preference":"off or unavailable"}. Optional first-party activity counts: {currentAnalytics==="granted"?"allowed":"off"}.</p>
      <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-       <button type="button" onClick={()=>change("granted","granted")}>Accept optional</button>
+       <button type="button" onClick={()=>change("granted","denied")}>Accept optional</button>
        <button type="button" onClick={()=>change("denied","denied")}>Reject optional</button>
-       <button type="button" onClick={()=>change(currentAnalytics,currentAds,true)}>Turn off basic statistics</button>
-       <button type="button" onClick={()=>change(currentAnalytics,currentAds,false,true)}>Explicitly enable basic statistics</button>
+       <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
+       <button type="button" onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
+       <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
      </div>
-     <details><summary>Separate optional preferences</summary>
-       <label><input type="checkbox" checked={currentAnalytics==="granted"} onChange={e=>change(e.target.checked?"granted":"denied",currentAds)}/> Optional website analytics</label>{" "}
-       <label><input type="checkbox" checked={currentAds==="granted"} onChange={e=>change(currentAnalytics,e.target.checked?"granted":"denied")}/> Optional advertising</label>
-     </details>
      {legacy!==null&&!pref?.legacyTransition&&<p>Your earlier privacy choice is preserved. Basic statistics remain off unless you explicitly enable them under this notice.</p>}
      <p role="status">{status}</p>
    </aside>}

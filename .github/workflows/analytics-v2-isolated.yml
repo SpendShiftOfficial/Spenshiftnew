@@ -160,7 +160,7 @@ jobs:
           python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-app.py
 
-  granular:
+  first_party_only:
     if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -171,7 +171,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - name: Granular privacy and locked owner interface tests
+      - name: First-party-only browser CSP, choices and locked owner interface tests
         env:
           SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
@@ -191,4 +191,4 @@ jobs:
           source /tmp/analytics-provider-venv/bin/activate
           pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
-          python scripts/analytics-v2-fixture/test-granular-browser.py
+          python scripts/analytics-v2-fixture/test-first-party-browser.py

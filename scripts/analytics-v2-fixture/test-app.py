@@ -90,7 +90,7 @@ try:
             page.goto(origin+'/');page.wait_for_timeout(900);assert not sent
             page.get_by_role('button',name='Reject optional',exact=True).click();page.wait_for_timeout(700);assert not sent
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.wait_for_timeout(600);assert not sent
-            assert page.evaluate('localStorage.getItem("spendshift_cookie_consent")')==legacy
+            assert page.evaluate('localStorage.getItem("spendshift_cookie_consent")')=='denied'
             page.get_by_role('button',name='Explicitly enable basic statistics').click();page.wait_for_timeout(700);assert any(x['event']=='audit_arrival' for x in sent)
             page.get_by_role('button',name='Turn off basic statistics').click();page.wait_for_timeout(400);n=len(sent)
             page.get_by_role('button',name='Almost daily',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.wait_for_timeout(500)
