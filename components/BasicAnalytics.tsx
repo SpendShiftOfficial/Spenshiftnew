@@ -2,7 +2,7 @@
 import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
-import {optionalPermissions,protectRollback} from "@/lib/analytics-v2/optional";
+import {protectRollback} from "@/lib/analytics-v2/optional";
 import Link from "next/link";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
 import {pages,enums,sourceCategory,campaignCategory,type Metric} from "@/lib/analytics-v2/core.mjs";

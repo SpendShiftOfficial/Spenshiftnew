@@ -1,0 +1,2 @@
+import type {DailySource} from './finance.mjs';
+export function createSourceHandler(options:{enabled:boolean;origin:string;authorize:(header:string|null)=>Promise<boolean>|boolean;save:(row:DailySource)=>Promise<void>|void}):(req:Request)=>Promise<Response>;
