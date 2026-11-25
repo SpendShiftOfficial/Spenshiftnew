@@ -88,7 +88,7 @@ function VitalObserver({initialPath}:{initialPath:string}){
  useReportWebVitals(callback);
  return null;
 }
-export default function BasicAnalytics({children,fixture=true,granular=false}:{children:ReactNode;fixture?:boolean;granular?:boolean}){
+export default function BasicAnalytics({children,fixture=true,granular=false,collectionEnabled=true}:{children:ReactNode;fixture?:boolean;granular?:boolean;collectionEnabled?:boolean}){
  const path=usePathname(),initialPath=useRef(path);
  const collector=useRef<Collector|null>(null),notice=useRef<HTMLElement|null>(null);
  const [ready,setReady]=useState(false),[revision,setRevision]=useState(0);
@@ -97,13 +97,13 @@ export default function BasicAnalytics({children,fixture=true,granular=false}:{c
  const [settings,setSettings]=useState(false);
  const entrySeen=useRef(false),noticeSeen=useRef(false);
  useEffect(()=>{
-   collector.current=browserCollector({enabled:true,noticeVisible:()=>eligible(location.pathname)&&!!notice.current?.getClientRects().length});
+   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&!!notice.current?.getClientRects().length});
    const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setReady(true);
    const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"){
      const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setRevision(v=>v+1);}
    }};
    window.addEventListener("storage",sync);return()=>{window.removeEventListener("storage",sync);collector.current=null;};
- },[]);
+ },[collectionEnabled]);
  const emit=useCallback((event:Metric)=>collector.current?.emit(event)===true,[]);
  const allowed=useCallback(()=>collector.current?.allowed()===true,[]);
  const entry=useCallback(()=>{
@@ -135,12 +135,13 @@ export default function BasicAnalytics({children,fixture=true,granular=false}:{c
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
  const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset"),currentAds=pref?.ads??(granular&&legacy==="granted"?"granted":"unset");
- const privateSettings=granular&&!eligible(path)&&(path==="/personalise"||path==="/success"||path.startsWith("/report/"));
+ const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
  return <Context.Provider value={{emit,allowed,ready,revision}}>
    {privateSettings&&!settings&&<button type="button" onClick={()=>setSettings(true)} style={{margin:"8px"}}>Privacy settings</button>}
    {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Synthetic privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
      <strong>{fixture?"Test environment only — privacy choices":"Your privacy choices"}</strong>
      <p>{fixture?"Limited aggregate statistics help improve SpendShift. No individual browsing profiles. Optional analytics and advertising are separate. This is draft wording, not a published privacy notice.":"We use limited first-party statistics to improve SpendShift, without creating individual browsing profiles. You can turn basic statistics off. Optional website analytics and advertising tracking are off unless you allow them. Your choices do not affect the savings check."}</p>
+     {!collectionEnabled&&<p>Basic statistics collection is currently disabled.</p>}
      {granular&&<p><Link href="/privacy-policy">Privacy Policy</Link>{" · "}<Link href="/cookies">Cookie Policy</Link></p>}
      <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
        <button type="button" onClick={()=>change("granted","granted")}>Accept optional</button>

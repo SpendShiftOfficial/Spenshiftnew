@@ -47,6 +47,8 @@ jobs:
           node scripts/analytics-v2-fixture/test-dashboard.mjs
           node scripts/analytics-v2-fixture/test-operational.mjs
           node scripts/analytics-v2-fixture/test-release.mjs
+          node scripts/analytics-v2-fixture/test-finance.mjs
+          node --experimental-strip-types scripts/analytics-v2-fixture/test-granular.mjs
       - name: Disposable database only
         run: |
           test "$PGHOST" = 127.0.0.1
@@ -157,3 +159,36 @@ jobs:
           pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
           python scripts/analytics-v2-fixture/test-app.py
+
+  granular:
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Granular privacy and locked owner interface tests
+        env:
+          SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3162
+          VERCEL_ENV: preview
+          SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+          SPENDSHIFT_AGGREGATE_METRICS_ENABLED: 'false'
+          SPENDSHIFT_ANALYTICS_V2_FIXTURE: 'true'
+          SPENDSHIFT_ANALYTICS_V2_PROVIDER_FIXTURE: 'true'
+          SPENDSHIFT_ANALYTICS_V2_OWNER_FIXTURE: 'true'
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build
+          python3 -m venv /tmp/analytics-provider-venv
+          source /tmp/analytics-provider-venv/bin/activate
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/analytics-v2-fixture/test-granular-browser.py

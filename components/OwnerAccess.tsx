@@ -17,7 +17,7 @@ export default function OwnerAccess({authUrl,publicKey,fixture,importEnabled}:{a
  const [period,setPeriod]=useState("today"),[report,setReport]=useState<Report|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const [source,setSource]=useState<Source>("stripe"),[date,setDate]=useState(""),[values,setValues]=useState<Record<string,string>>({}),[confirm,setConfirm]=useState(false);
  function clear(){
-  generation.current++;token.current=null;setReport(null);setPhase("login");setPassword("");setCode("");setFactors([]);setFactor("");setValues({});setConfirm(false);setBusy(false);
+  generation.current++;token.current=null;setReport(null);setPhase("login");setEmail("");setPassword("");setCode("");setFactors([]);setFactor("");setValues({});setConfirm(false);setBusy(false);
   if(expiry.current!==null){clearTimeout(expiry.current);expiry.current=null;}
   const prior=client.current;client.current=null;if(prior)void prior.auth.signOut({scope:"local"}).catch(()=>{});
  }

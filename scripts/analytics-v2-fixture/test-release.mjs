@@ -4,11 +4,13 @@ import {createReleaseAdapter} from '../../lib/analytics-v2/release-adapter.mjs';
 import {authorizeOwner} from '../../lib/analytics-v2/owner-auth.mjs';
 import {createIngestion} from '../../lib/analytics-v2/ingest.mjs';
 let n=0;const check=(condition,label)=>{assert.ok(condition,label);n++;};
-const env={VERCEL_ENV:'production',VERCEL:'1',NEXT_PUBLIC_SITE_URL:PRODUCTION_ORIGIN,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'true',SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION:NOTICE_VERSION,SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'true',SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_RETENTION_ENABLED:'true'};
+const env={VERCEL_ENV:'production',VERCEL:'1',NEXT_PUBLIC_SITE_URL:PRODUCTION_ORIGIN,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'true',SPENDSHIFT_ANALYTICS_V2_PRIVACY_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION:NOTICE_VERSION,SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'true',SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_RETENTION_ENABLED:'true'};
 check(RELEASE_AUTHORIZED===false,'source lock');check(Object.values(releaseCapabilities(env)).every(x=>x===false),'source lock wins');check(Object.values(releaseCapabilities(env,true)).every(Boolean),'approved synthetic config');
-for(const [k,v] of [['VERCEL_ENV','preview'],['VERCEL',''],['NEXT_PUBLIC_SITE_URL','https://example.invalid'],['SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY','false']])check(Object.values(releaseCapabilities({...env,[k]:v},true)).every(x=>!x),k);
+for(const [k,v] of [['VERCEL_ENV','preview'],['VERCEL',''],['NEXT_PUBLIC_SITE_URL','https://example.invalid']])check(Object.values(releaseCapabilities({...env,[k]:v},true)).every(x=>!x),k);
 for(const [k,v] of [['SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED','false'],['SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION','wrong'],['SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED','false']]){const result=releaseCapabilities({...env,[k]:v},true);check(!result.collect&&result.prune,k+' independent retention');}
 check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'false'},true).read,'dashboard gate');
+const noSchema=releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'false'},true);check(noSchema.privacy&&!noSchema.collect&&!noSchema.read&&!noSchema.prune,'privacy stays on without DB');
+check(releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'false'},true).privacy,'emergency stop preserves privacy controls');
 const calls=[];let response='accepted';const adapter=createReleaseAdapter(async(name,args)=>{calls.push({name,args});return {data:response,error:null};});
 check(await adapter.increment({p_event:'audit_start'})==='accepted','accepted');
 check(calls[0].name==='spendshift_accept_metrics_v2'&&Object.keys(calls[0].args).length===1,'RPC only');

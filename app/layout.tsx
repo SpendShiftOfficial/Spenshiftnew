@@ -92,8 +92,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const fixture=analyticsFixtureEnabled(),release=releaseCapabilities(process.env).collect;
-  const granular=release||(fixture&&process.env.SPENDSHIFT_ANALYTICS_V2_PROVIDER_FIXTURE==='true');
+  const fixture=analyticsFixtureEnabled(),release=releaseCapabilities(process.env);
+  const granular=release.privacy||(fixture&&process.env.SPENDSHIFT_ANALYTICS_V2_PROVIDER_FIXTURE==='true');
   return (
     <html data-ss-privacy-mode={granular?'v2':undefined} lang="en" className={`${inter.variable} ${monaSans.variable}`}>
       <head>
@@ -102,8 +102,8 @@ export default function RootLayout({
       </head>
 
       <body>
-        {fixture||release ? <BasicAnalytics fixture={fixture} granular={granular}>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
-{granular?<GranularPublicAnalytics enabled={true}/>:<PublicAnalytics enabled={process.env.VERCEL_ENV === "production"} />}
+        {fixture||release.privacy ? <BasicAnalytics fixture={fixture} granular={granular} collectionEnabled={fixture||release.collect}>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
+{granular?<GranularPublicAnalytics enabled={true} fixture={fixture}/>:<PublicAnalytics enabled={process.env.VERCEL_ENV === "production"} />}
 
 
       </body>

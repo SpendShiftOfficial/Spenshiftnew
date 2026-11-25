@@ -9,9 +9,23 @@ type ProviderWindow=Window&{__ssV2Providers?:Permissions;__ssV2Document?:string;
 const equal=(a:Permissions,b:Permissions)=>a.analytics===b.analytics&&a.ads===b.ads;
 const none=()=>({analytics:false,ads:false});
 function choice(){try{return optionalPermissions(localStorage);}catch{return none();}}
+// Expire only known first-party provider cookie names. Do not read values,
+// delete service cookies, or claim to erase third-party/HttpOnly cookies.
+function clearWithdrawnCookies(selected:Permissions){
+ try{
+  const names=document.cookie.split(';').map(part=>part.split('=',1)[0].trim());
+  for(const name of names){
+   const analytics=/^_ga(?:_[A-Za-z0-9]+)?$|^_clck$|^_clsk$/.test(name);
+   const ads=/^_fbp$|^_fbc$|^_ttp$|^_tt_enable_cookie$|^_ttclid$|^ttcsid(?:_[A-Za-z0-9]+)?$/.test(name);
+   if(!(analytics&&!selected.analytics||ads&&!selected.ads))continue;
+   document.cookie=name+'=; Max-Age=0; Path=/; SameSite=Lax';
+   if(location.hostname==='www.spendshift.com.au')document.cookie=name+'=; Max-Age=0; Path=/; Domain=spendshift.com.au; Secure; SameSite=Lax';
+  }
+ }catch{}
+}
 function scope(){return isMarketingPath(location.pathname)&&!location.hash&&cleanPublicMarketingQuery(location.search).allowed;}
-function script(id:string,src:string){if(document.getElementById(id))return;const s=document.createElement("script");s.id=id;s.async=true;s.src=src;s.referrerPolicy="no-referrer";document.head.appendChild(s);}
-function loadAnalytics(w:ProviderWindow,allowed:()=>boolean){
+function script(id:string,src:string,fixture:boolean){if(document.getElementById(id))return;const s=document.createElement("script");s.id=id;s.async=true;s.src=fixture?location.origin+'/analytics-provider-fixture/'+id+'.js':src;s.referrerPolicy="no-referrer";document.head.appendChild(s);}
+function loadAnalytics(w:ProviderWindow,allowed:()=>boolean,fixture:boolean){
  if(!allowed())return;
  w.dataLayer=w.dataLayer||[];
  w.gtag=function(){w.dataLayer?.push(arguments as any);};
@@ -19,18 +33,18 @@ function loadAnalytics(w:ProviderWindow,allowed:()=>boolean){
  w.gtag("consent","default",{analytics_storage:"granted",ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied"});
  w.gtag("js",new Date());
  w.gtag("config","G-MEHDG2Y7T2",{allow_google_signals:false,allow_ad_personalization_signals:false,page_location:location.origin+location.pathname+location.search,page_referrer:""});
- if(allowed())script("ss-v2-ga","https://www.googletagmanager.com/gtag/js?id=G-MEHDG2Y7T2");
+ if(allowed())script("ss-v2-ga","https://www.googletagmanager.com/gtag/js?id=G-MEHDG2Y7T2",fixture);
  if(!allowed())return;
  const c:any=function(...args:unknown[]){(c.q=c.q||[]).push(args);};
  w.clarity=w.clarity||c;
  w.clarity?.('consentv2',{ad_Storage:'denied',analytics_Storage:'granted'});
- if(allowed())script("ss-v2-clarity","https://www.clarity.ms/tag/ykimmnar80");
+ if(allowed())script("ss-v2-clarity","https://www.clarity.ms/tag/ykimmnar80",fixture);
 }
-function loadAds(w:ProviderWindow,allowed:()=>boolean){
+function loadAds(w:ProviderWindow,allowed:()=>boolean,fixture:boolean){
  if(!allowed())return;
  if(!w.fbq){
   const n:any=function(...args:unknown[]){if(n.callMethod)n.callMethod.apply(n,args);else n.queue.push(args);};n.push=n;n.loaded=true;n.version="2.0";n.queue=[];w.fbq=n;w._fbq=n;
-  if(allowed()){n("init","1092210323744514");n("track","PageView");script("ss-v2-meta","https://connect.facebook.net/en_US/fbevents.js");}
+  if(allowed()){n("init","1092210323744514");n("track","PageView");script("ss-v2-meta","https://connect.facebook.net/en_US/fbevents.js",fixture);}
  }
  if(!allowed())return;
  const ttq:any=w.ttq||[];w.ttq=ttq;const id="DAQ7793C77UFPT8032V0";
@@ -41,9 +55,9 @@ function loadAds(w:ProviderWindow,allowed:()=>boolean){
  ttq.instance=(e:string)=>{const t=ttq._i?.[e]||[];for(const m of methods)ttq.setAndDefer(t,m);return t;};
  const url="https://analytics.tiktok.com/i18n/pixel/events.js";
  ttq._i=ttq._i||{};ttq._i[id]=[];ttq._i[id]._u=url;ttq._t=ttq._t||{};ttq._t[id]=Date.now();ttq._o=ttq._o||{};ttq._o[id]={};
- if(allowed()){ttq.page();script("ss-v2-tiktok",url+"?sdkid="+id+"&lib=ttq");}
+ if(allowed()){ttq.page();script("ss-v2-tiktok",url+"?sdkid="+id+"&lib=ttq",fixture);}
 }
-export default function GranularPublicAnalytics({enabled}:{enabled:boolean}){
+export default function GranularPublicAnalytics({enabled,fixture=false}:{enabled:boolean;fixture?:boolean}){
  const path=usePathname();
  useEffect(()=>{
   if(!enabled)return;
@@ -55,7 +69,8 @@ export default function GranularPublicAnalytics({enabled}:{enabled:boolean}){
   }
   function refresh(){
     if(w.__ssV2Blocked)return;
-    const selected=scope()?choice():none(),loaded=w.__ssV2Providers;
+    const preferences=choice();clearWithdrawnCookies(preferences);
+    const selected=scope()?preferences:none(),loaded=w.__ssV2Providers;
     if(loaded&&(loaded.analytics||loaded.ads)){
       if(!equal(loaded,selected)||w.__ssV2Document!==location.pathname+location.search+location.hash){disableAndReload();return;}
       return;
@@ -73,8 +88,8 @@ export default function GranularPublicAnalytics({enabled}:{enabled:boolean}){
     w.__ssV2Document=location.pathname+location.search;
     w.__ssV2Providers=selected;
     const still=(category:keyof Permissions)=>!w.__ssV2Blocked&&scope()&&choice()[category]&&w.__ssV2Document===location.pathname+location.search;
-    if(selected.analytics)loadAnalytics(w,()=>still("analytics"));
-    if(selected.ads)loadAds(w,()=>still("ads"));
+    if(selected.analytics)loadAnalytics(w,()=>still("analytics"),fixture);
+    if(selected.ads)loadAds(w,()=>still("ads"),fixture);
   }
   const click=(e:MouseEvent)=>{
     if(!(w.__ssV2Providers?.analytics||w.__ssV2Providers?.ads)||!(e.target instanceof Element))return;
@@ -93,6 +108,6 @@ export default function GranularPublicAnalytics({enabled}:{enabled:boolean}){
   // at document capture so no tracker survives into a private page.
   document.addEventListener("click",click,true);
   return()=>{window.removeEventListener("ss-v2-preferences",refresh);window.removeEventListener("storage",storage);window.removeEventListener("pageshow",restore);window.removeEventListener("focus",restore);window.removeEventListener("popstate",restore);window.removeEventListener("hashchange",restore);document.removeEventListener("click",click,true);};
- },[enabled,path]);
+ },[enabled,path,fixture]);
  return null;
 }
