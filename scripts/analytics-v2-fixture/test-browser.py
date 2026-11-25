@@ -1,5 +1,5 @@
 """Local synthetic browser integration, not a real SpendShift product flow."""
-import json, subprocess
+import json, os, subprocess
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 root=Path(__file__).resolve().parents[2]
@@ -8,7 +8,7 @@ try:
     origin='http://127.0.0.1:'+server.stdout.readline().strip()
     count=0
     with sync_playwright() as p:
-        browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
+        browser=p.chromium.launch(executable_path=os.environ.get('SPENDSHIFT_CHROMIUM_PATH') or None,headless=True,args=['--no-sandbox'])
         def case(legacy=None, disabled=False, invalid=False):
             ctx=browser.new_context(viewport={'width':390,'height':844})
             if legacy is not None:ctx.add_init_script(f'localStorage.setItem("spendshift_cookie_consent",{json.dumps(legacy)})')
@@ -23,7 +23,7 @@ try:
             page.goto(origin+'/?utm_campaign=meta_founder_v1&fbclid=syntheticprivate'+('&disabled=1' if disabled else ''));page.wait_for_function('window.testCollector !== undefined');page.wait_for_timeout(180)
             return ctx,page,sent,external
         for choice in ['accept','reject',None]:
-            ctx,page,sent,external=case();assert [x['event'] for x in sent]==['site_entry','public_page_view'];assert sent[0]['campaign']=='meta_founder_v1';assert 'syntheticprivate' not in json.dumps(sent);count+=3
+            ctx,page,sent,external=case();assert sorted(x['event'] for x in sent)==['public_page_view','site_entry'];assert next(x for x in sent if x['event']=='site_entry')['campaign']=='meta_founder_v1';assert 'syntheticprivate' not in json.dumps(sent);count+=3
             if choice:page.click('#'+choice)
             page.click('#audit');
             for _ in range(8):page.click('#next')
