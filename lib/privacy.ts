@@ -1,3 +1,4 @@
+import {granularMode,optionalAllowed,type OptionalCategory} from './analytics-v2/optional';
 /** Only public brochure pages may load optional third-party measurement. */
 export const publicMarketingPaths=['/','/pricing','/whats-included','/how-it-works','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia'];
 export function isMarketingPath(path:string){return publicMarketingPaths.includes(path.replace(/\/$/,'')||'/');}
@@ -29,12 +30,12 @@ export function cleanPublicMarketingQuery(search:string):{allowed:boolean;saniti
  const query=safe.toString();
  return {allowed:true,sanitizedSearch:query?'?'+query:''};
 }
-export function canTrack(){
+export function canTrack(category:OptionalCategory='analytics'){
  if(typeof window==='undefined'||!isMarketingPath(window.location.pathname)||window.location.hash)return false;
  // The URL must already have been cleaned before scripts or CTA events run.
  const query=cleanPublicMarketingQuery(window.location.search);
  if(!query.allowed||query.sanitizedSearch!==window.location.search)return false;
- try{return localStorage.getItem('spendshift_cookie_consent')==='granted'&&(window as any).__spendshiftPublicTracking===true;}catch{return false;}
+ try{if(granularMode())return optionalAllowed(category)&&(window as any).__ssV2Providers?.[category]===true;return localStorage.getItem('spendshift_cookie_consent')==='granted'&&(window as any).__spendshiftPublicTracking===true;}catch{return false;}
 }
 export function safeEventParams(params:Record<string,unknown>={}){
  const out:Record<string,string|number|boolean>={};

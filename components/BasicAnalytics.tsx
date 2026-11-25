@@ -2,6 +2,8 @@
 import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
+import {optionalPermissions,protectRollback} from "@/lib/analytics-v2/optional";
+import Link from "next/link";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
 import {pages,enums,sourceCategory,campaignCategory,type Metric} from "@/lib/analytics-v2/core.mjs";
 const noop=()=>false;
@@ -86,15 +88,16 @@ function VitalObserver({initialPath}:{initialPath:string}){
  useReportWebVitals(callback);
  return null;
 }
-export default function BasicAnalytics({children}:{children:ReactNode}){
+export default function BasicAnalytics({children,fixture=true,granular=false}:{children:ReactNode;fixture?:boolean;granular?:boolean}){
  const path=usePathname(),initialPath=useRef(path);
  const collector=useRef<Collector|null>(null),notice=useRef<HTMLElement|null>(null);
  const [ready,setReady]=useState(false),[revision,setRevision]=useState(0);
  const [pref,setPref]=useState<Preference|null>(null),[legacy,setLegacy]=useState<string|null>(null);
  const [status,setStatus]=useState("");
+ const [settings,setSettings]=useState(false);
  const entrySeen=useRef(false),noticeSeen=useRef(false);
  useEffect(()=>{
-   collector.current=browserCollector({enabled:true,noticeVisible:()=>!!notice.current?.getClientRects().length});
+   collector.current=browserCollector({enabled:true,noticeVisible:()=>eligible(location.pathname)&&!!notice.current?.getClientRects().length});
    const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setReady(true);
    const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"){
      const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setRevision(v=>v+1);}
@@ -120,18 +123,25 @@ export default function BasicAnalytics({children}:{children:ReactNode}){
  },[ready,path,revision,emit]);
  function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
    const c=collector.current;if(!c)return;
-   if(c.choose({analytics,ads,basicOff,transition})){setPref(c.state().pref);setLegacy(c.state().legacy);setRevision(v=>v+1);setStatus("Preferences saved for this synthetic test.");}
-   else setStatus("Preferences unavailable. New measurement remains restricted.");
+   try{if(granular)protectRollback(localStorage,analytics,ads);}catch{setStatus("Preferences unavailable. Measurement remains restricted.");return;}
+   if(c.choose({analytics,ads,basicOff,transition})){
+      setPref(c.state().pref);setLegacy(c.state().legacy);setRevision(v=>v+1);setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
+      if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));
+   }else {setStatus("Preferences unavailable. New measurement remains restricted.");if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));}
+
  }
  useEffect(()=>{
-   const open=()=>{notice.current?.focus();notice.current?.scrollIntoView({block:"start"});};
+   const open=()=>{setSettings(true);requestAnimationFrame(()=>{notice.current?.focus();notice.current?.scrollIntoView({block:"start"});});};
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
- const currentAnalytics=pref?.analytics??"unset",currentAds=pref?.ads??"unset";
+ const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset"),currentAds=pref?.ads??(granular&&legacy==="granted"?"granted":"unset");
+ const privateSettings=granular&&!eligible(path)&&(path==="/personalise"||path==="/success"||path.startsWith("/report/"));
  return <Context.Provider value={{emit,allowed,ready,revision}}>
-   {eligible(path)&&<aside ref={notice} tabIndex={-1} aria-label="Synthetic privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
-     <strong>Test environment only — privacy choices</strong>
-     <p>Limited aggregate statistics help improve SpendShift. No individual browsing profiles. Optional analytics and advertising are separate. This is draft wording, not a published privacy notice.</p>
+   {privateSettings&&!settings&&<button type="button" onClick={()=>setSettings(true)} style={{margin:"8px"}}>Privacy settings</button>}
+   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Synthetic privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
+     <strong>{fixture?"Test environment only — privacy choices":"Your privacy choices"}</strong>
+     <p>{fixture?"Limited aggregate statistics help improve SpendShift. No individual browsing profiles. Optional analytics and advertising are separate. This is draft wording, not a published privacy notice.":"We use limited first-party statistics to improve SpendShift, without creating individual browsing profiles. You can turn basic statistics off. Optional website analytics and advertising tracking are off unless you allow them. Your choices do not affect the savings check."}</p>
+     {granular&&<p><Link href="/privacy-policy">Privacy Policy</Link>{" · "}<Link href="/cookies">Cookie Policy</Link></p>}
      <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
        <button type="button" onClick={()=>change("granted","granted")}>Accept optional</button>
        <button type="button" onClick={()=>change("denied","denied")}>Reject optional</button>

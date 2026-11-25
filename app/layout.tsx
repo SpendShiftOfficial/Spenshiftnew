@@ -5,6 +5,8 @@ import { Inter, Mona_Sans } from "next/font/google";
 import ConsentBanner from "@/components/ConsentBanner";
 import BasicAnalytics from "@/components/BasicAnalytics";
 import {analyticsFixtureEnabled} from "@/lib/analytics-v2/fixture-mode";
+import {releaseCapabilities} from "@/lib/analytics-v2/release-config.mjs";
+import GranularPublicAnalytics from "@/components/GranularPublicAnalytics";
 
 const inter = Inter({
 subsets: ["latin"],
@@ -90,16 +92,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const fixture=analyticsFixtureEnabled(),release=releaseCapabilities(process.env).collect;
+  const granular=release||(fixture&&process.env.SPENDSHIFT_ANALYTICS_V2_PROVIDER_FIXTURE==='true');
   return (
-    <html lang="en" className={`${inter.variable} ${monaSans.variable}`}>
+    <html data-ss-privacy-mode={granular?'v2':undefined} lang="en" className={`${inter.variable} ${monaSans.variable}`}>
       <head>
         
        
       </head>
 
       <body>
-        {analyticsFixtureEnabled() ? <BasicAnalytics>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
-<PublicAnalytics enabled={process.env.VERCEL_ENV === "production"} />
+        {fixture||release ? <BasicAnalytics fixture={fixture} granular={granular}>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
+{granular?<GranularPublicAnalytics enabled={true}/>:<PublicAnalytics enabled={process.env.VERCEL_ENV === "production"} />}
 
 
       </body>
