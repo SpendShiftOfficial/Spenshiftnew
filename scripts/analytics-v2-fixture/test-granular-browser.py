@@ -62,7 +62,14 @@ try:
         page.goto(origin+'/');page.get_by_text('Test environment only — privacy choices').wait_for();settle(page,set())
         page.get_by_text('Separate optional preferences').click();page.get_by_label('Optional website analytics',exact=True).check();settle(page,analytic)
         if not page.get_by_label('Optional advertising',exact=True).is_visible():page.get_by_text('Separate optional preferences').click()
-        page.get_by_label('Optional advertising',exact=True).check();page.wait_for_timeout(600);settle(page,providers)
+        with page.expect_navigation(wait_until='domcontentloaded'):
+            page.get_by_label('Optional advertising',exact=True).click()
+        settle(page,providers)
+        saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
+        assert saved['analytics']=='granted' and saved['ads']=='granted',saved
+        if not page.get_by_label('Optional advertising',exact=True).is_visible():page.get_by_text('Separate optional preferences').click()
+        assert page.get_by_label('Optional advertising',exact=True).is_checked()
+        assert page.get_by_label('Optional website analytics',exact=True).is_checked()
         other=ctx.new_page();other.goto(origin+'/');other.get_by_text('Test environment only — privacy choices').wait_for();settle(other,providers)
         page.get_by_role('button',name='Reject optional',exact=True).click();page.wait_for_timeout(800);settle(page,set());settle(other,set())
         page.get_by_role('button',name='Turn off basic statistics').click();page.wait_for_timeout(350);n=len(basic)
