@@ -1,0 +1,53 @@
+name: Isolated owner Auth and MFA verification
+on:
+  push:
+    branches: [internal-analytics-v2-2026-11-25]
+    paths:
+      - '.github/workflows/analytics-v2-local-auth.yml'
+      - 'scripts/analytics-v2-fixture/test-real-auth.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local_auth:
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install locked application dependencies
+        run: npm ci
+      - name: Actual local Supabase Auth (no project link or hosted credentials)
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "${GITHUB_REPOSITORY}" = "SpendShiftOfficial/Spenshiftnew"
+          test "${GITHUB_REF}" = "refs/heads/internal-analytics-v2-2026-11-25"
+          work="$(mktemp -d)"
+          export SUPABASE_TELEMETRY_DISABLED=1
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY
+          mkdir -p "$work/bin" "$work/local"
+          curl --fail --silent --show-error --location --retry 2 https://github.com/supabase/cli/releases/download/v3.4.0/supabase_3.4.0_linux_amd64.tar.gz -o "$work/supabase.tar.gz"
+          echo "d82f8fc8a1611c45b9422b10378f61df614325f7e25624acda3704544513d6ac  $work/supabase.tar.gz" | sha256sum --check --status
+          tar -xzf "$work/supabase.tar.gz" -C "$work/bin" supabase
+          cli="$work/bin/supabase"
+          root="$GITHUB_WORKSPACE"
+          cd "$work/local"
+          "$cli" init >"$work/init.log" 2>&1
+          cleanup(){ "$cli" stop --no-backup >"$work/stop.log" 2>&1 || true; rm -rf "$work"; }
+          trap cleanup EXIT
+          # Local stack ONLY, fresh directory, no linked project, no application migrations.
+          if ! "$cli" start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor >"$work/start.log" 2>&1; then
+            echo "Local Supabase stack could not start; no Auth pass is claimed."
+            exit 1
+          fi
+          "$cli" status -o json >"$work/status.json" 2>"$work/status.log"
+          cd "$root"
+          # Only the fresh loopback database, validated again inside the test.
+          SPENDSHIFT_LOCAL_AUTH_STATUS="$work/status.json" node --experimental-strip-types scripts/analytics-v2-fixture/test-real-auth.mjs
