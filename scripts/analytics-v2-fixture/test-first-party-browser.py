@@ -137,10 +137,10 @@ try:
         # after the disclosure and controls are visible, preserve measurement during scroll.
         for mode in ['hidden','offscreen','occluded']:
             ctx,page,external,basic,old,requests=setup()
-            page.add_init_script("(()=>{const mode="+json.dumps(mode)+";const apply=()=>{if(!document.head)return;const s=document.createElement('style');s.id='synthetic-privacy-obstruction';s.textContent=mode==='hidden'?'[data-ss-privacy-notice]{visibility:hidden!important}':mode==='offscreen'?'[data-ss-privacy-notice]{transform:translateY(-2000px)!important}':'[data-ss-privacy-notice]::after{content:\"\";position:absolute;inset:0;background:white;z-index:999999}';document.head.append(s);};if(document.head)apply();else new MutationObserver((_,o)=>{if(document.head){apply();o.disconnect();}}).observe(document,{childList:true,subtree:true});})()")
+            page.add_init_script("(()=>{const mode="+json.dumps(mode)+";const apply=()=>{if(!document.head||sessionStorage.getItem('synthetic_privacy_obstruction_done')==='1')return;const s=document.createElement('style');s.id='synthetic-privacy-obstruction';s.textContent=mode==='hidden'?'[data-ss-privacy-notice]{visibility:hidden!important}':mode==='offscreen'?'[data-ss-privacy-notice]{transform:translateY(-2000px)!important}':'[data-ss-privacy-notice]::after{content:\"\";position:absolute;inset:0;background:white;z-index:999999}';document.head.append(s);};if(document.head)apply();else new MutationObserver((_,o)=>{if(document.head){apply();o.disconnect();}}).observe(document,{childList:true,subtree:true});})()")
             open_page(page,'/?utm_source=instagram')
             assert not basic,(mode,basic)
-            page.evaluate("document.getElementById('synthetic-privacy-obstruction').remove()")
+            page.evaluate("sessionStorage.setItem('synthetic_privacy_obstruction_done','1');document.getElementById('synthetic-privacy-obstruction').remove()")
             page.wait_for_function("document.querySelector('[data-ss-disclosure]')?.getBoundingClientRect().height>0")
             page.wait_for_timeout(900)
             assert any(x['event']=='site_entry' for x in basic),(mode,basic)
