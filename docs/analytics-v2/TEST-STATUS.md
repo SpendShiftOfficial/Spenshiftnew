@@ -29,3 +29,6 @@ Final combined rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions
 - Local Auth test rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45763578103 ; regression rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45763578117 . A real hosted owner account and full hosted UI verification remain separate approval gates even if the local test passes.
 - Production configuration/approval packet: PRE-PRODUCTION-APPROVAL-PACKET.md. Live deployment, main branch and database schema rechecked; new v2 tables absent, old counters present, development deployments zero. No hosted project or paid plan created. Billing plan and WAF entitlement must be verified in the dashboard before any commercial release/paid changes.
 - Release remains HOLD. Confirm actual test results and all legal/operational/owner approvals before proceeding.
+
+## 26 November — final two refinements
+All four regression jobs in 45763578117 and all 20 real isolated Auth/MFA/permission/revocation checks in 45763578103 passed. Mobile notice and finite UTM source recognition are the only further application changes; test results for the refined commit must be checked before release. Real hosted owner provisioning, legal review, hosting configuration and separate deployment and collection approvals remain outstanding.

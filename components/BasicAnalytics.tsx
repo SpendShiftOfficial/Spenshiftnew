@@ -1,9 +1,10 @@
 "use client";
-import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from "react";
+import {createContext,useCallback,useContext,useEffect,useId,useRef,useState,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
 import {protectRollback} from "@/lib/analytics-v2/optional";
 import Link from "next/link";
+import styles from "./privacy-notice.module.css";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
 import {pages,enums,sourceCategory,campaignCategory,type Metric} from "@/lib/analytics-v2/core.mjs";
 const noop=()=>false;
@@ -95,6 +96,8 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const [pref,setPref]=useState<Preference|null>(null),[legacy,setLegacy]=useState<string|null>(null);
  const [status,setStatus]=useState("");
  const [settings,setSettings]=useState(false);
+ const settingsId=useId(),privateTrigger=useRef<HTMLButtonElement|null>(null);
+ useEffect(()=>{setSettings(false);},[path]);
  const entrySeen=useRef(false),noticeSeen=useRef(false);
  useEffect(()=>{
    collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&!!notice.current?.getClientRects().length});
@@ -109,7 +112,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const entry=useCallback(()=>{
    if(entrySeen.current||location.pathname!==initialPath.current)return;
    const code=pageCode(initialPath.current);if(!code)return;
-   const source=sourceCategory(document.referrer,location.origin);
+   const source=sourceCategory(document.referrer,location.origin,location.search);
    if(source===null){entrySeen.current=true;return;}
    const ua=navigator.userAgent;
    const browser=/Edg\//.test(ua)?"edge":/Firefox\//.test(ua)?"firefox":/Chrome\//.test(ua)?"chrome":/Safari\//.test(ua)?"safari":"other_or_unknown";
@@ -137,26 +140,45 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
  const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset");
- const basicOff=pref?.basicOff===true||(legacy!==null&&!pref?.legacyTransition);
+ const basicOn=ready&&collectionEnabled&&allowed();
+ const legacyNeedsTransition=legacy!==null&&!pref?.legacyTransition;
  const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
+ const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage both choices here. No third-party trackers."
+   :!collectionEnabled?"Basic statistics are off. You can allow optional audit and report counts. No third-party trackers."
+   :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
+   :ready&&!basicOn?"Basic statistics are off or unavailable. Optional audit and report counts are separate. Manage either in settings."
+   :"We use basic statistics to improve SpendShift, even if you reject optional audit and report counts. Turn either off in settings.";
+ const toggleSettings=()=>{
+   setSettings(v=>!v);
+   if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
+ };
  return <Context.Provider value={{emit,allowed,ready,revision}}>
-   {privateSettings&&!settings&&<button type="button" onClick={()=>setSettings(true)} style={{margin:"8px"}}>Privacy settings</button>}
-   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Privacy settings" style={{padding:"12px 16px",background:"#f3f7f3",color:"#17291b",borderBottom:"1px solid #cad8ca",fontSize:"14px"}}>
-     <strong>{fixture?"Test environment only — privacy choices":"Your privacy choices"}</strong>
-     <p>We use limited first-party statistics to improve SpendShift without creating individual browsing profiles. No third-party analytics or advertising pixels run in this version. Basic statistics are separate from the optional audit and report activity counts. You can turn either off without affecting your savings check or purchased plan.</p>
-     {fixture&&<p>This is a test environment. Proposed privacy wording is not yet approved.</p>}
-     {!collectionEnabled&&<p>Basic statistics collection is currently disabled.</p>}
-     {granular&&<p><Link href="/privacy-policy">Privacy Policy</Link>{" · "}<Link href="/cookies">Cookie Policy</Link></p>}
-     <p>Basic statistics: {ready&&collectionEnabled&&!basicOff?"available subject to your stored preference":"off or unavailable"}. Optional first-party activity counts: {currentAnalytics==="granted"?"allowed":"off"}.</p>
-     <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-       <button type="button" onClick={()=>change("granted","denied")}>Accept optional</button>
-       <button type="button" onClick={()=>change("denied","denied")}>Reject optional</button>
-       <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
-       <button type="button" onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
-       <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
+   {privateSettings&&!settings&&<button ref={privateTrigger} className={styles.privateTrigger} type="button" onClick={()=>{setSettings(true);requestAnimationFrame(()=>notice.current?.focus());}}>Privacy settings</button>}
+   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Privacy notice" data-ss-privacy-notice="basic" className={styles.notice}>
+    <div className={styles.inner}>
+     <div className={styles.heading}>
+       <strong>Your privacy choices {fixture&&<span className={styles.testLabel}>Test only</span>}</strong>
+       <button className={styles.settingsButton} type="button" aria-expanded={settings} aria-controls={settingsId} onClick={toggleSettings}>Privacy settings</button>
      </div>
-     {legacy!==null&&!pref?.legacyTransition&&<p>Your earlier privacy choice is preserved. Basic statistics remain off unless you explicitly enable them under this notice.</p>}
-     <p role="status">{status}</p>
+     <p className={styles.summary}>{summary}</p>
+     <div className={styles.actions}>
+       <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional</button>
+       <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
+     </div>
+     <div id={settingsId} className={styles.details} hidden={!settings}>
+       <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
+       <p><strong>Basic statistics:</strong> {basicOn?"on for this page":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
+       {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
+       <div className={styles.detailActions}>
+         <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
+         <button type="button" disabled={!collectionEnabled} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
+         <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
+       </div>
+       <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
+       {fixture&&<p>This is a test environment. Proposed wording is not yet approved.</p>}
+     </div>
+     <p role="status" className={status.startsWith("Preferences unavailable")?styles.error:styles.visuallyHidden}>{status}</p>
+    </div>
    </aside>}
    {children}
    {pageCode(path)&&<PublicObserver key={path} path={path} entry={entry}/>}

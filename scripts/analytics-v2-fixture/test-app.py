@@ -57,8 +57,8 @@ try:
         for choice in ['Accept optional','Reject optional',None]:
             before=totals()
             ctx,page,sent,replies,external=setup()
-            page.goto(origin+'/?utm_campaign=meta_founder_v1&fbclid=syntheticprivate')
-            page.get_by_text('Test environment only — privacy choices').wait_for()
+            page.goto(origin+'/?utm_source=instagram&utm_campaign=meta_founder_v1&fbclid=syntheticprivate')
+            page.locator('[data-ss-privacy-notice="basic"]').wait_for()
             page.wait_for_timeout(1300)
             if choice:page.get_by_role('button',name=choice,exact=True).click()
             page.locator('[data-ss-cta=hero]').click()
@@ -79,6 +79,7 @@ try:
             for e in ['site_entry','public_cta_click','audit_arrival','audit_start','audit_complete','results_view','upgrade_cta_click','checkout_opened']:assert c[e]==1,(choice,e,c,sent)
             assert c['audit_question_seen']==8 and c['audit_question_advanced']==8,(choice,c)
             assert c['upgrade_offer_view']==1,(choice,c)
+            entry=next(x for x in sent if x['event']=='site_entry');assert entry['source']=='instagram' and entry['campaign']=='meta_founder_v1',entry
             assert all(s==204 for s in replies),(choice,replies)
             assert 'syntheticprivate' not in json.dumps(sent) and 'Almost daily' not in json.dumps(sent)
             assert not external,external
@@ -91,6 +92,7 @@ try:
             page.get_by_role('button',name='Reject optional',exact=True).click();page.wait_for_timeout(700);assert not sent
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.wait_for_timeout(600);assert not sent
             assert page.evaluate('localStorage.getItem("spendshift_cookie_consent")')=='denied'
+            page.get_by_role('button',name='Privacy settings',exact=True).click()
             page.get_by_role('button',name='Explicitly enable basic statistics').click();page.wait_for_timeout(700);assert any(x['event']=='audit_arrival' for x in sent)
             page.get_by_role('button',name='Turn off basic statistics').click();page.wait_for_timeout(400);n=len(sent)
             page.get_by_role('button',name='Almost daily',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.wait_for_timeout(500)

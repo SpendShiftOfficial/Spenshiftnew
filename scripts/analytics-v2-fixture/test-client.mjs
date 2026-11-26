@@ -12,4 +12,8 @@ for(const legacy of ['denied','granted']){const {collector:c,sent,data}=setup(le
 for(const opts of [{enabled:false},{visible:false},{storageOK:false}]){const {collector:c,sent}=setup(null,null,opts);c.entry();const run=c.audit();run.arrive();run.see(1);run.choose(1);check(sent.length===0,'fail closed');}
 {const {collector:c,sent}=setup(null,'bad-json');c.entry();check(!c.choose({analytics:'granted',ads:'granted'}),'malformed state blocked');check(sent.length===0,'no events malformed');}
 {const {collector:c,sent}=setup();const run=c.audit();run.arrive();run.see(7);run.advance(7);check(sent.every(x=>x.body.event!=='audit_start'),'resumed audit');}
+{
+ const {collector:c,sent}=setup();document.referrer="";location.search="?utm_source=instagram&utm_campaign=meta_founder_v1&fbclid=private_click";
+ c.entry();const entry=sent.find(x=>x.body.event==="site_entry");check(entry?.body.source==="instagram","collector recognises approved UTM without referrer");check(!JSON.stringify(sent).includes("private_click"),"collector omits click ID");
+}
 console.log('PASS '+passes+' simulated browser-client assertions');

@@ -47,8 +47,9 @@ try:
         for legacy,preference,expect_basic,expect_old in scenarios:
             ctx,page,external,basic,old,requests=setup(legacy,preference)
             open_page(page,'/?utm_source=instagram&utm_campaign=meta_founder_v1&fbclid=synthetic_click')
-            page.get_by_text('Test environment only — privacy choices').wait_for()
+            page.locator('[data-ss-privacy-notice="basic"]').wait_for()
             assert bool(basic)==expect_basic,(legacy,preference,basic)
+            if expect_basic:assert next(x for x in basic if x['event']=='site_entry')['source']=='instagram'
             assert not external
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.get_by_text('Question 1 of 8',exact=True).wait_for();page.wait_for_timeout(700)
             no_trackers(page);assert bool(old)==expect_old,(legacy,preference,old)
@@ -78,6 +79,7 @@ try:
         assert any(x.startswith('script-src') for x in result) and 'connect-src' in result,result
         assert not external,external
         # All-off must propagate across tabs and block both v1 and v2 without affecting the saved draft.
+        other.get_by_role('button',name='Privacy settings',exact=True).click()
         other.get_by_role('button',name='Turn off all statistics',exact=True).click();other.wait_for_timeout(500)
         page.wait_for_timeout(500);n,m=len(basic),len(old)
         page.get_by_role('button',name='Yes, at least one is unused',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.get_by_text('Question 3 of 8',exact=True).wait_for();page.wait_for_timeout(700)
@@ -91,9 +93,46 @@ try:
         ctx,page,external,basic,old,requests=setup('granted')
         open_page(page,'/');page.get_by_role('button',name='Reject optional',exact=True).click()
         assert page.evaluate("localStorage.getItem('spendshift_cookie_consent')")=='denied'
+        page.get_by_role('button',name='Privacy settings',exact=True).click()
         page.get_by_role('button',name='Explicitly enable basic statistics',exact=True).click();page.wait_for_timeout(700)
         assert basic and not old
         no_trackers(page);ctx.close();cases+=1
+        # Browser measurement: new visitor on mobile, compact default with equally sized choices.
+        for width,height in [(320,568),(375,667),(390,844),(430,932),(1280,900)]:
+            ctx,page,external,basic,old,requests=setup()
+            page.set_viewport_size({'width':width,'height':height})
+            open_page(page,'/?utm_source=instagram&fbclid=synthetic_click')
+            page.evaluate('document.fonts.ready')
+            notice=page.locator('[data-ss-privacy-notice="basic"]');box=notice.bounding_box()
+            accept=notice.get_by_role('button',name='Accept optional',exact=True);reject=notice.get_by_role('button',name='Reject optional',exact=True)
+            a,b=accept.bounding_box(),reject.bounding_box()
+            target=0.33 if width==320 else 0.25
+            assert box and box['height']<=height*target,(width,height,box)
+            assert abs(a['width']-b['width'])<=1 and min(a['height'],b['height'])>=44,(width,a,b)
+            assert not notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
+            assert notice.evaluate('(el)=>el.scrollWidth<=el.clientWidth+1') and box['x']>=0 and box['x']+box['width']<=width+1
+            assert notice.evaluate("(el)=>!['fixed','sticky'].includes(getComputedStyle(el).position)")
+            cta=page.locator('[data-ss-cta=hero]');cta.scroll_into_view_if_needed()
+            assert cta.evaluate("(el)=>{const b=el.getBoundingClientRect();return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));}")
+            settings=notice.get_by_role('button',name='Privacy settings',exact=True)
+            settings.click();assert settings.get_attribute('aria-expanded')=='true'
+            assert notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
+            assert notice.get_by_role('link',name='Privacy Policy',exact=True).is_visible()
+            assert notice.get_by_role('link',name='Cookie Policy',exact=True).is_visible()
+            settings.click();assert settings.get_attribute('aria-expanded')=='false'
+            assert not notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
+            assert not external
+            print(f'PASS compact notice {width}x{height}: {box["height"]:.0f}px ({100*box["height"]/height:.1f}% of viewport); equal 44px+ choices; CTA reachable')
+            ctx.close();cases+=1
+        # Source recognition with empty referrer, conflicts and adversarial labels.
+        for query,expected in [('utm_source=facebook','facebook'),('utm_source=IG','instagram'),('utm_source=tiktok','tiktok'),('utm_source=google','google'),('utm_source=instagram&utm_source=facebook','direct_or_unknown'),('utm_source=synthetic%40example.invalid','direct_or_unknown'),('utm_source=meta','direct_or_unknown'),('fbclid=synthetic_click','direct_or_unknown')]:
+            ctx,page,external,basic,old,requests=setup()
+            open_page(page,'/?'+query)
+            entry=next(x for x in basic if x['event']=='site_entry')
+            assert entry['source']==expected,(query,entry)
+            assert 'synthetic' not in json.dumps(entry) and set(entry)=={'v','event','page','source','campaign','device','browser'}
+            assert not external;ctx.close();cases+=1
+        print('PASS 8 browser UTM attribution cases; raw tags and click IDs absent')
         # Public guides and legal pages also have the site-wide policy, not just the audit.
         ctx,page,external,basic,old,requests=setup('granted')
         for path in ['/pricing','/how-it-works','/whats-included','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia','/privacy-policy','/cookies','/results','/personalise']:

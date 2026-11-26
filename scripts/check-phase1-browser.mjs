@@ -35,6 +35,30 @@ try{
     assert.equal(await response.text(),'');
   }
  });
+ await test('disabled-collection fallback privacy notice is compact and truthful',async()=>{
+  for(const [width,height] of [[320,568],[375,667],[390,844],[1280,900]]){
+   const ctx=await browser.newContext({viewport:{width,height}}),page=await ctx.newPage();
+   const thirdParty=[],v2=[];page.on('request',req=>{if(/googletagmanager|google-analytics|clarity\.ms|connect\.facebook|analytics\.tiktok/.test(req.url()))thirdParty.push(req.url());if(req.url().endsWith('/api/analytics-v2'))v2.push(req.url());});
+   try{
+    await go(page,'/');await page.evaluate(()=>document.fonts.ready);
+    const notice=page.locator('[data-ss-privacy-notice="fallback"]');await notice.waitFor();
+    assert.match(await notice.innerText(),/Basic statistics are off/);
+    const box=await notice.boundingBox();assert.ok(box&&box.height<=height*(width===320?.33:.25),'Fallback size '+JSON.stringify({width,height,box}));
+    const accept=notice.getByRole('button',{name:'Accept optional',exact:true}),reject=notice.getByRole('button',{name:'Reject optional',exact:true});
+    const a=await accept.boundingBox(),b=await reject.boundingBox();
+    assert.ok(a&&b&&Math.abs(a.width-b.width)<=1&&Math.min(a.height,b.height)>=44);
+    assert.ok(await notice.evaluate(el=>el.scrollWidth<=el.clientWidth+1&&!['fixed','sticky'].includes(getComputedStyle(el).position)));
+    const settings=notice.getByRole('button',{name:'Privacy settings',exact:true});
+    await settings.click();assert.equal(await settings.getAttribute('aria-expanded'),'true');assert.ok(await notice.getByRole('link',{name:'Cookie Policy',exact:true}).isVisible());
+    await settings.click();await reject.click();assert.equal(await notice.count(),0);
+    const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('spendshift_privacy_v2')));
+    assert.equal(saved.analytics,'denied');assert.equal(saved.ads,'denied');
+    assert.equal(await page.evaluate(()=>localStorage.getItem('spendshift_cookie_consent')),null);
+    await page.evaluate(()=>window.dispatchEvent(new Event('open-cookie-settings')));await notice.waitFor();assert.ok(await notice.getByRole('link',{name:'Privacy Policy',exact:true}).isVisible());
+    assert.deepEqual(thirdParty,[]);assert.deepEqual(v2,[]);console.log('PASS fallback notice '+width+'x'+height+': '+Math.round(box.height)+'px');
+   }finally{await ctx.close();}
+  }
+ });
  await test('direct audit arrivals are consent-gated, anonymous and deduplicated',async()=>{
    for(const consent of ['unset','denied','granted']){
      const ctx=await browser.newContext({viewport:{width:375,height:812}});

@@ -18,6 +18,13 @@ runCoreTests();
 check(sourceCategory("https://l.instagram.com/private?secret=x","https://www.spendshift.com.au")==="instagram","source coarse");
 check(sourceCategory("https://www.spendshift.com.au/private","https://www.spendshift.com.au")===null,"internal entry");
 check(sourceCategory("https://instagram.com.evil.invalid/","https://www.spendshift.com.au")==="other_referral","hostname spoof");
+const own="https://www.spendshift.com.au";
+const sourceCases=[
+ ["","?utm_source=instagram","instagram"],["","?utm_source=IG","instagram"],["","?utm_source=facebook","facebook"],["","?utm_source=fb","facebook"],["","?utm_source=tiktok","tiktok"],["","?utm_source=tt","tiktok"],["","?utm_source=google","google"],["","?utm_source=bing","other_search"],["","?utm_source=linkedin","other_social"],
+ ["https://l.facebook.com/","?utm_source=instagram","instagram"],["https://l.instagram.com/","?utm_source=unknown","instagram"],["https://www.spendshift.com.au/","?utm_source=instagram",null],
+ ["","?utm_source=meta","direct_or_unknown"],["","?utm_source=instagram&utm_source=facebook","direct_or_unknown"],["","?utm_source=instagram&utm%5Fsource=facebook","direct_or_unknown"],["","?utm_source=instagram&UTM_SOURCE=facebook","direct_or_unknown"],["","?UTM_SOURCE=instagram","direct_or_unknown"],["","?utm_source=instagram%40example.invalid","direct_or_unknown"],["","?utm_source=https%3A%2F%2Finstagram.com","direct_or_unknown"],["","?utm_source=instagram%20","direct_or_unknown"],["","?utm_source=constructor","direct_or_unknown"],["","?utm_source=instagram&x="+"z".repeat(4096),"direct_or_unknown"],["","?fbclid=private&gclid=private","direct_or_unknown"],["not a URL","?utm_source=tiktok","tiktok"],["https://instagram.com.evil.invalid/","?utm_source=unknown","other_referral"],["","?utm_source=%69nstagram&fbclid=private","instagram"]
+];
+for(const [ref,search,expected] of sourceCases)check(sourceCategory(ref,own,search)===expected,"strict finite UTM source case "+sourceCases.findIndex(x=>x[0]===ref&&x[1]===search));
 check(campaignCategory("?utm_campaign=meta_founder_v1&fbclid=private")==="meta_founder_v1","campaign");
 check(campaignCategory("?utm_campaign=meta_founder_v1&utm_campaign=other")==="none_or_unknown","duplicate");
 check(sydneyDay(new Date("2026-11-24T13:01:00Z"))==="2026-11-25","Sydney DST");

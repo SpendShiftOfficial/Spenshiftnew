@@ -100,7 +100,7 @@ export default function RootLayout({
       </head>
 
       <body>
-        {fixture||release.privacy ? <BasicAnalytics fixture={fixture} granular={granular} collectionEnabled={fixture||release.collect}>{children}</BasicAnalytics> : <>{children}<ConsentBanner /></>}
+        {fixture||release.privacy ? <BasicAnalytics fixture={fixture} granular={granular} collectionEnabled={fixture||release.collect}>{children}</BasicAnalytics> : <><ConsentBanner />{children}</>}
 {/* First-party-only candidate: no browser measurement provider is mounted. */}
 
 

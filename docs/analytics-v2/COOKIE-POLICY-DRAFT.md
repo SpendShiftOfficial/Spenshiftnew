@@ -28,3 +28,6 @@ Use Privacy settings, available from the footer and eligible product pages, to a
 ## Release review
 
 Verify site-wide absence of third-party script/network requests, saved browser-answer protection in newly loaded documents, legacy preference behavior, cross-tab opt-out and the residual risk from previously open tabs and historical cookies. Confirm the effective date, cross-border details and 180-day retention. This draft is not the current published Cookie Policy.
+
+## Refined traffic-source classification (26 November 2026)
+Approved static UTM source labels (including Instagram/IG, Facebook/FB, TikTok/TT and selected other public platform labels) are mapped to existing broad categories. On an external or unknown-referrer entry, a single valid allowlisted UTM source takes precedence over the referrer classification; otherwise use the broad referrer category or direct/unknown. Same-origin referrers are never converted into new external arrivals by a tag. Duplicate, oversized or unapproved labels are ignored. Only the fixed category is transmitted; no raw tag, full URL, click ID or visitor identifier is recorded. Source labels are declared marketing hints, not verified referral or causal attribution. Campaign labels remain the existing finite catalogue; no new stored field or database migration.
