@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
       <div className="privacy-policy-content">
         <div className="container">
           <h1>Privacy Policy</h1>
-          <p><strong>Proposed first-party-only policy — draft for legal review, 27 November 2026. Not yet in effect.</strong></p>
+          <p><strong>Version dated 27 November 2026. Effective upon publication on the live SpendShift website.</strong></p>
 
           <div className="row">
             <div className="policy-content">
@@ -475,7 +475,7 @@ export default function PrivacyPolicy() {
               </p>
 
               <p>
-                <strong>Draft prepared: 27 November 2026 — not effective</strong>
+                <strong>Version date: 27 November 2026</strong>
               </p>
 
             </div>
