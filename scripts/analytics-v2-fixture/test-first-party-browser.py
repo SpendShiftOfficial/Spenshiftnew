@@ -202,7 +202,7 @@ try:
         ctx,page,external,basic,old,requests=setup(None,json.dumps(pref('granted','denied')))
         open_page(page,'/');page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit')
         page.get_by_text('Question 1 of 8',exact=True).wait_for();page.wait_for_timeout(600)
-        page.evaluate("""()=>{const put=Storage.prototype.setItem;window.__restoreBoth=()=>Storage.prototype.setItem=put;Storage.prototype.setItem=function(k,v){if(k==='spendshift_privacy_v2'||k==='spendshift_privacy_save_failed')throw new DOMException('synthetic quota','QuotaExceededError');return put.call(this,k,v);};}""")
+        page.evaluate("""()=>{const put=Storage.prototype.setItem;window.__restoreBoth=()=>{Storage.prototype.setItem=put;};Storage.prototype.setItem=function(k,v){if(k==='spendshift_privacy_v2'||k==='spendshift_privacy_save_failed')throw new DOMException('synthetic quota','QuotaExceededError');return put.call(this,k,v);};}""")
         page.get_by_role('button',name='Turn off all statistics',exact=True).click()
         page.get_by_role('status').filter(has_text='Statistics stopped here').wait_for()
         page.evaluate("window.__restoreBoth()");page.wait_for_timeout(400);n,m=len(basic),len(old)
