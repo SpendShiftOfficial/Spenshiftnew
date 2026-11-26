@@ -20,7 +20,7 @@ try:
                 else:route.continue_()
             page.route('**/*',intercept)
             page.on('request',lambda r:sent.append(r.post_data_json) if r.method=='POST' and r.url==origin+'/api/analytics-v2' else None)
-            page.goto(origin+'/?utm_campaign=meta_founder_v1&fbclid=syntheticprivate'+('&disabled=1' if disabled else ''));page.wait_for_function('window.testCollector !== undefined');page.wait_for_timeout(180)
+            page.goto(origin+'/?utm_campaign=meta_founder_v1&fbclid=syntheticprivate'+('&disabled=1' if disabled else ''));page.locator('html[data-ss-fixture-ready=true]').wait_for(state='attached');page.wait_for_timeout(180)
             return ctx,page,sent,external
         for choice in ['accept','reject',None]:
             ctx,page,sent,external=case();assert sorted(x['event'] for x in sent)==['public_page_view','site_entry'];assert next(x for x in sent if x['event']=='site_entry')['campaign']=='meta_founder_v1';assert 'syntheticprivate' not in json.dumps(sent);count+=3

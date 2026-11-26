@@ -5,5 +5,5 @@ let q=0,run;const update=()=>document.getElementById('question').textContent=q>8
 const opt=(v,off=undefined,transition=false)=>c.choose({analytics:v,ads:v,basicOff:off,transition});
 document.getElementById('accept').onclick=()=>opt('granted');document.getElementById('reject').onclick=()=>opt('denied');document.getElementById('off').onclick=()=>{opt('denied',true);c.withdraw();};document.getElementById('transition').onclick=()=>{if(opt('denied',false,true))c.entry();};
 document.getElementById('audit').onclick=()=>{q=1;run=c.audit();run.arrive();run.see(q);update();};document.getElementById('next').onclick=()=>{if(q<1||q>8)return;run.choose(q);run.advance(q);q++;if(q===9){run.complete();c.record({v:2,event:'results_view'});}else run.see(q);update();};document.getElementById('reset').onclick=()=>{if(!run)return;run.reset();q=1;run.arrive();run.see(q);update();};
-c.entry();document.addEventListener('visibilitychange',()=>c.entry());window.testCollector=c;
+c.entry();document.addEventListener('visibilitychange',()=>c.entry());window.testCollector=c;document.documentElement.dataset.ssFixtureReady='true';
 </script></html>

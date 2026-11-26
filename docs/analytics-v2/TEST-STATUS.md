@@ -41,3 +41,6 @@ The preceding four-suite run 45904093509 passed on d46527dfe850e22674f574b7825a3
 
 ## Homepage measurement extension — 27 November 2026
 Candidate-only: adds 60/120-second foreground milestones, six fixed homepage section exposure events, and five fixed CTA impression/click pairs. The previous 10/30-second milestones and first CTA event are unchanged. New automated tests cover allowlists, dwell, aggregate SQL, quota, dashboard suppression and the local product browser. Exact new CI results are pending; prior passing runs do not certify this change. Policy wording is draft and needs targeted legal approval. No production schema or gate changes.
+
+### Homepage extension fixture correction
+Initial application run 45911861056: synthetic browser step failed after the new core import was not included in the fixture's fixed module-serving allowlist; the readiness check also attempted string evaluation against the strict CSP. Add only the fixed homepage module path and use a DOM readiness marker set after fixture initialization. No changes to app CSP, data collection, test assertions or production. Reverify all jobs on the corrected commit.
