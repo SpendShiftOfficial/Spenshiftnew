@@ -48,10 +48,12 @@ export default function ConsentBanner(){
     <div className={styles.actions}>
       <button type="button" onClick={()=>saveConsent("granted")}>Accept optional</button>
       <button type="button" onClick={()=>saveConsent("denied")}>Reject optional</button>
-      <button type="button" onClick={()=>saveConsent("denied",true)}>Turn off all statistics</button>
     </div>
     <div id="ss-fallback-privacy-details" className={styles.details} hidden={!settings}>
       <p>Optional counts record limited audit and report actions on SpendShift's own servers. Your answers are not included in the totals. Basic statistics are currently disabled. A choice here keeps basic statistics off until you explicitly enable them under the active notice. Your choice does not affect your savings check or purchased plan.</p>
+      <div className={styles.detailActions}>
+        <button type="button" onClick={()=>saveConsent("denied",true)}>Turn off all statistics</button>
+      </div>
       <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
     </div>
     <p role="status" className={status||privacyBlocked()?styles.error:styles.visuallyHidden}>{status||(privacyBlocked()?"Statistics are off here because your privacy choice could not be verified. Choose again to save your preference.":"")}</p>

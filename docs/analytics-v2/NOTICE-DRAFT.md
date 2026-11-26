@@ -6,11 +6,11 @@
 
 **Your privacy choices**
 
-Basic statistics, including estimated Australian visits, help improve SpendShift and can continue if you reject optional audit/report counts.
+Basic statistics, including estimated Australian visits, can continue if you reject optional audit/report counts. Turn all off in Privacy settings.
 
-[Accept optional] [Reject optional] [Turn off all statistics] [Privacy settings]
+[Accept optional] [Reject optional] [Privacy settings]
 
-Equal-width immediate action buttons. No vendor scripts. The short notice and immediate choices must be visibly presented in the viewport across two animation frames, in a visible, non-prerendering document, before new basic events. Once presented, the in-document gate permits existing approved events on eligible pages as the visitor scrolls or navigates. This check is an engineering safeguard, not proof of reading or consent. Confirm actual mobile/assistive technology behaviour and whether disclosure is legally sufficient. Policy links in the immediately accessible settings panel; service access is not conditional on consent.
+Two equal-width optional action buttons; Privacy settings is visibly linked from the notice and contains the all-statistics opt-out. No vendor scripts. The short notice, two optional choices and Privacy settings control must be visibly presented in the viewport across two animation frames, in a visible, non-prerendering document, before new basic events. Once presented, the in-document gate permits existing approved events on eligible pages as the visitor scrolls or navigates. This check is an engineering safeguard, not proof of reading or consent. Confirm actual mobile/assistive technology behaviour and whether disclosure is legally sufficient. Policy links in the immediately accessible settings panel; service access is not conditional on consent.
 
 ## Disabled and prior-choice notices
 
@@ -23,7 +23,7 @@ Basic statistics use limited daily counts to improve SpendShift, not individual 
 - Accurate basic and optional status, based on effective permission rather than an unvalidated stored value.
 - Turn off basic statistics: only v2 events stop; previously permitted optional activity counts remain separate.
 - Explicitly enable basic statistics: an affirmative, available action after notice presentation; never grants advertising or optional counts.
-- Turn off all statistics: directly visible; stops both categories.
+- Turn off all statistics: visible in the one-step Privacy settings panel; stops both categories.
 - Privacy Policy and Cookie Policy links.
 
 ## Failure handling and limitations

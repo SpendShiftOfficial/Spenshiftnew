@@ -46,10 +46,10 @@ try{
     const box=await notice.boundingBox();assert.ok(box&&box.height<=height*(width===320?.33:.25),'Fallback size '+JSON.stringify({width,height,box}));
     const accept=notice.getByRole('button',{name:'Accept optional',exact:true}),reject=notice.getByRole('button',{name:'Reject optional',exact:true});
     const a=await accept.boundingBox(),b=await reject.boundingBox();
-    assert.ok(a&&b&&Math.abs(a.width-b.width)<=1&&Math.min(a.height,b.height)>=44);assert.ok(await notice.getByRole('button',{name:'Turn off all statistics',exact:true}).isVisible());
+    assert.ok(a&&b&&Math.abs(a.width-b.width)<=1&&Math.min(a.height,b.height)>=44);assert.ok(!(await notice.getByRole('button',{name:'Turn off all statistics',exact:true}).isVisible()));
     assert.ok(await notice.evaluate(el=>el.scrollWidth<=el.clientWidth+1&&!['fixed','sticky'].includes(getComputedStyle(el).position)));
     const settings=notice.getByRole('button',{name:'Privacy settings',exact:true});
-    await settings.click();assert.equal(await settings.getAttribute('aria-expanded'),'true');assert.ok(await notice.getByRole('link',{name:'Cookie Policy',exact:true}).isVisible());
+    await settings.click();assert.equal(await settings.getAttribute('aria-expanded'),'true');assert.ok(await notice.getByRole('button',{name:'Turn off all statistics',exact:true}).isVisible());assert.ok(await notice.getByRole('link',{name:'Cookie Policy',exact:true}).isVisible());
     await settings.click();await reject.click();assert.equal(await notice.count(),0);
     const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('spendshift_privacy_v2')));
     assert.equal(saved.analytics,'denied');assert.equal(saved.ads,'denied');assert.equal(saved.basicOff,true,'disabled-stage reject must keep basic off');

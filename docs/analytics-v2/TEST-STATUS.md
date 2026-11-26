@@ -35,3 +35,6 @@ All four regression jobs in 45763578117 and all 20 real isolated Auth/MFA/permis
 
 ## 27 November — legal compliance correction candidate
 Prior Australian audience candidate 7d7cdac3a991f02be0bea22bb0df481294d58ed3: all four application suites and all 20 real local Auth/MFA checks passed (45768164366 and 45768164354). The new candidate changes only notice, choice transitions, failure safeguards and corresponding policy/documentation and test fixtures. Verify actual new CI conclusions before independent sign-off. No source lock change, SQL change, or production permission. The 26 November Word review is the original findings; the revised private handoff records closure evidence and outstanding decisions.
+
+## 27 November — limited banner layout revision
+The preceding four-suite run 45904093509 passed on d46527dfe850e22674f574b7825a341217aa1c30. The requested layout-only follow-up moves the all-statistics button into one-step Privacy settings, keeps equal accept/reject actions, explicitly discloses the all-off path, and requires the settings control to be presented before initial basic collection. All consent semantics and failure safeguards are retained. Final legal review must consider the revised placement; the previous test result is not evidence for the new commit. Run existing isolated regressions; no release authorisation.

@@ -123,7 +123,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
      const hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
      return !!hit&&el.contains(hit);
    };
-   const shown=()=>eligible(location.pathname)&&onScreen(notice.current?.querySelector("[data-ss-disclosure]")??null)&&onScreen(notice.current?.querySelector("[data-ss-privacy-actions]")??null);
+   const shown=()=>eligible(location.pathname)&&onScreen(notice.current?.querySelector("[data-ss-disclosure]")??null)&&onScreen(notice.current?.querySelector("[data-ss-privacy-actions]")??null)&&onScreen(notice.current?.querySelector("[data-ss-privacy-settings]")??null);
    const check=()=>{
      if(done||first||second||!shown())return;
      first=requestAnimationFrame(()=>{first=0;if(!shown())return;second=requestAnimationFrame(()=>{second=0;if(done||!shown())return;noticePresented.current=true;done=true;setRevision(v=>v+1);});});
@@ -175,7 +175,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
    :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
-   :"Basic statistics, including estimated Australian visits, help improve SpendShift and can continue if you reject optional audit/report counts.";
+   :"Basic statistics, including estimated Australian visits, can continue if you reject optional audit/report counts. Turn all off in Privacy settings.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
@@ -186,19 +186,19 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
     <div className={styles.inner}>
      <div className={styles.heading}>
        <strong>Your privacy choices {fixture&&<span className={styles.testLabel}>Test only</span>}</strong>
-       <button className={styles.settingsButton} type="button" aria-expanded={settings} aria-controls={settingsId} onClick={toggleSettings}>Privacy settings</button>
+       <button className={styles.settingsButton} data-ss-privacy-settings type="button" aria-expanded={settings} aria-controls={settingsId} onClick={toggleSettings}>Privacy settings</button>
      </div>
      <p className={styles.summary} data-ss-disclosure>{summary}</p>
      <div className={styles.actions} data-ss-privacy-actions>
        <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional</button>
        <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
-       <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
        <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>
+         <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
          <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
          <button type="button" disabled={!collectionEnabled||!eligible(path)||!noticePresented.current} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
        </div>

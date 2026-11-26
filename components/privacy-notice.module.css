@@ -5,7 +5,7 @@
 .testLabel{font-size:.625rem;font-weight:500;color:#536b5c;white-space:nowrap}
 .notice p{margin:0;color:#294133;line-height:1.4;font-size:.8125rem}
 .settingsButton,.privateTrigger{border:0;background:transparent;color:#075e2c;text-decoration:underline;text-underline-offset:3px;cursor:pointer;min-height:44px;padding:6px 4px;font:inherit;font-weight:650;flex-shrink:0}
-.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .actions button,.detailActions button{font:inherit;font-weight:650;line-height:1.25;min-height:44px;padding:6px 8px;white-space:normal;overflow-wrap:anywhere;border:1px solid #6d9378;border-radius:7px;background:#fff;color:#17452b;cursor:pointer}
 .actions button[aria-pressed=true]{border-color:#17452b;box-shadow:inset 0 0 0 1px #17452b;background:#e4f0e6}
 .actions button:hover,.detailActions button:hover{background:#eaf3ec}
@@ -21,7 +21,7 @@
 .visuallyHidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(min-width:850px){
  .notice{padding:8px 24px}
- .inner{grid-template-columns:minmax(0,1fr) minmax(330px,420px);column-gap:18px;align-items:center}
+ .inner{grid-template-columns:minmax(0,1fr) minmax(250px,320px);column-gap:18px;align-items:center}
  .heading{grid-column:1;grid-row:1;justify-content:flex-start;gap:12px}
  .summary{grid-column:1;grid-row:2}
  .actions{grid-column:2;grid-row:1/span 2}
