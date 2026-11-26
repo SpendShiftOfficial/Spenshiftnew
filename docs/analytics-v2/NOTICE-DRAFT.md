@@ -1,29 +1,33 @@
-# First-party-only privacy notice and settings — draft for approval
+# First-party-only privacy notice and settings — revised draft for independent approval
 
-**26 November 2026 — NOT APPROVED OR EFFECTIVE.**
+**27 November 2026 — NOT APPROVED OR EFFECTIVE.** No legal or production authorization.
 
-The candidate uses an in-flow, non-sticky notice with compact responsive styling, equal prominent optional choices and a single Privacy settings expander. The main notice is always present on eligible pages while the new privacy mode is enabled. The fallback notice uses the same layout and says basic collection is off. No overlay covers the savings check.
-
-## New visitor, basic collection enabled
+## Active collection; new visitor
 
 **Your privacy choices**
 
-We use basic statistics to improve SpendShift, including broad Australian audience counts, even if you reject optional audit/report counts. Turn either off in settings.
+Basic statistics, including estimated Australian visits, help improve SpendShift and can continue if you reject optional audit/report counts.
 
-[Accept optional] [Reject optional] [Privacy settings]
+[Accept optional] [Reject optional] [Turn off all statistics] [Privacy settings]
 
-The prior-choice variant reads: “Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate.” If basic statistics are off or unavailable, the notice explicitly says so. The disabled-collection version states that basic statistics are off; no third-party trackers.
+Equal-width immediate action buttons. No vendor scripts. The short notice and immediate choices must be visibly presented in the viewport across two animation frames, in a visible, non-prerendering document, before new basic events. Once presented, the in-document gate permits existing approved events on eligible pages as the visitor scrolls or navigates. This check is an engineering safeguard, not proof of reading or consent. Confirm actual mobile/assistive technology behaviour and whether disclosure is legally sufficient. Policy links in the immediately accessible settings panel; service access is not conditional on consent.
 
-## Expanded Privacy settings
+## Disabled and prior-choice notices
+
+When collection is disabled: "Basic statistics are off. Any choice here keeps them off until you explicitly enable them." Fallback also says optional audit/report counts are separate. A choice made while disabled records basicOff=true, even if optional is granted. Switching on collection later cannot reverse this. Earlier legacy consent is preserved; basic statistics stay off unless explicitly enabled. A choice before initial notice presentation does not authorise basic statistics. For previously informed active visitors, optional choices do not reverse a separate basic opt-out. On an ineligible page no basic events are collected. Explicit basic enablement is unavailable unless collection is enabled and the eligible notice has been presented.
+
+## Expanded privacy settings
 
 Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.
 
-- Show current basic and optional activity-count status.
-- Turn off basic statistics — stops new v2 events, not separately permitted optional counts.
-- Explicitly enable basic statistics — affirmative action required for a browser with an earlier cookie choice; does not grant optional counts; unavailable if collection disabled.
-- Turn off all statistics — withdraws both first-party categories.
+- Accurate basic and optional status, based on effective permission rather than an unvalidated stored value.
+- Turn off basic statistics: only v2 events stop; previously permitted optional activity counts remain separate.
+- Explicitly enable basic statistics: an affirmative, available action after notice presentation; never grants advertising or optional counts.
+- Turn off all statistics: directly visible; stops both categories.
 - Privacy Policy and Cookie Policy links.
 
-Accept/reject apply only to optional first-party counts. No new legacy vendor grant. The basic-statistics disclosure remains visible even if optional counts are accepted/rejected, or details are collapsed. Footer Cookie settings opens the same panel. Keyboard focus and expanded state are exposed; no small-screen clipping or forced overlay. Test-only and legal draft labels remain in the isolated candidate. No vendor cookie removal or historical-data deletion promise.
+## Failure handling and limitations
 
-Privacy mode remains independent of the basic collection switch. Final wording and transition require solicitor approval and separate owner approval. Do not publish or enable collection before the staged tracker-free cutover.
+Any failed, silently lost or invalid choice write stops both categories in the affected document via a shared in-memory latch. A best-effort non-identifying sessionStorage restriction marker keeps the tab blocked after reload if it can be persisted. Verify actual writes and read-back before showing success. The warning says "Statistics stopped here. We could not save your choice. Please retry before reopening other tabs." Successful retries preserve restrictive choices; optional acceptance after failure cannot restore basic stats. Malformed stored choices fail closed; an explicit all-off action can replace a malformed preference if storage is readable and writable. Never clear saved audit answers to reset consent. No claim of persistence where browser writes fail, cross-device withdrawal or erasure of already-sent requests. Other active documents honour successful storage updates; if both storage mechanisms fail, current-document restriction is guaranteed by design, but future documents and other tabs may still have an older choice. Confirm actual testing before sign-off.
+
+Final wording, purposes, legal applicability, collection basis and transition require written solicitor review. No publication or collection activation without separate owner approval.

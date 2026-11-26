@@ -32,3 +32,6 @@ Final combined rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions
 
 ## 26 November — final two refinements
 All four regression jobs in 45763578117 and all 20 real isolated Auth/MFA/permission/revocation checks in 45763578103 passed. Mobile notice and finite UTM source recognition are the only further application changes; test results for the refined commit must be checked before release. Real hosted owner provisioning, legal review, hosting configuration and separate deployment and collection approvals remain outstanding.
+
+## 27 November — legal compliance correction candidate
+Prior Australian audience candidate 7d7cdac3a991f02be0bea22bb0df481294d58ed3: all four application suites and all 20 real local Auth/MFA checks passed (45768164366 and 45768164354). The new candidate changes only notice, choice transitions, failure safeguards and corresponding policy/documentation and test fixtures. Verify actual new CI conclusions before independent sign-off. No source lock change, SQL change, or production permission. The 26 November Word review is the original findings; the revised private handoff records closure evidence and outstanding decisions.

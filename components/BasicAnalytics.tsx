@@ -2,7 +2,8 @@
 import {createContext,useCallback,useContext,useEffect,useId,useRef,useState,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
-import {protectRollback} from "@/lib/analytics-v2/optional";
+import {optionalAllowed,protectRollback} from "@/lib/analytics-v2/optional";
+import {privacyBlocked,stopPrivacyDocument} from "@/lib/analytics-v2/privacy-runtime.mjs";
 import Link from "next/link";
 import styles from "./privacy-notice.module.css";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
@@ -98,15 +99,40 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const [settings,setSettings]=useState(false);
  const settingsId=useId(),privateTrigger=useRef<HTMLButtonElement|null>(null);
  useEffect(()=>{setSettings(false);},[path]);
- const entrySeen=useRef(false),noticeSeen=useRef(false);
+ const entrySeen=useRef(false),noticeSeen=useRef(false),noticePresented=useRef(false);
  useEffect(()=>{
-   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&!!notice.current?.getClientRects().length});
+   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&noticePresented.current});
    const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setReady(true);
    const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"){
      const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setRevision(v=>v+1);}
    }};
    window.addEventListener("storage",sync);return()=>{window.removeEventListener("storage",sync);collector.current=null;};
  },[collectionEnabled]);
+ // Count only after the primary disclosure and quick controls have actually been
+ // in the visible viewport across two animation frames. This is presentation,
+ // not proof of reading/consent. Keep the latch for this document after scrolling.
+ useEffect(()=>{
+   if(!ready||!eligible(path)||noticePresented.current)return;
+   let first=0,second=0,done=false;
+   const onScreen=(el:Element|null)=>{
+     if(!el||!visible())return false;
+     const rect=el.getBoundingClientRect(),v=window.visualViewport;
+     const left=v?.offsetLeft??0,top=v?.offsetTop??0,right=left+(v?.width??innerWidth),bottom=top+(v?.height??innerHeight);
+     if(rect.width<=0||rect.height<=0||rect.left<left-1||rect.top<top-1||rect.right>right+1||rect.bottom>bottom+1)return false;
+     for(let n:Element|null=el;n;n=n.parentElement){const s=getComputedStyle(n);if(s.display==="none"||s.visibility!=="visible"||Number(s.opacity)===0)return false;}
+     const hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+     return !!hit&&el.contains(hit);
+   };
+   const shown=()=>eligible(location.pathname)&&onScreen(notice.current?.querySelector("[data-ss-disclosure]")??null)&&onScreen(notice.current?.querySelector("[data-ss-privacy-actions]")??null);
+   const check=()=>{
+     if(done||first||second||!shown())return;
+     first=requestAnimationFrame(()=>{first=0;if(!shown())return;second=requestAnimationFrame(()=>{second=0;if(done||!shown())return;noticePresented.current=true;done=true;setRevision(v=>v+1);});});
+   };
+   check();const timer=window.setInterval(()=>{if(done)clearInterval(timer);else check();},200);
+   window.addEventListener("scroll",check,{passive:true});window.addEventListener("resize",check);
+   document.addEventListener("visibilitychange",check);
+   return()=>{done=true;cancelAnimationFrame(first);cancelAnimationFrame(second);clearInterval(timer);window.removeEventListener("scroll",check);window.removeEventListener("resize",check);document.removeEventListener("visibilitychange",check);};
+ },[ready,path]);
  const emit=useCallback((event:Metric)=>collector.current?.emit(event)===true,[]);
  const allowed=useCallback(()=>collector.current?.allowed()===true,[]);
  const entry=useCallback(()=>{
@@ -126,28 +152,30 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  },[ready,path,revision,emit]);
  function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
    const c=collector.current;if(!c)return;
-   // Ads are never enabled. Preserve the old all-or-nothing grant only until a user changes their choices.
    ads="denied";
-   try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{setStatus("Preferences unavailable. Measurement remains restricted.");return;}
+   const failed=()=>{stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
+   try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{failed();return;}
    if(c.choose({analytics,ads,basicOff,transition})){
       setPref(c.state().pref);setLegacy(c.state().legacy);setRevision(v=>v+1);setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
       if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));
-   }else {setStatus("Preferences unavailable. New measurement remains restricted.");if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));}
-
+   }else failed();
  }
  useEffect(()=>{
    const open=()=>{setSettings(true);requestAnimationFrame(()=>{notice.current?.focus();notice.current?.scrollIntoView({block:"start"});});};
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
- const currentAnalytics=pref?.analytics??(granular&&legacy==="granted"?"granted":"unset");
+ const currentAnalytics:Choice=ready&&optionalAllowed("analytics")?"granted":pref?.analytics==="unset"||(!pref&&legacy===null)?"unset":"denied";
  const basicOn=ready&&collectionEnabled&&allowed();
  const legacyNeedsTransition=legacy!==null&&!pref?.legacyTransition;
+ const canBasic=ready&&collectionEnabled&&collector.current?.eligibleAfterNotice()===true;
+ const failed=ready&&privacyBlocked();
+ const feedback=status||(failed?"Statistics are off here because your privacy choice could not be verified. Choose again to save your preference.":"");
  const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
  const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage both choices here. No third-party trackers."
-   :!collectionEnabled?"Basic statistics are off. You can allow optional audit and report counts. No third-party trackers."
+   :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
-   :ready&&!basicOn?"Basic statistics are off or unavailable. Optional audit and report counts are separate. Manage either in settings."
-   :"We use basic statistics to improve SpendShift, including broad Australian audience counts, even if you reject optional audit/report counts. Turn either off in settings.";
+   :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
+   :"Basic statistics, including estimated Australian visits, help improve SpendShift and can continue if you reject optional audit/report counts.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
@@ -160,24 +188,24 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
        <strong>Your privacy choices {fixture&&<span className={styles.testLabel}>Test only</span>}</strong>
        <button className={styles.settingsButton} type="button" aria-expanded={settings} aria-controls={settingsId} onClick={toggleSettings}>Privacy settings</button>
      </div>
-     <p className={styles.summary}>{summary}</p>
-     <div className={styles.actions}>
+     <p className={styles.summary} data-ss-disclosure>{summary}</p>
+     <div className={styles.actions} data-ss-privacy-actions>
        <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional</button>
        <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
+       <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
        <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
-       <p><strong>Basic statistics:</strong> {basicOn?"on for this page":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
+       <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>
          <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
-         <button type="button" disabled={!collectionEnabled} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
-         <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
+         <button type="button" disabled={!collectionEnabled||!eligible(path)||!noticePresented.current} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
        </div>
        <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
        {fixture&&<p>This is a test environment. Proposed wording is not yet approved.</p>}
      </div>
-     <p role="status" className={status.startsWith("Preferences unavailable")?styles.error:styles.visuallyHidden}>{status}</p>
+     <p role="status" className={failed||status.startsWith("Statistics stopped")?styles.error:styles.visuallyHidden}>{feedback}</p>
     </div>
    </aside>}
    {children}

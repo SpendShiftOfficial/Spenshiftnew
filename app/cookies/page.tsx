@@ -16,7 +16,7 @@ export default function CookiePolicy() {
       <div className="privacy-policy-content">
         <div className="container">
           <h1>Cookie Policy</h1>
-          <p><strong>Proposed first-party-only policy — draft for legal review, 25 November 2026. Not yet in effect.</strong></p>
+          <p><strong>Proposed first-party-only policy — draft for legal review, 27 November 2026. Not yet in effect.</strong></p>
 
           <div className="row">
             <div className="policy-content">
@@ -155,13 +155,13 @@ export default function CookiePolicy() {
                 This version does not load third-party website analytics or advertising scripts or send measurement events to those providers. Cookies and data from earlier versions may remain subject to browser and provider retention or deletion settings. We do not promise to erase previously transmitted information by switching off scripts.
               </p>
               <p>
-                Basic first-party statistics, when enabled after the revised notice, use fixed event categories and broad labels, stored as daily counts. They do not need optional tracking cookies or create a persistent visitor identifier. For approved website arrival observations, our server reduces the hosting provider's IP-derived country estimate to Australia, outside Australia or unknown. Only the category is counted in daily totals; no raw IP, original country code, detailed location or persistent identifier is stored in analytics. No GPS or extra browser location request is used. You may turn basic statistics off. An earlier cookie choice is respected: new basic statistics remain off until you expressly enable them under the revised notice.
+                Basic first-party statistics, when enabled after the revised notice, use fixed event categories and broad labels, stored as daily counts. They do not need optional tracking cookies or create a persistent visitor identifier. For approved website arrival observations, our server reduces the hosting provider's IP-derived country estimate to Australia, outside Australia or unknown. Only the category is counted in daily totals; no raw IP, original country code, detailed location or persistent identifier is stored in analytics. No GPS or extra browser location request is used. You may turn basic statistics off. An earlier cookie choice, or a choice saved while basic statistics are disabled, is respected: basic statistics stay off until you expressly enable them under the active revised notice. For new visitors, eligible basic events are enabled only after the primary notice and immediate choices have been presented on screen, if collection is enabled and preferences permit it. Silence is not consent. Accepting optional counts grants only the existing optional activity counts; rejecting them does not by itself disable the separate basic statistics. Use the direct Turn off all statistics control to stop both, or Privacy settings to disable basic statistics separately.
               </p>
               <p>
                 Optional first-party activity counts remain separate and record limited audit and paid-report interactions only with permission. A private report reference is sent to SpendShift's own server for verification and is not stored in the daily counts. Rejecting optional counts disables this existing measurement. The separate basic opt-out or all-statistics control can stop new basic collection.
               </p>
               <p>
-                Browser storage remembers preferences and saves audit answers for the requested service. Hosting and security services may process IP addresses and technical request details. We retain daily analytics totals and the separate aggregate reporting cache for up to 180 days under the approved maintenance process; other operational and financial records have separate retention requirements.
+                Browser storage remembers preferences and saves audit answers for the requested service. It may also keep a non-identifying, tab-scoped restriction marker when a privacy choice cannot be saved. An unsuccessful save stops both categories in the affected page; a marker, if it can be stored, also restricts that tab after reload. We display whether saving failed and ask you to retry. If storage does not allow the choice to persist, we cannot guarantee withdrawal in other tabs, other devices or later visits. Successful choices apply prospectively; previously sent requests and aggregate counts are not undone. A choice while basic collection is disabled will not enable it on a later release. Hosting and security services may process IP addresses and technical request details. We retain daily analytics totals and the separate aggregate reporting cache for up to 180 days under the approved maintenance process; other operational and financial records have separate retention requirements.
               </p>
 
               <h3>5. Stripe Checkout</h3>
@@ -236,7 +236,7 @@ export default function CookiePolicy() {
               </p>
 
               <p>
-                <strong>Draft prepared: 25 November 2026 — not effective</strong>
+                <strong>Draft prepared: 27 November 2026 — not effective</strong>
               </p>
             </div>
           </div>
