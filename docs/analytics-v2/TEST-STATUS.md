@@ -21,3 +21,11 @@ Read-only checks confirmed main and live deployment on baseline; no development 
 Prior first-party baseline and synthetic: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45600860233
 Passing first-party-only browser job: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601265076
 Final combined rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45601391618
+
+## 26 November 2026 — final pre-production verification
+- Combined run 45601391618 ultimately succeeded in all four application jobs.
+- Auth workflow 45763255267 started a real disposable local Supabase stack; verified source lock, missing bearer rejection and password-only owner rejection, then failed at TOTP enrolment. No successful MFA claimed from that run. The fixture correction explicitly enables TOTP enrolment and verification in the temporary local CLI configuration, adds sanitised error-code diagnostics and avoids reusing the enrolment TOTP interval. No application security code or production Auth settings changed.
+- Corrected isolated Auth run 45763578103: in_progress.
+- Local Auth test rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45763578103 ; regression rerun: https://github.com/SpendShiftOfficial/Spenshiftnew/actions/runs/45763578117 . A real hosted owner account and full hosted UI verification remain separate approval gates even if the local test passes.
+- Production configuration/approval packet: PRE-PRODUCTION-APPROVAL-PACKET.md. Live deployment, main branch and database schema rechecked; new v2 tables absent, old counters present, development deployments zero. No hosted project or paid plan created. Billing plan and WAF entitlement must be verified in the dashboard before any commercial release/paid changes.
+- Release remains HOLD. Confirm actual test results and all legal/operational/owner approvals before proceeding.
