@@ -37,6 +37,8 @@ DO $$ DECLARE d date:=(now() AT TIME ZONE 'Australia/Sydney')::date; r jsonb; BE
  IF public.spendshift_accept_metrics_v2('site_entry',p_page=>'home',p_source=>'instagram',p_campaign=>'none_or_unknown',p_device=>'mobile',p_browser=>'safari',p_market=>'outside_australia')<>'accepted' THEN RAISE EXCEPTION 'market accept'; END IF;
  BEGIN PERFORM public.spendshift_accept_metrics_v2('site_entry',p_page=>'home',p_source=>'instagram',p_campaign=>'none_or_unknown',p_device=>'mobile',p_browser=>'safari',p_market=>'NZ'); RAISE EXCEPTION 'invalid market accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_metric' THEN RAISE; END IF; END;
  IF (SELECT accepted FROM public.spendshift_metrics_v2_capacity WHERE metric_date=d)<>2 OR (SELECT event_count FROM public.spendshift_metrics_v2_daily WHERE metric_code='site_entry' AND dimension_code='market' AND bucket_code='outside_australia') IS DISTINCT FROM 1::bigint THEN RAISE EXCEPTION 'atomic market/quota'; END IF;
+ IF public.spendshift_accept_metrics_v2('home_cta_hero_impression')<>'accepted' OR public.spendshift_accept_metrics_v2('home_cta_hero_click')<>'accepted' THEN RAISE EXCEPTION 'homepage RPC'; END IF;
+ IF (SELECT accepted FROM public.spendshift_metrics_v2_capacity WHERE metric_date=d)<>4 THEN RAISE EXCEPTION 'homepage quota'; END IF;
  UPDATE public.spendshift_metrics_v2_capacity SET accepted=49999 WHERE metric_date=d;
  IF public.spendshift_accept_metrics_v2('audit_start')<>'accepted' OR public.spendshift_accept_metrics_v2('audit_start')<>'limited' THEN RAISE EXCEPTION 'quota cap'; END IF;
  IF (SELECT event_count FROM public.spendshift_metrics_v2_daily WHERE metric_code='audit_start')<>2 THEN RAISE EXCEPTION 'quota partial'; END IF;

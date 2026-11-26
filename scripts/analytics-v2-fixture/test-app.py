@@ -79,7 +79,7 @@ try:
             page.wait_for_url('https://checkout.stripe.com/**')
             page.wait_for_timeout(1000)
             c=Counter(x['event'] for x in sent)
-            for e in ['site_entry','public_cta_click','audit_arrival','audit_start','audit_complete','results_view','upgrade_cta_click','checkout_opened']:assert c[e]==1,(choice,e,c,sent)
+            for e in ['site_entry','public_cta_click','home_cta_hero_impression','home_cta_hero_click','audit_arrival','audit_start','audit_complete','results_view','upgrade_cta_click','checkout_opened']:assert c[e]==1,(choice,e,c,sent)
             assert c['audit_question_seen']==8 and c['audit_question_advanced']==8,(choice,c)
             assert c['upgrade_offer_view']==1,(choice,c)
             entry=next(x for x in sent if x['event']=='site_entry');assert entry['source']=='instagram' and entry['campaign']=='meta_founder_v1' and 'market' not in entry and 'country' not in entry,entry
@@ -91,7 +91,7 @@ try:
             assert sql("SELECT count(*) FROM public.spendshift_metrics_v2_daily WHERE dimension_code='market' AND metric_code<>'site_entry'")=='0'
             print('PASS server-derived market '+bucket+' with optional choice '+str(choice))
             after=totals()
-            for e in ['site_entry','audit_arrival','audit_start','audit_complete','results_view','checkout_opened']:assert after.get(e,0)-before.get(e,0)==1,(choice,e,after,before)
+            for e in ['site_entry','home_cta_hero_impression','home_cta_hero_click','audit_arrival','audit_start','audit_complete','results_view','checkout_opened']:assert after.get(e,0)-before.get(e,0)==1,(choice,e,after,before)
             ctx.close();count+=1
         for legacy in ['denied','granted']:
             ctx,page,sent,replies,external=setup(legacy)

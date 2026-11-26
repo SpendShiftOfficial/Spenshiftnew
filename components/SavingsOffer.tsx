@@ -47,8 +47,8 @@ const faqs = [
   ["Is A$29 a monthly charge?", "No. It's one payment for the full personalised plan. There is no subscription."],
   ["What happens after I pay?", "Answer a few more questions about your relevant spending areas. Your progress is saved. Then view your plan, which you can return to with your private link."],
 ];
-function Start({placement="body"}:{placement?:"hero"|"body"}) {
-  return <a className={styles.primary} href="/audit" data-ss-cta={placement}>Start my free savings check</a>;
+function Start({placement="body",homeCta}:{placement?:"hero"|"body";homeCta?:"hero"|"offer"|"final"}) {
+  return <a className={styles.primary} href="/audit" data-ss-cta={placement} data-ss-home-cta={homeCta}>Start my free savings check</a>;
 }
 function Tiles({ items }: { items: string[][] }) {
   return <div className={styles.tileGrid}>
@@ -62,12 +62,12 @@ function Tiles({ items }: { items: string[][] }) {
 export default function SavingsOffer({page="home"}:{page?:Page}) {
   const {label,heading,intro}=copy[page];
   return <div className={styles.page}><Header/><main className={styles.wrap}>
-    <section className={styles.hero}>
+    <section className={styles.hero} data-ss-home-section={page==="home"?"hero":undefined}>
       <span className={styles.eyebrow}>{label}</span><h1>{heading}</h1>
-      <p>{intro}</p><Start placement="hero"/><p className={styles.small}>8 free questions · No bank login · No card for free results</p>
+      <p>{intro}</p><Start placement="hero" homeCta={page==="home"?"hero":undefined}/><p className={styles.small}>8 free questions · No bank login · No card for free results</p>
     </section>
     {page==="home"&&<>
-      <section aria-labelledby="benefits-heading">
+      <section aria-labelledby="benefits-heading" data-ss-home-section="benefits">
         <h2 className={styles.sectionHeading} id="benefits-heading">Less guessing. More doing.</h2>
         <Tiles items={[
           ["1","See where to start","Your free results show which spending areas may be worth a closer look."],
@@ -75,7 +75,7 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
           ["3","Check what you save","Use a checklist and savings tracker to record real changes."],
         ]}/>
       </section>
-      <section className={styles.offer}>
+      <section className={styles.offer} data-ss-home-section="offer">
         <div><span className={styles.eyebrow}>OPTIONAL PERSONAL PLAN</span>
           <h2>Your next three steps, made for you.</h2>
           <p>Free results show where to look. The paid plan shows what to do and how to check the result.</p>
@@ -84,10 +84,10 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
         </div>
         <div className={styles.priceBox}><strong>A$29</strong><span>One payment · No subscription</span>
           <p>Start free. Choose the full plan only if you want more help.</p>
-          <Start/><small>No live price searches. No guaranteed savings.</small>
+          <Start homeCta="offer"/><small>No live price searches. No guaranteed savings.</small>
         </div>
       </section>
-      <section className={styles.example}><span className={styles.eyebrow}>FOR EXAMPLE</span>
+      <section className={styles.example} data-ss-home-section="example"><span className={styles.eyebrow}>FOR EXAMPLE</span>
         <h2>Haven't checked your phone bill in a while?</h2>
         <p>Your plan can show you what to compare, like data, fees and coverage. You can then check real offers and decide whether a change suits you.</p>
         <p>We don't assume you've overpaid or count a saving before it happens.</p>
@@ -129,12 +129,12 @@ export default function SavingsOffer({page="home"}:{page?:Page}) {
         <p>We don't compare live prices or promise a saving. Read our <a className={styles.textLink} href="/terms-and-conditions">terms</a> and <a className={styles.textLink} href="/refund-policy">refund policy</a> before buying.</p>
       </section>
     </>}
-    <section className={styles.faq} id={page==="home"?"faq":undefined}>
+    <section className={styles.faq} id={page==="home"?"faq":undefined} data-ss-home-section={page==="home"?"faq":undefined}>
       <h2>Questions before you start</h2>
       {faqs.map(([q,a],i)=><details key={q} data-ss-faq={["free_check","live_prices","unknown_amount","savings_guarantee","pricing","after_payment"][i]}><summary>{q}</summary><p>{a}</p></details>)}
       <p>Need help? <a href="mailto:info@spendshift.com.au">Email SpendShift</a>.</p>
     </section>
-    <section className={styles.last}><h2>See where to start.</h2><Start/>
+    <section className={styles.last} data-ss-home-section={page==="home"?"final":undefined}><h2>See where to start.</h2><Start homeCta={page==="home"?"final":undefined}/>
       <p>Free results first. General information, not personal financial product advice.</p>
     </section>
   </main><Footer/></div>;

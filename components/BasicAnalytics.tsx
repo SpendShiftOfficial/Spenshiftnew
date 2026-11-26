@@ -8,7 +8,19 @@ import Link from "next/link";
 import styles from "./privacy-notice.module.css";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
 import {pages,enums,sourceCategory,campaignCategory,type Metric} from "@/lib/analytics-v2/core.mjs";
+import {homeSections,homeCtas,homeTimingEvents,createDwellTracker} from "@/lib/analytics-v2/home-engagement.mjs";
 const noop=()=>false;
+// Check viewport intersection, visibility and actual hit testing. Coordinates stay local.
+function homeElementVisible(el:HTMLElement){
+ const rect=el.getBoundingClientRect(),viewport=window.visualViewport;
+ const l=viewport?.offsetLeft??0,t=viewport?.offsetTop??0,r=l+(viewport?.width??innerWidth),b=t+(viewport?.height??innerHeight);
+ const x1=Math.max(l,rect.left),y1=Math.max(t,rect.top),x2=Math.min(r,rect.right),y2=Math.min(b,rect.bottom);
+ const area=Math.min(rect.width,r-l)*Math.min(rect.height,b-t);
+ if(area<=0||x2<=x1||y2<=y1||(x2-x1)*(y2-y1)<area*.5)return false;
+ for(let n:Element|null=el;n;n=n.parentElement){const s=getComputedStyle(n);if(s.display==="none"||s.visibility!=="visible"||Number(s.opacity)===0)return false;}
+ const samples=[[.5,.5],[.25,.25],[.75,.75],[.25,.75],[.75,.25]];
+ return samples.filter(([x,y])=>{const hit=document.elementFromPoint(x1+(x2-x1)*x,y1+(y2-y1)*y);return !!hit&&el.contains(hit);}).length>=3;
+}
 const Context=createContext({emit:noop as (event:Metric)=>boolean,allowed:noop,ready:false,revision:0});
 const pageCode=(path:string)=>Object.keys(pages).find(key=>pages[key]===path);
 const eligible=(path:string)=>!!pageCode(path)||path==="/audit"||path==="/results";
@@ -44,33 +56,54 @@ function PublicObserver({path,entry}:{path:string;entry:()=>void}){
  const {record,ready,revision}=useBasicMetricScope();
  const {allowed}=useContext(Context);
  const elapsed=useRef(0),last=useRef<number|null>(null),height=useRef({h:0,at:0});
+ const homeSeen=useRef(new Set<string>()),dwell=useRef(createDwellTracker());
  useEffect(()=>{
    if(!ready||!code)return;
+   const home=path==="/";
+   const emitHome=(event:string)=>{
+     if(homeSeen.current.has(event))return true;
+     if(!record(event))return false;
+     homeSeen.current.add(event);return true;
+   };
+   const observeHome=(now:number)=>{
+     const candidates:string[]=[];
+     for(const el of Array.from(document.querySelectorAll<HTMLElement>("[data-ss-home-section],a[data-ss-home-cta]"))){
+       const section=el.dataset.ssHomeSection,cta=el.dataset.ssHomeCta;
+       const code=section&&Object.hasOwn(homeSections,section)?"home_section_"+section+"_seen":
+         cta&&Object.hasOwn(homeCtas,cta)&&el instanceof HTMLAnchorElement&&el.getAttribute("href")==="/audit"?"home_cta_"+cta+"_impression":null;
+       if(code&&!homeSeen.current.has(code)&&homeElementVisible(el))candidates.push(code);
+     }
+     for(const code of dwell.current.update(now,candidates))emitHome(code);
+   };
    const tick=()=>{
-     if(location.pathname!==path||!visible()||!allowed()){last.current=null;return;}
+     if(location.pathname!==path||!visible()||!allowed()){last.current=null;dwell.current.reset();return;}
      const now=performance.now();
      entry();record("public_page_view",{page:code});
      if(last.current!==null)elapsed.current+=Math.min(1000,Math.max(0,now-last.current));
      last.current=now;
      if(elapsed.current>=10000)record("engaged_10s",{page:code});
      if(elapsed.current>=30000)record("engaged_30s",{page:code});
+     if(home){for(const event of homeTimingEvents(elapsed.current))emitHome(event);observeHome(now);}
      const h=document.documentElement.scrollHeight;
      if(h!==height.current.h){height.current={h,at:now};return;}
      if(h>0&&now-height.current.at>=500){const depth=100*(scrollY+innerHeight)/h;for(const n of [25,50,75,90])if(depth>=n)record("scroll_"+n,{page:code});}
    };
-   const onVisibility=()=>{last.current=null;tick();};
+   const onVisibility=()=>{last.current=null;dwell.current.reset();tick();};
    const click=(e:MouseEvent)=>{
      if(!e.isTrusted||!visible()||location.pathname!==path||!(e.target instanceof Element))return;
      const a=e.target.closest("a[data-ss-cta],a[data-ss-nav]");if(!(a instanceof HTMLAnchorElement))return;
      const destination=a.getAttribute("href"),place=a.getAttribute("data-ss-cta");
      if(destination==="/audit"&&place&&enums.placement.includes(place))record("public_cta_click",{page:code,placement:place},"one-cta");
+     // A trusted activation also qualifies as an impression, even before a one-second dwell.
+     const homeCta=a.dataset.ssHomeCta;
+     if(home&&destination==="/audit"&&homeCta&&Object.hasOwn(homeCtas,homeCta)&&emitHome("home_cta_"+homeCta+"_impression"))emitHome("home_cta_"+homeCta+"_click");
      if(a.hasAttribute("data-ss-nav")&&destination){const nav=pageCode(destination);if(nav)record("public_nav_click",{page:nav});}
    };
    const toggle=(e:Event)=>{if(!visible()||location.pathname!==path)return;const d=e.target;if(d instanceof HTMLDetailsElement&&d.open){const faq=d.getAttribute("data-ss-faq");if(faq&&enums.faq.includes(faq))record("faq_open",{faq});}};
    tick();const timer=window.setInterval(tick,500);
    window.addEventListener("click",click,true);document.addEventListener("toggle",toggle,true);
    document.addEventListener("visibilitychange",onVisibility);
-   return()=>{clearInterval(timer);last.current=null;window.removeEventListener("click",click,true);document.removeEventListener("toggle",toggle,true);document.removeEventListener("visibilitychange",onVisibility);};
+   return()=>{clearInterval(timer);last.current=null;dwell.current.reset();window.removeEventListener("click",click,true);document.removeEventListener("toggle",toggle,true);document.removeEventListener("visibilitychange",onVisibility);};
  },[code,path,ready,revision,record,entry,allowed]);
  return null;
 }
@@ -194,7 +227,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
        <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
-       <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
+       <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>

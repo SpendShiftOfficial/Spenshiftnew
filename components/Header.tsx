@@ -54,7 +54,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
               <a href="/#faq">FAQ</a>
             </nav>
 
-            <Link className="btn desktop-only" href="/audit" data-ss-cta="other">
+            <Link className="btn desktop-only" href="/audit" data-ss-cta="other" data-ss-home-cta="header">
               Start my free savings check
             </Link>
 
@@ -106,7 +106,7 @@ export default function Header({ simple = false }: { simple?: boolean }) {
                   <a href="/#faq" onClick={toggleMenu}><Circle size={12} color="#059625" /> FAQ</a>
                 </nav>
                 
-                <Link className="btn" href="/audit" data-ss-cta="other" onClick={toggleMenu} style={{ textAlign: "center" }}>
+                <Link className="btn" href="/audit" data-ss-cta="other" data-ss-home-cta="header" onClick={toggleMenu} style={{ textAlign: "center" }}>
                   Start my free savings check
                 </Link>
               </div>

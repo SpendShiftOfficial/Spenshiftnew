@@ -97,7 +97,7 @@ Cookie settings
 
         <div className="">
           <h4>Services</h4>
-          <Link href="/audit" data-ss-cta="footer"><Circle size={10} color="#fff" /> Free savings check</Link>
+          <Link href="/audit" data-ss-cta="footer" data-ss-home-cta="footer"><Circle size={10} color="#fff" /> Free savings check</Link>
           <Link href="/whats-included" data-ss-nav="true"><Circle size={10} color="#fff" /> A$29 savings plan</Link>
           <Link href="/services" data-ss-nav="true"><Circle size={10} color="#fff" /> Our services</Link>
         </div>

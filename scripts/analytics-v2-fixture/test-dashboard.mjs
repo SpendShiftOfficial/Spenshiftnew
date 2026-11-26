@@ -14,3 +14,13 @@ assert.throws(()=>dashboardData([row('site_entry','market','NZ','12')]));
 assert.throws(()=>dashboardData([row('audit_start','market','australia','12')]));
 assert.equal(dashboardData([row('site_entry','all','all','0')]).marketMix,null);
 console.log('PASS 21 dashboard validation, market coverage, suppression and date checks');
+
+const homepageRows=[row('public_page_view','page','home',100),row('engaged_10s','page','home',80),row('home_engaged_60s','all','all',30),row('home_engaged_120s','all','all',9),row('home_section_benefits_seen','all','all',50),row('home_cta_hero_impression','all','all',60),row('home_cta_hero_click','all','all',15),row('home_cta_final_impression','all','all',12),row('home_cta_final_click','all','all',20)];
+const home=dashboardData(homepageRows).homeEngagement;
+assert.equal(home.time[0].ratio,.8);assert.equal(home.time[2].ratio,.3);assert.equal(home.time[3].count,null);
+assert.equal(home.sections.find(x=>x.label==='Benefits').ratio,.5);
+assert.equal(home.ctas.find(x=>x.label==='Opening CTA').ratio,.25);
+assert.equal(home.ctas.find(x=>x.label==='Final CTA').ratio,null);
+assert.equal(home.ctas.find(x=>x.label==='Footer link').impressions,null);
+assert.match(renderDashboard(homepageRows,'7',rangeFor('7')),/Homepage CTA performance/);
+console.log('PASS homepage aggregate reporting, ratio bounds and sparse suppression');

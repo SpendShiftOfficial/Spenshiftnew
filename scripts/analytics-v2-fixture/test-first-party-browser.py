@@ -43,6 +43,29 @@ try:
                 else:r.continue_()
             ctx.route('**/*',route)
             return ctx,ctx.new_page(),external,basic,old,all_requests
+        # Homepage-only aggregate exposure: offscreen sections, repeat scroll and trusted activation.
+        ctx,page,external,basic,old,requests=setup()
+        open_page(page,'/')
+        page.wait_for_timeout(1800)
+        assert not any(x['event']=='home_section_final_seen' for x in basic),basic
+        page.locator('[data-ss-home-section="final"]').evaluate("(e)=>e.scrollIntoView({block:'center',behavior:'instant'})")
+        page.wait_for_timeout(2300)
+        assert sum(x['event']=='home_section_final_seen' for x in basic)==1,basic
+        page.evaluate("window.scrollTo(0,0)");page.wait_for_timeout(700)
+        page.locator('[data-ss-home-section="final"]').evaluate("(e)=>e.scrollIntoView({block:'center',behavior:'instant'})")
+        page.wait_for_timeout(1800)
+        assert sum(x['event']=='home_section_final_seen' for x in basic)==1,basic
+        page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.wait_for_timeout(500)
+        assert sum(x['event']=='home_cta_hero_impression' for x in basic)==1 and sum(x['event']=='home_cta_hero_click' for x in basic)==1,basic
+        assert all(set(x)=={'v','event'} for x in basic if x['event'].startswith('home_')),basic
+        assert not external
+        ctx.close();cases+=1
+        ctx,page,external,basic,old,requests=setup(preference=json.dumps(pref('denied','denied',True)))
+        open_page(page,'/')
+        page.locator('[data-ss-home-section="final"]').evaluate("(e)=>e.scrollIntoView({block:'center',behavior:'instant'})")
+        page.wait_for_timeout(1800)
+        assert not basic and not external
+        ctx.close();cases+=1
         scenarios=[(None,None,True,False),('granted',None,False,True),('denied',None,False,False),(None,json.dumps(pref('granted','granted')),True,True),(None,json.dumps(pref('denied','granted')),True,False),('granted',json.dumps(pref('denied','denied')),False,False),(None,json.dumps(pref('granted','granted',True)),False,True),('granted','bad-json',False,False)]
         for legacy,preference,expect_basic,expect_old in scenarios:
             ctx,page,external,basic,old,requests=setup(legacy,preference)

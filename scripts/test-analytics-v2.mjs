@@ -29,3 +29,27 @@ check(campaignCategory("?utm_campaign=meta_founder_v1&fbclid=private")==="meta_f
 check(campaignCategory("?utm_campaign=meta_founder_v1&utm_campaign=other")==="none_or_unknown","duplicate");
 check(sydneyDay(new Date("2026-11-24T13:01:00Z"))==="2026-11-25","Sydney DST");
 console.log("PASS "+passed+" synthetic checks");
+
+// Homepage metric allowlist and deterministic dwell/foreground thresholds.
+{
+ const {homeMetrics,homeTimingEvents,createDwellTracker}=await import('../lib/analytics-v2/home-engagement.mjs');
+ const assert=(await import('node:assert/strict')).default;
+ assert.equal(homeMetrics.length,18);
+ for(const event of homeMetrics){
+  assert.equal(validEvent({v:2,event}),true);
+  assert.equal(validEvent({v:2,event,page:'home'}),false);
+  assert.deepEqual(marginals({v:2,event}),[[event,'all','all']]);
+ }
+ assert.equal(validEvent({v:2,event:'home_section_arbitrary_seen'}),false);
+ assert.deepEqual(homeTimingEvents(59999),[]);
+ assert.deepEqual(homeTimingEvents(60000),['home_engaged_60s']);
+ assert.deepEqual(homeTimingEvents(120000),['home_engaged_60s','home_engaged_120s']);
+ const d=createDwellTracker(),code='home_section_hero_seen';
+ assert.deepEqual(d.update(0,[code]),[]);assert.deepEqual(d.update(500,[code]),[]);
+ assert.deepEqual(d.update(1000,[code]),[code]);d.reset();
+ assert.deepEqual(d.update(2000,[code]),[]);assert.deepEqual(d.update(3500,[code]),[]);
+ d.update(4000,[]);assert.deepEqual(d.update(4500,[code]),[]);
+ assert.deepEqual(d.update(5500,[code]),[code]);d.reset();
+ assert.deepEqual(d.update(10000,['home_cta_hero_click','unknown']),[]);
+ console.log('PASS homepage fixed event catalogue, threshold and dwell tests');
+}

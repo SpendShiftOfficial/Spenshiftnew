@@ -38,3 +38,6 @@ Prior Australian audience candidate 7d7cdac3a991f02be0bea22bb0df481294d58ed3: al
 
 ## 27 November — limited banner layout revision
 The preceding four-suite run 45904093509 passed on d46527dfe850e22674f574b7825a341217aa1c30. The requested layout-only follow-up moves the all-statistics button into one-step Privacy settings, keeps equal accept/reject actions, explicitly discloses the all-off path, and requires the settings control to be presented before initial basic collection. All consent semantics and failure safeguards are retained. Final legal review must consider the revised placement; the previous test result is not evidence for the new commit. Run existing isolated regressions; no release authorisation.
+
+## Homepage measurement extension — 27 November 2026
+Candidate-only: adds 60/120-second foreground milestones, six fixed homepage section exposure events, and five fixed CTA impression/click pairs. The previous 10/30-second milestones and first CTA event are unchanged. New automated tests cover allowlists, dwell, aggregate SQL, quota, dashboard suppression and the local product browser. Exact new CI results are pending; prior passing runs do not certify this change. Policy wording is draft and needs targeted legal approval. No production schema or gate changes.

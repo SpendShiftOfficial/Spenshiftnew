@@ -40,3 +40,30 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 SELECT 'PASS isolated SQL RLS grants, RPC allowlist, atomic rejection and retention';
+
+SET ROLE service_role;
+DO $$ BEGIN
+ PERFORM public.spendshift_increment_metrics_v2('home_engaged_60s');
+ PERFORM public.spendshift_increment_metrics_v2('home_engaged_120s');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_hero_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_benefits_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_offer_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_example_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_faq_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_section_final_seen');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_header_impression');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_header_click');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_hero_impression');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_hero_click');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_offer_impression');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_offer_click');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_final_impression');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_final_click');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_footer_impression');
+ PERFORM public.spendshift_increment_metrics_v2('home_cta_footer_click');
+ IF (SELECT count(*) FROM public.spendshift_metrics_v2_daily WHERE metric_code LIKE 'home_%' AND dimension_code='all')<>18 THEN RAISE EXCEPTION 'homepage counts missing'; END IF;
+ BEGIN PERFORM public.spendshift_increment_metrics_v2('home_cta_hero_click',p_page=>'home'); RAISE EXCEPTION 'extra homepage field accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_metric' THEN RAISE; END IF; END;
+ BEGIN PERFORM public.spendshift_increment_metrics_v2('home_section_arbitrary_seen'); RAISE EXCEPTION 'unapproved homepage code'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_metric' THEN RAISE; END IF; END;
+END $$;
+RESET ROLE;
+SELECT 'PASS homepage event allowlist and aggregate-only SQL';
