@@ -34,11 +34,15 @@ DO $$ DECLARE d date:=(now() AT TIME ZONE 'Australia/Sydney')::date; r jsonb; BE
  IF public.spendshift_accept_metrics_v2('audit_start')<>'accepted' THEN RAISE EXCEPTION 'valid increment'; END IF;
  BEGIN PERFORM public.spendshift_accept_metrics_v2('audit_start',p_page=>'home'); RAISE EXCEPTION 'invalid accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_metric' THEN RAISE; END IF; END;
  IF (SELECT accepted FROM public.spendshift_metrics_v2_capacity WHERE metric_date=d)<>1 THEN RAISE EXCEPTION 'quota rollback'; END IF;
+ IF public.spendshift_accept_metrics_v2('site_entry',p_page=>'home',p_source=>'instagram',p_campaign=>'none_or_unknown',p_device=>'mobile',p_browser=>'safari',p_market=>'outside_australia')<>'accepted' THEN RAISE EXCEPTION 'market accept'; END IF;
+ BEGIN PERFORM public.spendshift_accept_metrics_v2('site_entry',p_page=>'home',p_source=>'instagram',p_campaign=>'none_or_unknown',p_device=>'mobile',p_browser=>'safari',p_market=>'NZ'); RAISE EXCEPTION 'invalid market accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_metric' THEN RAISE; END IF; END;
+ IF (SELECT accepted FROM public.spendshift_metrics_v2_capacity WHERE metric_date=d)<>2 OR (SELECT event_count FROM public.spendshift_metrics_v2_daily WHERE metric_code='site_entry' AND dimension_code='market' AND bucket_code='outside_australia') IS DISTINCT FROM 1::bigint THEN RAISE EXCEPTION 'atomic market/quota'; END IF;
  UPDATE public.spendshift_metrics_v2_capacity SET accepted=49999 WHERE metric_date=d;
  IF public.spendshift_accept_metrics_v2('audit_start')<>'accepted' OR public.spendshift_accept_metrics_v2('audit_start')<>'limited' THEN RAISE EXCEPTION 'quota cap'; END IF;
  IF (SELECT event_count FROM public.spendshift_metrics_v2_daily WHERE metric_code='audit_start')<>2 THEN RAISE EXCEPTION 'quota partial'; END IF;
  r:=public.spendshift_read_metrics_v2(d,d);
  IF r->'operations'->>'order_cohort'<>'2' OR r->'operations'->>'reports_ready'<>'1' OR r->'operations'->>'legacy_audit_starts'<>'7' OR r->'operations'->>'stripe_paid_orders' IS NOT NULL THEN RAISE EXCEPTION 'operational aggregation'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(r->'rows') e WHERE e->>'metric_code'='site_entry' AND e->>'dimension_code'='market' AND e->>'bucket_code'='outside_australia' AND e->>'event_count'='1') THEN RAISE EXCEPTION 'market missing from aggregate RPC'; END IF;
  IF r::text LIKE '%cs_live_synthetic%' OR r::text LIKE '%stripe_session_id%' THEN RAISE EXCEPTION 'identifier exposed'; END IF;
  BEGIN PERFORM public.spendshift_read_metrics_v2(d-180,d); RAISE EXCEPTION 'bad range accepted'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_range' THEN RAISE; END IF; END;
  INSERT INTO public.spendshift_metrics_v2_capacity VALUES(d-2,10),(d-1,9);

@@ -8,7 +8,7 @@ The candidate uses an in-flow, non-sticky notice with compact responsive styling
 
 **Your privacy choices**
 
-We use basic statistics to improve SpendShift, even if you reject optional audit and report counts. Turn either off in settings.
+We use basic statistics to improve SpendShift, including broad Australian audience counts, even if you reject optional audit/report counts. Turn either off in settings.
 
 [Accept optional] [Reject optional] [Privacy settings]
 
@@ -16,7 +16,7 @@ The prior-choice variant reads: “Your earlier choice is preserved. Basic stati
 
 ## Expanded Privacy settings
 
-Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.
+Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.
 
 - Show current basic and optional activity-count status.
 - Turn off basic statistics — stops new v2 events, not separately permitted optional counts.

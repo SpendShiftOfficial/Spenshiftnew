@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/analytics-v2-local-auth.yml'
       - 'scripts/analytics-v2-fixture/test-real-auth.mjs'
+      - 'docs/analytics-v2/candidate-migration.sql'
+      - 'docs/analytics-v2/candidate-release.sql'
   workflow_dispatch:
 permissions:
   contents: read

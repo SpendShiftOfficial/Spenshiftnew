@@ -34,7 +34,7 @@ try:
     invalid=http('/internal/analytics?period=invalid',True);assert invalid[0]==400,('dashboard period',invalid[0])
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True)
-        def setup(legacy=None):
+        def setup(legacy=None,country=None):
             ctx=browser.new_context(viewport={'width':390,'height':844})
             if legacy:ctx.add_init_script('if(localStorage.getItem("spendshift_cookie_consent")===null)localStorage.setItem("spendshift_cookie_consent",'+json.dumps(legacy)+')')
             sent=[]; replies=[]; external=[]
@@ -46,6 +46,8 @@ try:
                     route.fulfill(status=200,content_type='text/html',body='<h1>Synthetic Stripe checkout</h1>')
                 elif not url.startswith(origin+'/'):
                     external.append(url);route.abort()
+                elif url==origin+'/api/analytics-v2' and route.request.method=='POST' and country is not None:
+                    route.continue_(headers={**route.request.headers,'x-ss-test-country':country})
                 else:route.continue_()
             ctx.route('**/*',intercept)
             def on_request(req):
@@ -54,9 +56,10 @@ try:
                 if res.url==origin+'/api/analytics-v2':replies.append(res.status)
             page=ctx.new_page();page.on('request',on_request);page.on('response',on_response)
             return ctx,page,sent,replies,external
-        for choice in ['Accept optional','Reject optional',None]:
+        for choice,country,bucket in [('Accept optional','AU','australia'),('Reject optional','NZ','outside_australia'),(None,None,'unknown')]:
             before=totals()
-            ctx,page,sent,replies,external=setup()
+            ctx,page,sent,replies,external=setup(country=country)
+            before_market=int(sql("SELECT COALESCE(SUM(event_count),0) FROM public.spendshift_metrics_v2_daily WHERE metric_code='site_entry' AND dimension_code='market' AND bucket_code='"+bucket+"'"))
             page.goto(origin+'/?utm_source=instagram&utm_campaign=meta_founder_v1&fbclid=syntheticprivate')
             page.locator('[data-ss-privacy-notice="basic"]').wait_for()
             page.wait_for_timeout(1300)
@@ -79,10 +82,14 @@ try:
             for e in ['site_entry','public_cta_click','audit_arrival','audit_start','audit_complete','results_view','upgrade_cta_click','checkout_opened']:assert c[e]==1,(choice,e,c,sent)
             assert c['audit_question_seen']==8 and c['audit_question_advanced']==8,(choice,c)
             assert c['upgrade_offer_view']==1,(choice,c)
-            entry=next(x for x in sent if x['event']=='site_entry');assert entry['source']=='instagram' and entry['campaign']=='meta_founder_v1',entry
+            entry=next(x for x in sent if x['event']=='site_entry');assert entry['source']=='instagram' and entry['campaign']=='meta_founder_v1' and 'market' not in entry and 'country' not in entry,entry
             assert all(s==204 for s in replies),(choice,replies)
             assert 'syntheticprivate' not in json.dumps(sent) and 'Almost daily' not in json.dumps(sent)
             assert not external,external
+            after_market=int(sql("SELECT COALESCE(SUM(event_count),0) FROM public.spendshift_metrics_v2_daily WHERE metric_code='site_entry' AND dimension_code='market' AND bucket_code='"+bucket+"'"))
+            assert after_market-before_market==1,(choice,bucket,before_market,after_market)
+            assert sql("SELECT count(*) FROM public.spendshift_metrics_v2_daily WHERE dimension_code='market' AND metric_code<>'site_entry'")=='0'
+            print('PASS server-derived market '+bucket+' with optional choice '+str(choice))
             after=totals()
             for e in ['site_entry','audit_arrival','audit_start','audit_complete','results_view','checkout_opened']:assert after.get(e,0)-before.get(e,0)==1,(choice,e,after,before)
             ctx.close();count+=1
@@ -107,6 +114,7 @@ try:
     status,body,headers=http('/internal/analytics?period=today',True)
     assert status==200 and 'SYNTHETIC DATA ONLY' in body and 'Website arrivals' in body
     assert 'no-store' in headers.get('Cache-Control','') and 'noindex' in headers.get('X-Robots-Tag','')
+    assert 'Australian audience' in body and 'Unavailable or suppressed (small counts or incomplete coverage)' in body
     assert 'Question breakdown suppressed' in body
     assert 'Refund-adjusted gross (not profit)' in body and '$97.00' in body
     assert 'Stripe paid orders' in body and '$126.00' in body

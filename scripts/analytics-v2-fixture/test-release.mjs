@@ -15,6 +15,9 @@ const calls=[];let response='accepted';const adapter=createReleaseAdapter(async(
 check(await adapter.increment({p_event:'audit_start'})==='accepted','accepted');
 check(calls[0].name==='spendshift_accept_metrics_v2'&&Object.keys(calls[0].args).length===1,'RPC only');
 for(const bad of [{p_event:'audit_start',email:'synthetic@example.invalid'},{p_event:'personalisation_view'},{p_event:'optional_choice',p_choice:'accept_all'},{p_event:'audit_question_seen',p_question:99}]){await assert.rejects(()=>adapter.increment(bad));n++;}
+const entry={p_event:'site_entry',p_page:'home',p_source:'instagram',p_campaign:'none_or_unknown',p_device:'mobile',p_browser:'safari'};
+for(const bucket of ['australia','outside_australia','unknown'])check(await adapter.increment({...entry,p_market:bucket})==='accepted','market RPC accepts finite bucket');
+for(const bad of [entry,{...entry,p_market:'NZ'},{...entry,p_market:'australia',p_country:'AU'},{p_event:'audit_start',p_market:'australia'}]){await assert.rejects(()=>adapter.increment(bad));n++;}
 response='limited';check(await adapter.increment({p_event:'audit_start'})==='limited','cap returned');
 response='disabled';check(await adapter.increment({p_event:'audit_start'})==='disabled','DB disabled');
 response='bad';await assert.rejects(()=>adapter.increment({p_event:'audit_start'}));n++;

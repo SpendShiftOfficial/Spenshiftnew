@@ -10,7 +10,7 @@ REVOKE ALL ON public.spendshift_metrics_v2_release_control,public.spendshift_met
 GRANT SELECT ON public.spendshift_metrics_v2_release_control TO service_role;
 GRANT SELECT,INSERT,UPDATE,DELETE ON public.spendshift_metrics_v2_capacity TO service_role;
 
-CREATE FUNCTION public.spendshift_accept_metrics_v2(p_event text,p_page text DEFAULT NULL,p_source text DEFAULT NULL,p_campaign text DEFAULT NULL,p_device text DEFAULT NULL,p_browser text DEFAULT NULL,p_placement text DEFAULT NULL,p_question integer DEFAULT NULL,p_faq text DEFAULT NULL,p_error text DEFAULT NULL,p_choice text DEFAULT NULL,p_lcp text DEFAULT NULL,p_inp text DEFAULT NULL,p_cls text DEFAULT NULL,p_duration text DEFAULT NULL) RETURNS text
+CREATE FUNCTION public.spendshift_accept_metrics_v2(p_event text,p_page text DEFAULT NULL,p_source text DEFAULT NULL,p_campaign text DEFAULT NULL,p_device text DEFAULT NULL,p_browser text DEFAULT NULL,p_placement text DEFAULT NULL,p_question integer DEFAULT NULL,p_faq text DEFAULT NULL,p_error text DEFAULT NULL,p_choice text DEFAULT NULL,p_lcp text DEFAULT NULL,p_inp text DEFAULT NULL,p_cls text DEFAULT NULL,p_duration text DEFAULT NULL,p_market text DEFAULT NULL) RETURNS text
 LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public AS $$
 DECLARE d date:=(now() AT TIME ZONE 'Australia/Sydney')::date;
 BEGIN
@@ -21,11 +21,11 @@ BEGIN
  WHERE spendshift_metrics_v2_capacity.accepted<50000;
  IF NOT FOUND THEN RETURN 'limited'; END IF;
  -- A failing increment rolls back the quota increment as well.
- PERFORM public.spendshift_increment_metrics_v2(p_event,p_page,p_source,p_campaign,p_device,p_browser,p_placement,p_question,p_faq,p_error,p_choice,p_lcp,p_inp,p_cls,p_duration);
+ PERFORM public.spendshift_increment_metrics_v2(p_event,p_page,p_source,p_campaign,p_device,p_browser,p_placement,p_question,p_faq,p_error,p_choice,p_lcp,p_inp,p_cls,p_duration,p_market);
  RETURN 'accepted';
 END $$;
-REVOKE ALL ON FUNCTION public.spendshift_accept_metrics_v2(text,text,text,text,text,text,text,integer,text,text,text,text,text,text,text) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.spendshift_accept_metrics_v2(text,text,text,text,text,text,text,integer,text,text,text,text,text,text,text) TO service_role;
+REVOKE ALL ON FUNCTION public.spendshift_accept_metrics_v2(text,text,text,text,text,text,text,integer,text,text,text,text,text,text,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.spendshift_accept_metrics_v2(text,text,text,text,text,text,text,integer,text,text,text,text,text,text,text,text) TO service_role;
 
 CREATE FUNCTION public.spendshift_prune_metrics_v2_release() RETURNS void
 LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public AS $$

@@ -121,7 +121,7 @@ export default function PrivacyPolicy() {
                 </li>
 
                 <li>
-                technical and usage information, including IP addresses and request metadata handled by hosting and security services. If basic statistics are enabled under the revised notice, we record limited daily counts by approved page, referral, campaign, device or browser category, predefined actions, audit progress and performance range;
+                technical and usage information, including IP addresses and request metadata handled by hosting and security services. If basic statistics are enabled under the revised notice, we record limited daily counts by approved page, referral, campaign, device, browser or broad Australian audience category, predefined actions, audit progress and performance range;
               </li>
 
                 <li>
@@ -394,7 +394,7 @@ export default function PrivacyPolicy() {
                 We use browser storage, limited first-party statistics and necessary service technologies. No third-party website analytics or advertising tracking scripts run in this version, even if you previously permitted them. Stripe and infrastructure providers may use necessary technologies for payments, security and fraud prevention.
               </p>
               <p>
-                When basic statistics are enabled after the revised notice, we count approved public-page arrivals, broad referral and device categories, fixed campaign labels, page engagement and performance ranges, predefined actions, free-check progress and purchase-offer observations. The requests do not contain financial answers, names, email addresses, individual visitor identifiers, full URLs, advertising click identifiers or report references. Accepted observations are stored as daily counts by category, not individual browsing profiles.
+                When basic statistics are enabled after the revised notice, we count approved public-page arrivals, broad referral and device categories, fixed campaign labels, page engagement and performance ranges, predefined actions, free-check progress and purchase-offer observations. The requests do not contain financial answers, names, email addresses, individual visitor identifiers, full URLs, advertising click identifiers or report references. Accepted observations are stored as daily counts by category, not individual browsing profiles. For a recorded website arrival only, our hosting provider Vercel estimates the country associated with the request's IP address. Our server converts the provider's country code into Australia, outside Australia or unknown, to assess whether we are reaching our intended Australian market. The analytics database keeps only those three categories as separate daily totals, not the original country code, IP address, city, postcode, precise location or a location-linked visitor record. This is an estimate of connection location, not nationality or residence; VPNs and proxies may affect accuracy. The same basic-statistics choice controls this measurement.
               </p>
               <p>
                 Basic statistics are separate from optional first-party activity counts. Newly informed visitors can turn basic statistics off. If you made an earlier cookie choice, the new basic statistics remain off for that browser until you explicitly enable them under the revised notice. Optional choices do not override a separate basic-statistics opt-out. If preferences cannot be read reliably, new basic statistics remain off.

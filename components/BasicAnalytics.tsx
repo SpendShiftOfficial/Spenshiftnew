@@ -147,7 +147,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    :!collectionEnabled?"Basic statistics are off. You can allow optional audit and report counts. No third-party trackers."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
    :ready&&!basicOn?"Basic statistics are off or unavailable. Optional audit and report counts are separate. Manage either in settings."
-   :"We use basic statistics to improve SpendShift, even if you reject optional audit and report counts. Turn either off in settings.";
+   :"We use basic statistics to improve SpendShift, including broad Australian audience counts, even if you reject optional audit/report counts. Turn either off in settings.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
@@ -166,7 +166,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
        <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
-       <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
+       <p>Basic statistics use limited daily counts to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>
