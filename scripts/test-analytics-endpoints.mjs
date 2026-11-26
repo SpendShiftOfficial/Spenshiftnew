@@ -42,8 +42,12 @@ function loadTsFile(filename) {
   const request = (specifier) => {
     if (specifier === "@/lib/supabase") return { supabaseAdmin: server };
     if (specifier === "@/lib/request-safety") return requestSafety;
-    if (specifier.startsWith("./") || specifier.startsWith("../"))
-      return loadTsFile(path.resolve(path.dirname(abs), specifier) + ".ts");
+    if (specifier.startsWith("./") || specifier.startsWith("../")) {
+      const target=path.resolve(path.dirname(abs),specifier);
+      // Use the real shared ESM privacy module (Node 22), including its document latch.
+      if(specifier.endsWith(".mjs"))return baseRequire(target);
+      return loadTsFile(target + ".ts");
+    }
     return baseRequire(specifier);
   };
   new Function("require", "module", "exports", compiled)(request, m, m.exports);
@@ -213,17 +217,20 @@ try {
   });
   await test("client helpers respect optional consent and send no financial data", async () => {
     const saved = { window: globalThis.window, localStorage: globalThis.localStorage,
-      sessionStorage: globalThis.sessionStorage, fetch: globalThis.fetch };
+      sessionStorage: globalThis.sessionStorage, fetch: globalThis.fetch, document: globalThis.document };
     let consent = "denied", preference = null;
     const stored = new Map();
     const sent = [];
     try {
+      globalThis.document = {};
       globalThis.window = {};
       globalThis.localStorage = { getItem: key => key === "spendshift_cookie_consent" ? consent : key === "spendshift_privacy_v2" ? preference : null };
       globalThis.sessionStorage = {
         getItem: key => stored.has(key) ? stored.get(key) : null,
         setItem: (key, value) => stored.set(key, value),
+        removeItem: key => stored.delete(key),
       };
+      globalThis.window.sessionStorage=globalThis.sessionStorage;
       globalThis.fetch = (url, options) => {
         sent.push({ url, options });
         return Promise.resolve({ ok: true, status: 204 });
@@ -259,6 +266,14 @@ try {
       consent="denied";
       auditClient.recordAggregateAuditEvent("audit_complete");
       assert.equal(sent.length,4,"independently permitted optional counts remain distinct");
+      // Shared failure guard must also stop both actual legacy client helpers,
+      // even when a previous grant is still readable and dedup does not apply.
+      const {stopPrivacyDocument,privacyBlocked}=baseRequire(path.resolve("lib/analytics-v2/privacy-runtime.mjs"));
+      stored.clear();stopPrivacyDocument();assert.equal(privacyBlocked(),true);
+      auditClient.recordAggregateAuditEvent("audit_arrival");
+      reportClient.recordReportEngagement("report_open",paidReportId);
+      assert.equal(sent.length,4,"both legacy helpers fail closed with readable prior grant");
+      assert.equal(stored.get("spendshift_privacy_save_failed"),"1");
       for (const item of sent) {
         assert.equal(item.options.credentials, "same-origin");
         assert.equal(item.options.referrerPolicy, "no-referrer");
@@ -266,7 +281,7 @@ try {
         assert.doesNotMatch(item.options.body, /insurance|email|answer|payment|amount/i);
       }
     } finally {
-      for (const key of ["window", "localStorage", "sessionStorage", "fetch"]) {
+      for (const key of ["window", "localStorage", "sessionStorage", "fetch","document"]) {
         if (saved[key] === undefined) delete globalThis[key];
         else globalThis[key] = saved[key];
       }
