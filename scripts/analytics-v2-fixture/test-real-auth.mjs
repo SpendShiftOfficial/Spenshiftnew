@@ -12,7 +12,7 @@ import {releaseCapabilities,RELEASE_AUTHORIZED} from '../../lib/analytics-v2/rel
 import {sydneyDay} from '../../lib/analytics-v2/core.mjs';
 const die=label=>{throw Error(label);};
 let checks=0;const check=(value,label)=>{if(value!==true)die(label);checks++;console.log('PASS '+label);};
-const ok=(res,label)=>{if(res.error)die(label);return res.data;};
+const ok=(res,label)=>{if(res.error){const code=typeof res.error.code==='string'&&/^[a-z0-9_]{1,80}$/.test(res.error.code)?res.error.code:'unknown';const status=Number.isInteger(res.error.status)?res.error.status:'unknown';die(label+' (code '+code+', status '+status+')');}return res.data;};
 const settings=JSON.parse(readFileSync(process.env.SPENDSHIFT_LOCAL_AUTH_STATUS,'utf8'));
 const url=new URL(settings.API_URL);
 const db=new URL(settings.DB_URL);
@@ -57,6 +57,8 @@ try{
  ok(await owner.auth.signOut({scope:'local'}),'sign out after enrolment');
  check(!await allowed(enrolled),'enrolment session revoked by actual sign out');
  // Exercise the exact application's two login functions against actual Auth.
+ // Avoid reusing the same TOTP step used to verify enrollment.
+ await new Promise(r=>setTimeout(r,30000-(Date.now()%30000)+1100));
  const factors=await beginOwnerSignIn(owner,email,password);
  check(factors.some(f=>f.id===factor.id),'owner login lists pre-enrolled verified TOTP');
  const passwordOnly=await session(owner);check(!await allowed(passwordOnly),'dashboard denied before second factor');

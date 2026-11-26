@@ -40,6 +40,34 @@ jobs:
           root="$GITHUB_WORKSPACE"
           cd "$work/local"
           "$cli" init >"$work/init.log" 2>&1
+          # Local CLI defaults may disable TOTP. Enable enrollment and verification
+          # ONLY in the fresh disposable config, never in a hosted project.
+          "$cli" config convert --to toml --reason ci-or-deploy >"$work/convert.log" 2>&1
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, tomllib
+          p = Path("supabase/config.toml")
+          text = p.read_text()
+          match = re.search(r"(?m)^\[auth\.mfa\.totp\][ \t]*$", text)
+          if match:
+              end = re.search(r"(?m)^\[", text[match.end():])
+              stop = match.end() + end.start() if end else len(text)
+              section = text[match.start():stop]
+              for key in ("enroll_enabled", "verify_enabled"):
+                  pat = rf"(?m)^\s*{key}\s*=\s*(?:true|false)[^\n]*$"
+                  if re.search(pat, section):
+                      section = re.sub(pat, key + " = true", section)
+                  else:
+                      section = section.rstrip() + "\n" + key + " = true\n"
+              text = text[:match.start()] + section.rstrip() + "\n\n" + text[stop:]
+          else:
+              text += "\n[auth.mfa.totp]\nenroll_enabled = true\nverify_enabled = true\n"
+          check = tomllib.loads(text)["auth"]["mfa"]["totp"]
+          assert check["enroll_enabled"] is True and check["verify_enabled"] is True
+          p.write_text(text)
+          PY
+          "$cli" config validate >"$work/config.log" 2>&1
+          echo "Disposable TOTP enrollment and verification explicitly enabled."
           cleanup(){ "$cli" stop --no-backup >"$work/stop.log" 2>&1 || true; rm -rf "$work"; }
           trap cleanup EXIT
           # Local stack ONLY, fresh directory, no linked project, no application migrations.
