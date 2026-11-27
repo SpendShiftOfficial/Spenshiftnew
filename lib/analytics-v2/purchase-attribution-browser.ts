@@ -2,7 +2,7 @@
 import {NOTICE,landingLabels,parseContext} from "./purchase-attribution.mjs";
 import {optionalAllowed} from "./optional";
 import {decodePreference,privacyBlocked} from "./privacy-runtime.mjs";
-import {basicAllowed,sourceCategory} from "./core.mjs";
+import {basicAllowed} from "./core.mjs";
 export const ATTR_PERMISSION="spendshift_purchase_attribution_permission_v1";
 const CONTEXT="spendshift_purchase_attribution_context_v1";
 const enabled=()=>document.documentElement.dataset.ssPurchaseAttribution==="v1";
@@ -23,8 +23,18 @@ export function saveAttributionChoice(granted:boolean){
   if(localStorage.getItem(ATTR_PERMISSION)!==NOTICE)clearAttributionContext();
  }catch{clearAttributionContext();}
 }
-export function beginAttributionDocument(){
- try{if(enabled()&&sourceCategory(document.referrer,location.origin,location.search)!==null)clearAttributionContext();}catch{clearAttributionContext();}
+// The site intentionally sends Referrer-Policy:no-referrer, including internal
+// document navigations. Never infer a new acquisition from an empty referrer
+// on the audit/results pages. Keep the bounded same-tab context across that
+// journey only. New public marketing documents reset it; direct tagged
+// audit/results landings are unsupported and clear any earlier context.
+export function beginAttributionDocument(isPublicLanding:boolean){
+ try{
+  if(!enabled())return;
+  const path=location.pathname;
+  const tagged=[...new URLSearchParams(location.search).keys()].some(k=>k.toLowerCase().startsWith("utm_"));
+  if(isPublicLanding||!["/audit","/results"].includes(path)||tagged||!attributionPermitted())clearAttributionContext();
+ }catch{clearAttributionContext();}
 }
 export function rememberAttributionLanding(){
  try{

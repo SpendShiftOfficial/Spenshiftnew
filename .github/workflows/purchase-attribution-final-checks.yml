@@ -1,0 +1,88 @@
+name: Final purchase attribution and offer checks
+on:
+  push:
+    branches: [internal-analytics-v2-2026-11-25]
+    paths:
+      - 'lib/analytics-v2/purchase-attribution*'
+      - 'scripts/analytics-v2-fixture/test-purchase-attribution*'
+      - 'scripts/analytics-v2-fixture/test-live-offer-readonly.py'
+      - '.github/workflows/purchase-attribution-final-checks.yml'
+permissions:
+  contents: read
+jobs:
+  labels_and_db:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic_only
+          POSTGRES_DB: analytics_v2_attribution_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d analytics_v2_attribution_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: synthetic_only
+      PGDATABASE: analytics_v2_attribution_test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: |
+          node scripts/analytics-v2-fixture/test-purchase-attribution.mjs
+          test "$PGHOST" = 127.0.0.1
+          test "$PGDATABASE" = analytics_v2_attribution_test
+          psql -X -v ON_ERROR_STOP=1 -f scripts/analytics-v2-fixture/test-purchase-attribution-db.sql
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      CI: 'true'
+      SUPABASE_URL: https://pcjgzbaigtsnevhcjqyd.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-not-a-real-key
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3162
+      VERCEL_ENV: preview
+      SPENDSHIFT_ALLOW_PREVIEW_PAYMENTS: 'false'
+      SPENDSHIFT_AGGREGATE_METRICS_ENABLED: 'false'
+      SPENDSHIFT_ANALYTICS_V2_FIXTURE: 'true'
+      SPENDSHIFT_PURCHASE_ATTRIBUTION_FIXTURE: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build
+          python3 -m venv /tmp/ss-attribution
+          source /tmp/ss-attribution/bin/activate
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/analytics-v2-fixture/test-purchase-attribution-browser.py
+  live_offer_readonly:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: |
+          python3 -m venv /tmp/ss-live-offer
+          source /tmp/ss-live-offer/bin/activate
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/analytics-v2-fixture/test-live-offer-readonly.py

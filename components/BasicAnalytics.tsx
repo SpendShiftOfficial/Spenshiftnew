@@ -152,7 +152,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const hasSavedChoice=ready&&storageVerified&&pref!==null&&(pref.analytics==="granted"||pref.analytics==="denied");
  const showNotice=eligible(path)&&(!hasSavedChoice||failed||settings)||privateSettings&&settings;
  useEffect(()=>{
-   if(attributionEnabled)beginAttributionDocument();
+   if(attributionEnabled)beginAttributionDocument(!!pageCode(location.pathname));
    collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&(noticePresented.current||informedBySavedChoice()),onAccepted:()=>{
      // Existing analytics response only. A home-IP WAF denial cannot unlock attribution.
      if(!attributionEnabled||location.pathname!==initialPath.current||!pageCode(location.pathname))return;
