@@ -44,7 +44,7 @@ try{
     const notice=page.locator('[data-ss-privacy-notice="fallback"]');await notice.waitFor();
     assert.match(await notice.innerText(),/Basic statistics are off/);
     const box=await notice.boundingBox();assert.ok(box&&box.height<=height*(width===320?.33:.25),'Fallback size '+JSON.stringify({width,height,box}));
-    const accept=notice.getByRole('button',{name:'Accept optional',exact:true}),reject=notice.getByRole('button',{name:'Reject optional',exact:true});
+    const accept=notice.getByRole('button',{name:'Accept optional cookies',exact:true}),reject=notice.getByRole('button',{name:'Reject optional cookies',exact:true});
     const a=await accept.boundingBox(),b=await reject.boundingBox();
     assert.ok(a&&b&&Math.abs(a.width-b.width)<=1&&Math.min(a.height,b.height)>=44);assert.ok(!(await notice.getByRole('button',{name:'Turn off all statistics',exact:true}).isVisible()));
     assert.ok(await notice.evaluate(el=>el.scrollWidth<=el.clientWidth+1&&!['fixed','sticky'].includes(getComputedStyle(el).position)));
@@ -56,16 +56,16 @@ try{
     assert.equal(await page.evaluate(()=>localStorage.getItem('spendshift_cookie_consent')),null);
     await page.evaluate(()=>window.dispatchEvent(new Event('open-cookie-settings')));await notice.waitFor();assert.ok(await notice.getByRole('link',{name:'Privacy Policy',exact:true}).isVisible());
     assert.deepEqual(thirdParty,[]);assert.deepEqual(v2,[]);
-    await page.getByRole('button',{name:'Accept optional',exact:true}).click();
+    await page.getByRole('button',{name:'Accept optional cookies',exact:true}).click();
     const accepted=await page.evaluate(()=>JSON.parse(localStorage.getItem('spendshift_privacy_v2')));
     assert.equal(accepted.analytics,'granted');assert.equal(accepted.basicOff,true,'disabled-stage accept must keep basic off');
     await page.evaluate(()=>window.dispatchEvent(new Event('open-cookie-settings')));await notice.waitFor();
     await page.evaluate(()=>{const original=Storage.prototype.setItem;window.__restoreConsentWrite=()=>{Storage.prototype.setItem=original;};Storage.prototype.setItem=function(k,v){if(this===localStorage&&k==='spendshift_privacy_v2')throw new DOMException('synthetic quota','QuotaExceededError');return original.call(this,k,v);};});
-    await notice.getByRole('button',{name:'Reject optional',exact:true}).click();
+    await notice.getByRole('button',{name:'Reject optional cookies',exact:true}).click();
     await notice.getByRole('status').filter({hasText:'Statistics stopped here'}).waitFor();
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('spendshift_privacy_save_failed')),'1');
     await page.evaluate(()=>window.__restoreConsentWrite());
-    await notice.getByRole('button',{name:'Reject optional',exact:true}).click();await notice.waitFor({state:'hidden'});
+    await notice.getByRole('button',{name:'Reject optional cookies',exact:true}).click();await notice.waitFor({state:'hidden'});
     const off=await page.evaluate(()=>JSON.parse(localStorage.getItem('spendshift_privacy_v2')));assert.equal(off.analytics,'denied');assert.equal(off.basicOff,true);
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('spendshift_privacy_save_failed')),null);
     console.log('PASS fallback notice '+width+'x'+height+': '+Math.round(box.height)+'px; staged choice and failed withdrawal verified');

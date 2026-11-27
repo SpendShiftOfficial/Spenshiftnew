@@ -56,7 +56,7 @@ try:
                 if res.url==origin+'/api/analytics-v2':replies.append(res.status)
             page=ctx.new_page();page.on('request',on_request);page.on('response',on_response)
             return ctx,page,sent,replies,external
-        for choice,country,bucket in [('Accept optional','AU','australia'),('Reject optional','NZ','outside_australia'),(None,None,'unknown')]:
+        for choice,country,bucket in [('Accept optional cookies','AU','australia'),('Reject optional cookies','NZ','outside_australia'),(None,None,'unknown')]:
             before=totals()
             ctx,page,sent,replies,external=setup(country=country)
             before_market=int(sql("SELECT COALESCE(SUM(event_count),0) FROM public.spendshift_metrics_v2_daily WHERE metric_code='site_entry' AND dimension_code='market' AND bucket_code='"+bucket+"'"))
@@ -96,7 +96,7 @@ try:
         for legacy in ['denied','granted']:
             ctx,page,sent,replies,external=setup(legacy)
             page.goto(origin+'/');page.wait_for_timeout(900);assert not sent
-            page.get_by_role('button',name='Reject optional',exact=True).click();page.wait_for_timeout(700);assert not sent
+            page.get_by_role('button',name='Reject optional cookies',exact=True).click();page.wait_for_timeout(700);assert not sent
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.wait_for_timeout(600);assert not sent
             assert page.evaluate('localStorage.getItem("spendshift_cookie_consent")')=='denied'
             page.get_by_role('button',name='Privacy settings',exact=True).click()

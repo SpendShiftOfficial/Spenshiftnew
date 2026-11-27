@@ -211,7 +211,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
    :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
-   :"Basic statistics, including estimated Australian visits, can continue if you reject optional audit/report counts. Manage basic statistics in Privacy settings.";
+   :"Basic statistics help us improve SpendShift without recording your name or savings answers. These may continue if you reject optional cookies.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
@@ -226,11 +226,11 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
      </div>
      <p className={styles.summary} data-ss-disclosure>{summary}</p>
      <div className={styles.actions} data-ss-privacy-actions>
-       <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional</button>
-       <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional</button>
+       <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional cookies</button>
+       <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional cookies</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
-       <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. Optional audit and report counts are separate. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
+       <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. The optional-cookie buttons control separate audit and report activity counts, not essential browser storage. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>
