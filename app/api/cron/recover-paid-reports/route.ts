@@ -19,7 +19,7 @@ export async function GET(req:Request){
  }
  let v2Retention:'disabled'|'pruned'|'failed'='disabled';
  if(releaseCapabilities(process.env).prune){
-  try{await (await releaseAdapter()).prune();v2Retention='pruned';}catch{v2Retention='failed';}
+  try{await (await releaseAdapter()).prune();v2Retention='pruned';console.info('[analytics-v2] retention pruned');}catch{v2Retention='failed';console.error('[analytics-v2] retention failed');}
  }
  try{
   const now=Date.now();

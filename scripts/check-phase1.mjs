@@ -988,4 +988,17 @@ check('post-report feedback is optional, private, and never a testimonial withou
  assert.doesNotMatch(api,/customer_email|analytics|trackEvent/);
  assert.match(css,/@media print \{ \.feedback \{ display:none/);
 });
+// Render the actual signed-in homepage report component with synthetic aggregates.
+const {dashboardData:homeReportData}=await import('../lib/analytics-v2/dashboard.mjs');
+check('signed-in dashboard renders homepage reporting and suppresses sparse observations',()=>{
+ const React=nativeRequire('react'),{renderToStaticMarkup}=nativeRequire('react-dom/server');
+ const src=fs.readFileSync('components/HomepageEngagement.tsx','utf8');
+ const compiled=ts.transpileModule(src,{fileName:'HomepageEngagement.tsx',compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const module={exports:{}};new Function('require','module','exports',compiled)(nativeRequire,module,module.exports);
+ const row=(metric_code,dimension_code,bucket_code,event_count)=>({metric_code,dimension_code,bucket_code,event_count});
+ const home=homeReportData([row('public_page_view','page','home',100),row('home_engaged_60s','all','all',30),row('home_engaged_120s','all','all',9),row('home_section_benefits_seen','all','all',50),row('home_cta_hero_impression','all','all',60),row('home_cta_hero_click','all','all',15)]).homeEngagement;
+ const html=renderToStaticMarkup(React.createElement(module.exports.default,{home}));
+ assert.match(html,/Homepage section reach/);assert.match(html,/Homepage CTA performance/);assert.match(html,/60 seconds/);assert.match(html,/30\.0%/);assert.match(html,/50\.0%/);assert.match(html,/25\.0%/);assert.match(html,/N\/A/);assert.doesNotMatch(html,/>9</);
+ assert.match(fs.readFileSync('components/OwnerAccess.tsx','utf8'),/<HomepageEngagement home=\{report\.dashboard\.homeEngagement\}/);
+});
 console.log('Phase 1 package: '+cases+' test groups passed.');

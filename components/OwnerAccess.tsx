@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import type {SupabaseClient} from "@supabase/supabase-js";
+import HomepageEngagement from "./HomepageEngagement";
 import {ownerClient,beginOwnerSignIn,completeOwnerSignIn} from "@/lib/analytics-v2/owner-client";
 import type {DashboardSummary} from "@/lib/analytics-v2/dashboard.mjs";
 import {fields,type Source,type Coverage} from "@/lib/analytics-v2/finance.mjs";
@@ -90,6 +91,7 @@ export default function OwnerAccess({authUrl,publicKey,fixture,importEnabled}:{a
       <section style={card}><h2>Australian audience</h2><p>Estimated connection location, not nationality or residence. VPNs and proxies may affect accuracy. Shares include unknown locations.</p>
        {report.dashboard.marketMix?<table style={{width:"100%"}}><thead><tr><th scope="col">Location</th><th scope="col">Arrivals</th><th scope="col">Share</th></tr></thead><tbody>{report.dashboard.marketMix.map(v=><tr key={v.bucket}><th scope="row" style={{textAlign:"left"}}>{v.label}</th><td>{fmt(v.count)}</td><td>{(100*v.share).toFixed(1)}%</td></tr>)}</tbody></table>:<p>Unavailable or suppressed (small counts or incomplete coverage).</p>}
       </section>
+      <HomepageEngagement home={report.dashboard.homeEngagement}/>
       <section style={card}><h2>Question progression</h2>{report.dashboard.questions?<table style={{width:"100%"}}><thead><tr><th>Question</th><th>Seen</th><th>Advanced</th><th>Directional ratio</th></tr></thead><tbody>{report.dashboard.questions.map(q=><tr key={q.q}><th>Q{q.q}</th><td>{fmt(q.seen)}</td><td>{fmt(q.advanced)}</td><td>{q.ratio===null?"N/A":(100*q.ratio).toFixed(1)+"%"}</td></tr>)}</tbody></table>:<p>Suppressed due to small counts.</p>}</section>
       <section style={card}><h2>Engagement and reliability</h2><table style={{width:"100%"}}><tbody>{["engaged_10s","engaged_30s","scroll_25","scroll_50","scroll_75","scroll_90","faq_open","public_nav_click","audit_back","audit_reset","safe_ui_error"].map(k=><tr key={k}><th scope="row" style={{textAlign:"left"}}>{k.replaceAll("_"," ")}</th><td>{fmt(report.dashboard.totals[k])}</td></tr>)}</tbody></table></section>
       {report.dashboard.breakdowns.map(b=><section key={b.title} style={card}><h2>{b.title}</h2>{b.values?.length?<table style={{width:"100%"}}><tbody>{b.values.map(v=><tr key={v.bucket}><th scope="row" style={{textAlign:"left"}}>{v.bucket}</th><td>{fmt(v.count)}</td></tr>)}</tbody></table>:<p>Unavailable or suppressed.</p>}</section>)}
