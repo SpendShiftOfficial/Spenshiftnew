@@ -101,9 +101,11 @@ try:
         }""")
         assert any(x.startswith('script-src') for x in result) and 'connect-src' in result,result
         assert not external,external
-        # All-off must propagate across tabs and block both v1 and v2 without affecting the saved draft.
+        # Separate basic and optional withdrawal must propagate across tabs and preserve the saved draft.
         other.get_by_role('button',name='Privacy settings',exact=True).click()
-        other.get_by_role('button',name='Turn off all statistics',exact=True).click();other.wait_for_timeout(500)
+        other.get_by_role('button',name='Turn off basic statistics',exact=True).click()
+        assert other.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).analytics")=='granted'
+        other.get_by_role('button',name='Reject optional',exact=True).click();other.wait_for_timeout(500)
         page.wait_for_timeout(500);n,m=len(basic),len(old)
         page.get_by_role('button',name='Yes, at least one is unused',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.get_by_text('Question 3 of 8',exact=True).wait_for();page.wait_for_timeout(700)
         assert (len(basic),len(old))==(n,m),(basic,old)
@@ -134,7 +136,7 @@ try:
             assert abs(a['width']-b['width'])<=1 and min(a['height'],b['height'])>=44,(width,a,b)
             assert not notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
             assert notice.get_by_role('button',name='Privacy settings',exact=True).is_visible()
-            assert 'Turn all off in Privacy settings.' in notice.inner_text()
+            assert 'Manage basic statistics in Privacy settings.' in notice.inner_text()
             assert notice.locator('[data-ss-privacy-actions] button').count()==2
             assert notice.evaluate('(el)=>el.scrollWidth<=el.clientWidth+1') and box['x']>=0 and box['x']+box['width']<=width+1
             assert notice.evaluate("(el)=>!['fixed','sticky'].includes(getComputedStyle(el).position)")
@@ -142,7 +144,8 @@ try:
             assert cta.evaluate("(el)=>{const b=el.getBoundingClientRect();return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2));}")
             settings=notice.get_by_role('button',name='Privacy settings',exact=True)
             settings.click();assert settings.get_attribute('aria-expanded')=='true'
-            assert notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
+            assert notice.get_by_role('button',name='Turn off all statistics',exact=True).count()==0
+            assert notice.get_by_role('button',name='Turn off basic statistics',exact=True).is_visible()
             assert notice.get_by_role('link',name='Privacy Policy',exact=True).is_visible()
             assert notice.get_by_role('link',name='Cookie Policy',exact=True).is_visible()
             settings.click();assert settings.get_attribute('aria-expanded')=='false'
@@ -204,7 +207,7 @@ try:
               if(mode==='read')p.getItem=function(k){if(this===localStorage&&(k==='spendshift_privacy_v2'||k==='spendshift_cookie_consent'))throw new DOMException('synthetic denied','SecurityError');return get.call(this,k);};
             }""",failure)
             page.get_by_role('button',name='Privacy settings',exact=True).click()
-            page.get_by_role('button',name='Turn off all statistics',exact=True).click()
+            page.get_by_role('button',name='Reject optional',exact=True).click()
             page.get_by_role('status').filter(has_text='Statistics stopped here').wait_for()
             page.evaluate("window.__restorePrivacyStorage()")
             page.wait_for_timeout(500);n,m=len(basic),len(old)
@@ -218,7 +221,7 @@ try:
             open_page(page,'/audit');page.get_by_text('Question 2 of 8',exact=True).wait_for()
             page.wait_for_timeout(500);assert (len(basic),len(old))==(n,m)
             page.get_by_role('button',name='Privacy settings',exact=True).click()
-            page.get_by_role('button',name='Turn off all statistics',exact=True).click()
+            page.get_by_role('button',name='Turn off basic statistics',exact=True).click()
             page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
             saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
             assert saved['basicOff'] is True and saved['analytics']=='denied'
@@ -232,7 +235,7 @@ try:
         page.get_by_text('Question 1 of 8',exact=True).wait_for();page.wait_for_timeout(600)
         page.evaluate("""()=>{const put=Storage.prototype.setItem;window.__restoreBoth=()=>{Storage.prototype.setItem=put;};Storage.prototype.setItem=function(k,v){if(k==='spendshift_privacy_v2'||k==='spendshift_privacy_save_failed')throw new DOMException('synthetic quota','QuotaExceededError');return put.call(this,k,v);};}""")
         page.get_by_role('button',name='Privacy settings',exact=True).click()
-        page.get_by_role('button',name='Turn off all statistics',exact=True).click()
+        page.get_by_role('button',name='Reject optional',exact=True).click()
         page.get_by_role('status').filter(has_text='Statistics stopped here').wait_for()
         page.evaluate("window.__restoreBoth()");page.wait_for_timeout(400);n,m=len(basic),len(old)
         page.get_by_role('button',name='Almost daily',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click()
@@ -242,7 +245,18 @@ try:
         page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
         assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).basicOff") is True
         assert not external;ctx.close();cases+=1
-        print('PASS disabled-choice transition, actual viewport presentation, settings all-off, failed writes and same-tab reload safeguards')
+        # An invalid prior preference must be repairable without the combined button.
+        ctx,page,external,basic,old,requests=setup(None,'bad-json')
+        open_page(page,'/')
+        assert not basic
+        page.get_by_role('button',name='Privacy settings',exact=True).click()
+        page.get_by_role('button',name='Turn off basic statistics',exact=True).click()
+        page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
+        saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
+        assert saved['basicOff'] is True and saved['analytics']=='denied'
+        assert not basic and not external
+        ctx.close();cases+=1
+        print('PASS disabled-choice transition, actual viewport presentation, separate privacy controls, failed writes and same-tab reload safeguards')
         # Public guides and legal pages also have the site-wide policy, not just the audit.
         ctx,page,external,basic,old,requests=setup('granted')
         for path in ['/pricing','/how-it-works','/whats-included','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia','/privacy-policy','/cookies','/results','/personalise']:

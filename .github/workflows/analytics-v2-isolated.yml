@@ -1,13 +1,13 @@
 name: Isolated analytics v2 tests
 on:
   push:
-    branches: [internal-analytics-v2-2026-11-25]
+    branches: [internal-analytics-v2-2026-11-25, privacy-button-removal-2026-11-27]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   synthetic:
-    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25' || github.ref == 'refs/heads/privacy-button-removal-2026-11-27'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
@@ -72,7 +72,7 @@ jobs:
           python scripts/analytics-v2-fixture/test-browser.py
 
   baseline:
-    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25' || github.ref == 'refs/heads/privacy-button-removal-2026-11-27'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -103,7 +103,7 @@ jobs:
           node /tmp/spendshift-pw/node_modules/playwright/cli.js install --with-deps chromium
           PLAYWRIGHT_INSTALL_PATH=/tmp/spendshift-pw/package.json node scripts/check-phase1-browser.mjs
   integrated:
-    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25' || github.ref == 'refs/heads/privacy-button-removal-2026-11-27'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
@@ -161,7 +161,7 @@ jobs:
           python scripts/analytics-v2-fixture/test-app.py
 
   first_party_only:
-    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25'
+    if: github.ref == 'refs/heads/internal-analytics-v2-2026-11-25' || github.ref == 'refs/heads/privacy-button-removal-2026-11-27'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
