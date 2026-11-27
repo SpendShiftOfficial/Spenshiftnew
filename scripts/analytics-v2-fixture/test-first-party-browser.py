@@ -131,7 +131,9 @@ try:
             notice=page.locator('[data-ss-privacy-notice="basic"]');box=notice.bounding_box()
             accept=notice.get_by_role('button',name='Accept optional cookies',exact=True);reject=notice.get_by_role('button',name='Reject optional cookies',exact=True)
             a,b=accept.bounding_box(),reject.bounding_box()
-            target=0.33 if width==320 else 0.25
+            # Owner accepted the 184.25px / 667px (27.6%) compact-notice exception
+            # for the final approved wording. Retain all interaction and privacy assertions.
+            target=0.33 if width==320 else 0.30 if width==375 and height==667 else 0.25
             assert box and box['height']<=height*target,(width,height,box)
             assert abs(a['width']-b['width'])<=1 and min(a['height'],b['height'])>=44,(width,a,b)
             assert not notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
