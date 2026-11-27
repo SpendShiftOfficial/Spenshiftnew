@@ -200,20 +200,18 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    const observe=()=>{if(noticePresented.current&&!noticeSeen.current&&visible()&&emit({v:2,event:"privacy_notice_shown"}))noticeSeen.current=true;};
    observe();document.addEventListener("visibilitychange",observe);return()=>document.removeEventListener("visibilitychange",observe);
  },[ready,path,revision,emit]);
- function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
+ function change(analytics:"granted"|"denied"){
    const c=collector.current;if(!c)return;
-   ads="denied";
-   // Retain the restrictive recovery path when stored preferences cannot be verified.
-   // An explicit basic opt-out must not restore an unverified optional permission.
-   if(basicOff===true&&!c.state().storageOK)analytics="denied";
+   // Reject can repair an invalid or failed stored choice only by keeping
+   // basic statistics off. Never revive an existing basic opt-out.
+   const restrictiveRepair=analytics==="denied"&&(!c.state().storageOK||privacyBlocked());
    const failed=()=>{stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
-   try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{failed();return;}
-   if(c.choose({analytics,ads,basicOff,transition})){
+   try{if(granular)protectRollback(localStorage,analytics,"denied");}catch{failed();return;}
+   if(c.choose({analytics,ads:"denied",...(restrictiveRepair?{basicOff:true}:{})})){
       const saved=c.state();setPref(saved.pref);setLegacy(saved.legacy);setStorageVerified(saved.readable&&saved.storageOK);setRevision(v=>v+1);
-      setStatus(fixture?"Preferences saved for this synthetic test.":basicOff===true?"Basic statistics are off.":basicOff===false?"Basic statistics enabled.":"Privacy choices saved.");
-      // Optional choices close the banner only after the verified save succeeded.
-      // Leave expanded basic controls open so their saved state is immediately clear.
-      if(basicOff===undefined)setSettings(false);
+      setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
+      // Close only after a verified write; earlier restrictions are preserved.
+      setSettings(false);
       if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));
    }else failed();
  }
@@ -228,10 +226,10 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const legacyNeedsTransition=legacy!==null&&!pref?.legacyTransition;
  const canBasic=ready&&collectionEnabled&&collector.current?.eligibleAfterNotice()===true;
  const feedback=status||(failed?"Statistics are off here because your privacy choice could not be verified. Choose again to save your preference.":"");
- const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage both choices here. No third-party trackers."
-   :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
-   :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
-   :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
+ const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage optional cookies here."
+   :!collectionEnabled?"Basic statistics are off. Your optional-cookie choice is separate."
+   :legacyNeedsTransition?"Your earlier privacy choice is preserved. Basic statistics stay off. Your optional-cookie choice is separate."
+   :ready&&!canBasic?"Basic statistics are off or unavailable. Your optional-cookie choice is separate."
    :"We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.";
  const toggleSettings=()=>{
    setStatus("");setSettings(v=>!v);
@@ -247,17 +245,14 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
      </div>
      <p className={styles.summary} data-ss-disclosure>{summary}</p>
      <div className={styles.actions} data-ss-privacy-actions>
-       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional cookies</button>
-       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional cookies</button>
+       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted")}>Accept optional cookies</button>
+       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied")}>Reject optional cookies</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
        <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. The optional-cookie buttons control separate audit and report activity counts, not essential browser storage. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
-       {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
-       <div className={styles.detailActions}>
-         <button type="button" disabled={!ready} onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
-         <button type="button" disabled={!collectionEnabled||!eligible(path)||!noticePresented.current} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
-       </div>
+       {(legacyNeedsTransition||pref?.basicOff===true)&&<p>Your previously saved basic-statistics restriction is preserved. Accepting optional cookies does not remove it.</p>}
+       <p>Basic statistics operate separately from optional cookies. You can contact SpendShift with any privacy questions.</p>
        <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
        {fixture&&<p>This is a test environment. Proposed wording is not yet approved.</p>}
      </div>

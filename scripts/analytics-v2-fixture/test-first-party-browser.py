@@ -28,7 +28,10 @@ def open_settings(page):
         trigger=page.get_by_role('button',name='Privacy settings',exact=True)
         if trigger.is_visible():trigger.click()
         else:page.get_by_role('link',name='Cookie settings',exact=True).click()
-    notice.get_by_role('button',name='Turn off basic statistics',exact=True).wait_for()
+    notice.get_by_role('link',name='Privacy Policy',exact=True).wait_for()
+    assert not notice.get_by_role('button',name='Turn off basic statistics',exact=True).count()
+    assert not notice.get_by_role('button',name='Explicitly enable basic statistics',exact=True).count()
+    assert notice.locator('[data-ss-privacy-actions] button').count()==2
     return notice
 def open_page(page,path):
     resp=page.goto(origin+path,wait_until='domcontentloaded')
@@ -118,9 +121,10 @@ try:
         }""")
         assert any(x.startswith('script-src') for x in result) and 'connect-src' in result,result
         assert not external,external
-        # Separate basic and optional withdrawal must propagate across tabs and preserve the saved draft.
+        # Simulate an earlier-version tab saving its separate basic opt-out.
+        # This restriction and optional withdrawal must propagate across tabs.
+        other.evaluate("(()=>{const p=JSON.parse(localStorage.getItem('spendshift_privacy_v2'));p.basicOff=true;localStorage.setItem('spendshift_privacy_v2',JSON.stringify(p));})()")
         open_settings(other)
-        other.get_by_role('button',name='Turn off basic statistics',exact=True).click()
         assert other.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).analytics")=='granted'
         other.get_by_role('button',name='Reject optional cookies',exact=True).click();other.wait_for_timeout(500)
         page.wait_for_timeout(500);n,m=len(basic),len(old)
@@ -136,8 +140,10 @@ try:
         open_page(page,'/');page.get_by_role('button',name='Reject optional cookies',exact=True).click()
         assert page.evaluate("localStorage.getItem('spendshift_cookie_consent')")=='denied'
         open_settings(page)
-        page.get_by_role('button',name='Explicitly enable basic statistics',exact=True).click();page.wait_for_timeout(700)
-        assert basic and not old
+        assert 'earlier privacy choice is preserved' in page.locator('[data-ss-disclosure]').inner_text().lower()
+        page.get_by_role('button',name='Accept optional cookies',exact=True).click();page.wait_for_timeout(700)
+        assert not basic and not old
+        assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).legacyTransition") is False
         no_trackers(page);ctx.close();cases+=1
         # Reproduce the live complaint: either optional choice dismisses the
         # banner, including after reload, navigation and reopening from the footer.
@@ -153,19 +159,20 @@ try:
             assert any(x['event']=='site_entry' for x in basic[n:]) and not any(x['event']=='privacy_notice_shown' for x in basic[n:])
             open_page(page,'/pricing');assert not notice.count()
             open_settings(page)
-            page.get_by_role('button',name='Turn off basic statistics',exact=True).click()
-            assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).basicOff") is True
-            assert 'off or unavailable' in notice.inner_text()
             page.get_by_role('button',name='Reject optional cookies',exact=True).click()
             notice.wait_for(state='hidden')
-            open_page(page,'/');assert not notice.count()
-            n,m=len(basic),len(old)
+            saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
+            assert saved['basicOff'] is False and saved['analytics']=='denied'
+            n=len(basic);m=len(old)
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit')
             page.get_by_text('Question 1 of 8',exact=True).wait_for()
-            page.wait_for_timeout(700);assert not notice.count() and (len(basic),len(old))==(n,m)
+            page.wait_for_timeout(800)
+            assert not notice.count() and len(old)==m
+            assert any(x['event']=='audit_arrival' for x in basic[n:])
             open_settings(page)
-            page.get_by_role('button',name='Explicitly enable basic statistics',exact=True).click()
-            page.wait_for_timeout(800);assert any(x['event']=='audit_arrival' for x in basic[n:])
+            page.get_by_role('button',name='Accept optional cookies',exact=True).click()
+            notice.wait_for(state='hidden')
+            assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).basicOff") is False
             assert not external
             ctx.close();cases+=1
         print('PASS accept/reject dismissal, persisted choices, footer reopening, audit access, and returning visitor measurement')
@@ -194,7 +201,8 @@ try:
             settings=notice.get_by_role('button',name='Privacy settings',exact=True)
             settings.click();assert settings.get_attribute('aria-expanded')=='true'
             assert notice.get_by_role('button',name='Turn off all statistics',exact=True).count()==0
-            assert notice.get_by_role('button',name='Turn off basic statistics',exact=True).is_visible()
+            assert not notice.get_by_role('button',name='Turn off basic statistics',exact=True).count()
+            assert not notice.get_by_role('button',name='Explicitly enable basic statistics',exact=True).count()
             assert notice.get_by_role('link',name='Privacy Policy',exact=True).is_visible()
             assert notice.get_by_role('link',name='Cookie Policy',exact=True).is_visible()
             settings.click();assert settings.get_attribute('aria-expanded')=='false'
@@ -235,8 +243,10 @@ try:
             page.get_by_role('button',name='Accept optional cookies',exact=True).click()
             page.wait_for_timeout(600);assert not basic
             open_settings(page)
-            page.get_by_role('button',name='Explicitly enable basic statistics',exact=True).click()
-            page.wait_for_timeout(900);assert any(x['event']=='site_entry' for x in basic)
+            page.get_by_role('button',name='Reject optional cookies',exact=True).click()
+            page.wait_for_timeout(900);assert not basic
+            assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).basicOff") is True
+            open_page(page,'/');assert not basic and not page.locator('[data-ss-privacy-notice="basic"]').count()
             assert not external;ctx.close();cases+=1
         # Simulate quota, denied legacy downgrade, silently lost writes and read failure
         # after a genuine prior grant. Do not clear the synthetic saved draft.
@@ -272,8 +282,8 @@ try:
             open_page(page,'/audit');page.get_by_text('Question 2 of 8',exact=True).wait_for()
             page.wait_for_timeout(500);assert (len(basic),len(old))==(n,m)
             open_settings(page)
-            page.get_by_role('button',name='Turn off basic statistics',exact=True).click()
-            page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
+            page.get_by_role('button',name='Reject optional cookies',exact=True).click()
+            page.get_by_role('status').filter(has_text='Preferences saved').wait_for(state='attached')
             saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
             assert saved['basicOff'] is True and saved['analytics']=='denied'
             assert page.evaluate("sessionStorage.getItem('spendshift_privacy_save_failed')") is None
@@ -293,21 +303,21 @@ try:
         page.wait_for_timeout(700);assert (len(basic),len(old))==(n,m)
         assert page.evaluate("sessionStorage.getItem('spendshift_privacy_save_failed')") is None
         page.get_by_role('button',name='Reject optional cookies',exact=True).click()
-        page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
+        page.get_by_role('status').filter(has_text='Preferences saved').wait_for(state='attached')
         assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).basicOff") is True
         assert not external;ctx.close();cases+=1
-        # An invalid prior preference must be repairable without the combined button.
+        # Reject optional cookies can safely repair a malformed earlier preference.
         ctx,page,external,basic,old,requests=setup(None,'bad-json')
         open_page(page,'/')
         assert not basic
         open_settings(page)
-        page.get_by_role('button',name='Turn off basic statistics',exact=True).click()
-        page.get_by_role('status').filter(has_text='Preferences saved').wait_for()
+        page.get_by_role('button',name='Reject optional cookies',exact=True).click()
+        page.get_by_role('status').filter(has_text='Preferences saved').wait_for(state='attached')
         saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
         assert saved['basicOff'] is True and saved['analytics']=='denied'
         assert not basic and not external
         ctx.close();cases+=1
-        print('PASS disabled-choice transition, actual viewport presentation, separate privacy controls, failed writes and same-tab reload safeguards')
+        print('PASS preserved historical restrictions, actual viewport presentation, two optional choices, failed writes and same-tab reload safeguards')
         # Public guides and legal pages also have the site-wide policy, not just the audit.
         ctx,page,external,basic,old,requests=setup('granted')
         for path in ['/pricing','/how-it-works','/whats-included','/why-spendshift','/services','/save-money-australia','/reduce-electricity-bill-australia','/cancel-unused-subscriptions-australia','/privacy-policy','/cookies','/results','/personalise']:
