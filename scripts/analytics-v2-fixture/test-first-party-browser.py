@@ -136,7 +136,7 @@ try:
             assert abs(a['width']-b['width'])<=1 and min(a['height'],b['height'])>=44,(width,a,b)
             assert not notice.get_by_role('button',name='Turn off all statistics',exact=True).is_visible()
             assert notice.get_by_role('button',name='Privacy settings',exact=True).is_visible()
-            assert 'Basic statistics help us improve SpendShift without recording your name or savings answers. These may continue if you reject optional cookies.' in notice.inner_text()
+            assert 'We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.' in notice.inner_text()
             assert notice.locator('[data-ss-privacy-actions] button').count()==2
             assert notice.evaluate('(el)=>el.scrollWidth<=el.clientWidth+1') and box['x']>=0 and box['x']+box['width']<=width+1
             assert notice.evaluate("(el)=>!['fixed','sticky'].includes(getComputedStyle(el).position)")

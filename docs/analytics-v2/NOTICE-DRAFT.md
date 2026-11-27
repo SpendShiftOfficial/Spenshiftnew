@@ -6,7 +6,7 @@
 
 **Your privacy choices**
 
-Basic statistics help us improve SpendShift without recording your name or savings answers. These may continue if you reject optional cookies.
+We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.
 
 [Accept optional cookies] [Reject optional cookies] [Privacy settings]
 

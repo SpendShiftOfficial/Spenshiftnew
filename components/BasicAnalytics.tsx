@@ -211,7 +211,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
    :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
-   :"Basic statistics help us improve SpendShift without recording your name or savings answers. These may continue if you reject optional cookies.";
+   :"We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
