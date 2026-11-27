@@ -7,7 +7,8 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "internal-analytics-v2-2026-11-25": false
+      "internal-analytics-v2-2026-11-25": false,
+      "privacy-button-removal-2026-11-27": false
     }
   }
 }

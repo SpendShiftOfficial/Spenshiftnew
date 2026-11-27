@@ -186,6 +186,9 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
    const c=collector.current;if(!c)return;
    ads="denied";
+   // Retain the restrictive recovery path when stored preferences cannot be verified.
+   // An explicit basic opt-out must not restore an unverified optional permission.
+   if(basicOff===true&&!c.state().storageOK)analytics="denied";
    const failed=()=>{stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
    try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{failed();return;}
    if(c.choose({analytics,ads,basicOff,transition})){
@@ -208,7 +211,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
    :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
    :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
-   :"Basic statistics, including estimated Australian visits, can continue if you reject optional audit/report counts. Turn all off in Privacy settings.";
+   :"Basic statistics, including estimated Australian visits, can continue if you reject optional audit/report counts. Manage basic statistics in Privacy settings.";
  const toggleSettings=()=>{
    setSettings(v=>!v);
    if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
@@ -231,7 +234,6 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
        <div className={styles.detailActions}>
-         <button type="button" onClick={()=>change("denied","denied",true)}>Turn off all statistics</button>
          <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
          <button type="button" disabled={!collectionEnabled||!eligible(path)||!noticePresented.current} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
        </div>
