@@ -1,0 +1,50 @@
+name: Disabled analytics live readiness probe
+on:
+  push:
+    branches: [internal-analytics-v2-2026-11-25]
+    paths: ['.github/workflows/analytics-v2-live-disabled-probe.yml']
+permissions: {}
+jobs:
+  public_readiness:
+    if: github.repository == 'SpendShiftOfficial/Spenshiftnew' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Bounded public smoke checks without credentials or cookies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import urllib.request, urllib.error
+          base = 'https://www.spendshift.com.au'
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*args,**kwargs): return None
+          opener=urllib.request.build_opener(NoRedirect())
+          def request(path,method='GET',data=None,extra=None):
+              h={'User-Agent':'SpendShift readiness probe','Cache-Control':'no-cache'}
+              if extra: h.update(extra)
+              req=urllib.request.Request(base+path,data=data,headers=h,method=method)
+              try: response=opener.open(req,timeout=15)
+              except urllib.error.HTTPError as err: response=err
+              with response:
+                  return response.status,response.headers,response.read(1000000)
+          failures=[]
+          def check(label,ok,detail=''):
+              print(('PASS' if ok else 'FAIL')+' '+label+' '+detail)
+              if not ok: failures.append(label)
+          status,h,body=request('/')
+          check('public homepage',status==200,'HTTP '+str(status))
+          check('homepage CSP restricts connections', "connect-src 'self';" in h.get('Content-Security-Policy',''))
+          check('no active vendor script tags',not __import__('re').search(rb'<script\b[^>]*\bsrc=["\'][^"\']*(googletagmanager|google-analytics|clarity\.ms|connect\.facebook\.net|analytics\.tiktok\.com)',body,__import__('re').I))
+          status,h,body=request('/internal/analytics/access')
+          check('owner login available without report data',status==200 and b'Owner sign-in' in body and b'Acquisition funnel' not in body,'HTTP '+str(status))
+          check('owner login no-store', 'no-store' in h.get('Cache-Control',''))
+          status,h,body=request('/internal/analytics?format=json&period=today')
+          check('anonymous report denied by application',status==401 and h.get('WWW-Authenticate','').lower().startswith('bearer') and not body,'HTTP '+str(status))
+          # Single intentionally invalid empty payload. No credentials, cookies or customer values.
+          # With collection disabled the application alone returns 204; edge deny must return 403.
+          status,h,body=request('/api/analytics-v2','POST',b'{}',{'Content-Type':'application/json','Origin':base,'Sec-Fetch-Site':'same-origin'})
+          check('production POST deny',status==403,'HTTP '+str(status))
+          print('Firewall marker present: '+str(bool(h.get('x-vercel-mitigated') or h.get('x-vercel-error') or b'Forbidden' in body)))
+          if failures: raise SystemExit('Readiness checks failed: '+', '.join(failures))
+          PY
