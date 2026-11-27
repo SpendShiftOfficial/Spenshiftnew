@@ -1,15 +1,24 @@
 import assert from 'node:assert/strict';
-import {releaseCapabilities,RELEASE_AUTHORIZED,PREPARATION_AUTHORIZED,PRODUCTION_ORIGIN,NOTICE_VERSION} from '../../lib/analytics-v2/release-config.mjs';
+import {releaseCapabilities,RELEASE_AUTHORIZED,FINANCE_IMPORT_AUTHORIZED,PREPARATION_AUTHORIZED,PRODUCTION_ORIGIN,NOTICE_VERSION} from '../../lib/analytics-v2/release-config.mjs';
 import {createReleaseAdapter} from '../../lib/analytics-v2/release-adapter.mjs';
 import {authorizeOwner} from '../../lib/analytics-v2/owner-auth.mjs';
 import {createIngestion} from '../../lib/analytics-v2/ingest.mjs';
 let n=0;const check=(condition,label)=>{assert.ok(condition,label);n++;};
 const env={VERCEL_ENV:'production',VERCEL:'1',NEXT_PUBLIC_SITE_URL:PRODUCTION_ORIGIN,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'true',SPENDSHIFT_ANALYTICS_V2_PRIVACY_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_NOTICE_VERSION:NOTICE_VERSION,SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'true',SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'true',SPENDSHIFT_ANALYTICS_V2_RETENTION_ENABLED:'true'};
-check(RELEASE_AUTHORIZED===false,'collection source lock');check(PREPARATION_AUTHORIZED===true,'owner and retention preparation authorised');
+check(RELEASE_AUTHORIZED===true,'isolated candidate source gate; deployment requires separate approval');check(FINANCE_IMPORT_AUTHORIZED===false,'finance import remains source locked');check(PREPARATION_AUTHORIZED===true,'owner and retention preparation authorised');
 check(Object.values(releaseCapabilities(env,false,false)).every(x=>x===false),'both source locks win');
-assert.deepEqual(releaseCapabilities(env),{privacy:false,collect:false,read:true,prune:true});n++;
+assert.deepEqual(releaseCapabilities(env),{privacy:true,collect:true,read:true,prune:true});n++;
+assert.deepEqual(releaseCapabilities(env,false),{privacy:false,collect:false,read:true,prune:true});n++;
 const prepared={...env,SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'false',SPENDSHIFT_ANALYTICS_V2_PRIVACY_ENABLED:'false',SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'false'};
 assert.deepEqual(releaseCapabilities(prepared),{privacy:false,collect:false,read:true,prune:true});n++;
+// Phase 1 can show the revised notice without collecting. Both DB and WAF remain closed.
+assert.deepEqual(releaseCapabilities({...prepared,SPENDSHIFT_ANALYTICS_V2_PRIVACY_ENABLED:'true'}),{privacy:true,collect:false,read:true,prune:true});n++;
+// Collection flag alone cannot activate anything when privacy or WAF gates are absent.
+check(!releaseCapabilities({...prepared,SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'true'}).collect,'collection flag alone cannot collect');
+check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_PRIVACY_ENABLED:'false'}).collect,'privacy gate mandatory');
+check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'false'}).collect,'schema gate mandatory');
+check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_WAF_REVIEWED:'false'}).collect,'WAF gate mandatory');
+check(!releaseCapabilities({...env,SPENDSHIFT_ANALYTICS_V2_COLLECTION_ENABLED:'false'}).collect,'environment collection kill switch');
 assert.deepEqual(releaseCapabilities({...prepared,SPENDSHIFT_ANALYTICS_V2_SCHEMA_READY:'false'}),{privacy:false,collect:false,read:false,prune:false});n++;
 check(!releaseCapabilities({...prepared,SPENDSHIFT_ANALYTICS_V2_DASHBOARD_ENABLED:'false'}).read,'prepared dashboard flag');
 check(!releaseCapabilities({...prepared,SPENDSHIFT_ANALYTICS_V2_RETENTION_ENABLED:'false'}).prune,'prepared retention flag');

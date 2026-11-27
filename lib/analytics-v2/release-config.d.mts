@@ -1,4 +1,5 @@
 export const RELEASE_AUTHORIZED:boolean;
+export const FINANCE_IMPORT_AUTHORIZED:boolean;
 export const PREPARATION_AUTHORIZED:boolean;
 export const PRODUCTION_ORIGIN:string;
 export const NOTICE_VERSION:string;
