@@ -63,7 +63,9 @@ try:
             page.goto(origin+'/?utm_source=instagram&utm_campaign=meta_founder_v1&fbclid=syntheticprivate')
             page.locator('[data-ss-privacy-notice="basic"]').wait_for()
             page.wait_for_timeout(1300)
-            if choice:page.get_by_role('button',name=choice,exact=True).click()
+            if choice:
+                page.get_by_role('button',name=choice,exact=True).click()
+                page.locator('[data-ss-privacy-notice="basic"]').wait_for(state='hidden')
             page.locator('[data-ss-cta=hero]').click()
             page.wait_for_url('**/audit')
             page.get_by_text('Question 1 of 8',exact=True).wait_for()
@@ -99,9 +101,14 @@ try:
             page.get_by_role('button',name='Reject optional cookies',exact=True).click();page.wait_for_timeout(700);assert not sent
             page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.wait_for_timeout(600);assert not sent
             assert page.evaluate('localStorage.getItem("spendshift_cookie_consent")')=='denied'
+            assert not page.locator('[data-ss-privacy-notice="basic"]').count()
             page.get_by_role('button',name='Privacy settings',exact=True).click()
-            page.get_by_role('button',name='Explicitly enable basic statistics').click();page.wait_for_timeout(700);assert any(x['event']=='audit_arrival' for x in sent)
-            page.get_by_role('button',name='Turn off basic statistics').click();page.wait_for_timeout(400);n=len(sent)
+            assert not page.get_by_role('button',name='Turn off basic statistics',exact=True).count()
+            assert not page.get_by_role('button',name='Explicitly enable basic statistics',exact=True).count()
+            page.get_by_role('button',name='Accept optional cookies',exact=True).click()
+            page.wait_for_timeout(700);assert not sent
+            assert page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2')).legacyTransition") is False
+            n=len(sent)
             page.get_by_role('button',name='Almost daily',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.wait_for_timeout(500)
             assert len(sent)==n and page.get_by_text('Question 2 of 8',exact=True).is_visible()
             ctx.close();count+=1

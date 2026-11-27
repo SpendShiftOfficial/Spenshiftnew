@@ -3,7 +3,7 @@ import {createContext,useCallback,useContext,useEffect,useId,useRef,useState,typ
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
 import {optionalAllowed,protectRollback} from "@/lib/analytics-v2/optional";
-import {privacyBlocked,stopPrivacyDocument} from "@/lib/analytics-v2/privacy-runtime.mjs";
+import {decodePreference,privacyBlocked,stopPrivacyDocument} from "@/lib/analytics-v2/privacy-runtime.mjs";
 import Link from "next/link";
 import styles from "./privacy-notice.module.css";
 import {browserCollector,type Collector,type Choice,type Preference} from "@/lib/analytics-v2/browser.mjs";
@@ -25,6 +25,17 @@ const Context=createContext({emit:noop as (event:Metric)=>boolean,allowed:noop,r
 const pageCode=(path:string)=>Object.keys(pages).find(key=>pages[key]===path);
 const eligible=(path:string)=>!!pageCode(path)||path==="/audit"||path==="/results";
 const visible=()=>document.visibilityState==="visible"&&!(document as Document&{prerendering?:boolean}).prerendering;
+// A valid v2 preference with basicOff=false was saved after the current notice
+// was presented (or explicitly enabled). It permits returning informed visitors
+// to keep their existing choice without a new banner on every navigation.
+// No new identifier, storage key, event, or change to the collector's policy.
+function informedBySavedChoice(){
+ try{
+   const {ok,pref}=decodePreference(localStorage.getItem("spendshift_privacy_v2"));
+   const legacy=localStorage.getItem("spendshift_cookie_consent");
+   return ok&&pref!==null&&pref.basicOff===false&&[null,"granted","denied"].includes(legacy)&&(legacy===null||pref.legacyTransition===true);
+ }catch{return false;}
+}
 export function useBasicMetricScope(){
  const {emit,allowed,ready,revision}=useContext(Context);
  const seen=useRef(new Set<string>());
@@ -128,16 +139,22 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const collector=useRef<Collector|null>(null),notice=useRef<HTMLElement|null>(null);
  const [ready,setReady]=useState(false),[revision,setRevision]=useState(0);
  const [pref,setPref]=useState<Preference|null>(null),[legacy,setLegacy]=useState<string|null>(null);
+ const [storageVerified,setStorageVerified]=useState(false);
  const [status,setStatus]=useState("");
  const [settings,setSettings]=useState(false);
  const settingsId=useId(),privateTrigger=useRef<HTMLButtonElement|null>(null);
- useEffect(()=>{setSettings(false);},[path]);
+ useEffect(()=>{setSettings(false);setStatus("");},[path]);
  const entrySeen=useRef(false),noticeSeen=useRef(false),noticePresented=useRef(false);
+ const failed=ready&&privacyBlocked();
+ const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
+ const standaloneSettings=privateSettings||path==="/audit"||path==="/results";
+ const hasSavedChoice=ready&&storageVerified&&pref!==null&&(pref.analytics==="granted"||pref.analytics==="denied");
+ const showNotice=eligible(path)&&(!hasSavedChoice||failed||settings)||privateSettings&&settings;
  useEffect(()=>{
-   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&noticePresented.current});
-   const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setReady(true);
+   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&(noticePresented.current||informedBySavedChoice())});
+   const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setStorageVerified(state.readable&&state.storageOK);setReady(true);
    const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"){
-     const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setRevision(v=>v+1);}
+     const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setStorageVerified(c.readable&&c.storageOK);setRevision(v=>v+1);}
    }};
    window.addEventListener("storage",sync);return()=>{window.removeEventListener("storage",sync);collector.current=null;};
  },[collectionEnabled]);
@@ -145,7 +162,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  // in the visible viewport across two animation frames. This is presentation,
  // not proof of reading/consent. Keep the latch for this document after scrolling.
  useEffect(()=>{
-   if(!ready||!eligible(path)||noticePresented.current)return;
+   if(!ready||!eligible(path)||!showNotice||noticePresented.current)return;
    let first=0,second=0,done=false;
    const onScreen=(el:Element|null)=>{
      if(!el||!visible())return false;
@@ -165,7 +182,7 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    window.addEventListener("scroll",check,{passive:true});window.addEventListener("resize",check);
    document.addEventListener("visibilitychange",check);
    return()=>{done=true;cancelAnimationFrame(first);cancelAnimationFrame(second);clearInterval(timer);window.removeEventListener("scroll",check);window.removeEventListener("resize",check);document.removeEventListener("visibilitychange",check);};
- },[ready,path]);
+ },[ready,path,showNotice]);
  const emit=useCallback((event:Metric)=>collector.current?.emit(event)===true,[]);
  const allowed=useCallback(()=>collector.current?.allowed()===true,[]);
  const entry=useCallback(()=>{
@@ -180,45 +197,47 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  },[emit]);
  useEffect(()=>{
    if(!ready||!eligible(path))return;
-   const observe=()=>{if(!noticeSeen.current&&visible()&&emit({v:2,event:"privacy_notice_shown"}))noticeSeen.current=true;};
+   const observe=()=>{if(noticePresented.current&&!noticeSeen.current&&visible()&&emit({v:2,event:"privacy_notice_shown"}))noticeSeen.current=true;};
    observe();document.addEventListener("visibilitychange",observe);return()=>document.removeEventListener("visibilitychange",observe);
  },[ready,path,revision,emit]);
- function change(analytics:Choice,ads:Choice,basicOff?:boolean,transition=false){
+ function change(analytics:"granted"|"denied"){
    const c=collector.current;if(!c)return;
-   ads="denied";
-   // Retain the restrictive recovery path when stored preferences cannot be verified.
-   // An explicit basic opt-out must not restore an unverified optional permission.
-   if(basicOff===true&&!c.state().storageOK)analytics="denied";
+   // Reject can repair an invalid or failed stored choice only by keeping
+   // basic statistics off. Never revive an existing basic opt-out.
+   const restrictiveRepair=analytics==="denied"&&(!c.state().storageOK||privacyBlocked());
    const failed=()=>{stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
-   try{if(granular&&(basicOff===undefined||analytics==="denied"))protectRollback(localStorage,analytics,ads);}catch{failed();return;}
-   if(c.choose({analytics,ads,basicOff,transition})){
-      setPref(c.state().pref);setLegacy(c.state().legacy);setRevision(v=>v+1);setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
+   try{if(granular)protectRollback(localStorage,analytics,"denied");}catch{failed();return;}
+   if(c.choose({analytics,ads:"denied",...(restrictiveRepair?{basicOff:true}:{})})){
+      const saved=c.state();setPref(saved.pref);setLegacy(saved.legacy);setStorageVerified(saved.readable&&saved.storageOK);setRevision(v=>v+1);
+      setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
+      // Close only after a verified write; earlier restrictions are preserved.
+      setSettings(false);
       if(granular)window.dispatchEvent(new Event("ss-v2-preferences"));
    }else failed();
  }
  useEffect(()=>{
-   const open=()=>{setSettings(true);requestAnimationFrame(()=>{notice.current?.focus();notice.current?.scrollIntoView({block:"start"});});};
+   const open=()=>{setStatus("");setSettings(true);requestAnimationFrame(()=>{notice.current?.focus({preventScroll:true});notice.current?.scrollIntoView({block:"start"});});};
    window.addEventListener("open-cookie-settings",open);return()=>window.removeEventListener("open-cookie-settings",open);
  },[]);
+ // Run after React commits the reopened panel, including when it was unmounted.
+ useEffect(()=>{if(settings){const frame=requestAnimationFrame(()=>{notice.current?.focus({preventScroll:true});notice.current?.scrollIntoView({block:"start"});});return()=>cancelAnimationFrame(frame);}},[settings]);
  const currentAnalytics:Choice=ready&&optionalAllowed("analytics")?"granted":pref?.analytics==="unset"||(!pref&&legacy===null)?"unset":"denied";
  const basicOn=ready&&collectionEnabled&&allowed();
  const legacyNeedsTransition=legacy!==null&&!pref?.legacyTransition;
  const canBasic=ready&&collectionEnabled&&collector.current?.eligibleAfterNotice()===true;
- const failed=ready&&privacyBlocked();
  const feedback=status||(failed?"Statistics are off here because your privacy choice could not be verified. Choose again to save your preference.":"");
- const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
- const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage both choices here. No third-party trackers."
-   :!collectionEnabled?"Basic statistics are off. Any choice here keeps them off until you explicitly enable them."
-   :legacyNeedsTransition?"Your earlier choice is preserved. Basic statistics stay off unless enabled in settings. Optional audit/report counts are separate."
-   :ready&&!canBasic?"Basic statistics are off or unavailable. Optional audit/report counts are separate."
+ const summary=!eligible(path)?"Basic statistics are not collected on this page. You can manage optional cookies here."
+   :!collectionEnabled?"Basic statistics are off. Your optional-cookie choice is separate."
+   :legacyNeedsTransition?"Your earlier privacy choice is preserved. Basic statistics stay off. Your optional-cookie choice is separate."
+   :ready&&!canBasic?"Basic statistics are off or unavailable. Your optional-cookie choice is separate."
    :"We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.";
  const toggleSettings=()=>{
-   setSettings(v=>!v);
-   if(privateSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
+   setStatus("");setSettings(v=>!v);
+   if(standaloneSettings&&settings)requestAnimationFrame(()=>privateTrigger.current?.focus());
  };
  return <Context.Provider value={{emit,allowed,ready,revision}}>
-   {privateSettings&&!settings&&<button ref={privateTrigger} className={styles.privateTrigger} type="button" onClick={()=>{setSettings(true);requestAnimationFrame(()=>notice.current?.focus());}}>Privacy settings</button>}
-   {(eligible(path)||privateSettings&&settings)&&<aside ref={notice} tabIndex={-1} aria-label="Privacy notice" data-ss-privacy-notice="basic" className={styles.notice}>
+   {standaloneSettings&&!showNotice&&<button ref={privateTrigger} className={styles.privateTrigger} type="button" onClick={()=>{setStatus("");setSettings(true);}}>Privacy settings</button>}
+   {showNotice&&<aside ref={notice} tabIndex={-1} aria-label="Privacy notice" data-ss-privacy-notice="basic" className={styles.notice}>
     <div className={styles.inner}>
      <div className={styles.heading}>
        <strong>Your privacy choices {fixture&&<span className={styles.testLabel}>Test only</span>}</strong>
@@ -226,23 +245,21 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
      </div>
      <p className={styles.summary} data-ss-disclosure>{summary}</p>
      <div className={styles.actions} data-ss-privacy-actions>
-       <button type="button" aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted","denied")}>Accept optional cookies</button>
-       <button type="button" aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied","denied")}>Reject optional cookies</button>
+       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted")}>Accept optional cookies</button>
+       <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied")}>Reject optional cookies</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
        <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. The optional-cookie buttons control separate audit and report activity counts, not essential browser storage. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
-       {legacyNeedsTransition&&<p>Basic statistics remain off unless you explicitly enable them under this notice.</p>}
-       <div className={styles.detailActions}>
-         <button type="button" onClick={()=>change(currentAnalytics,"denied",true)}>Turn off basic statistics</button>
-         <button type="button" disabled={!collectionEnabled||!eligible(path)||!noticePresented.current} onClick={()=>change(currentAnalytics,"denied",false,true)}>Explicitly enable basic statistics</button>
-       </div>
+       {(legacyNeedsTransition||pref?.basicOff===true)&&<p>Your previously saved basic-statistics restriction is preserved. Accepting optional cookies does not remove it.</p>}
+       <p>Basic statistics operate separately from optional cookies. You can contact SpendShift with any privacy questions.</p>
        <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
        {fixture&&<p>This is a test environment. Proposed wording is not yet approved.</p>}
      </div>
-     <p role="status" className={failed||status.startsWith("Statistics stopped")?styles.error:styles.visuallyHidden}>{feedback}</p>
+     <p role="status" className={failed||status.startsWith("Statistics stopped")?styles.error:settings&&status?undefined:styles.visuallyHidden}>{feedback}</p>
     </div>
    </aside>}
+   {!showNotice&&<p role="status" className={styles.visuallyHidden}>{feedback}</p>}
    {children}
    {pageCode(path)&&<PublicObserver key={path} path={path} entry={entry}/>}
    <VitalObserver initialPath={initialPath.current}/>

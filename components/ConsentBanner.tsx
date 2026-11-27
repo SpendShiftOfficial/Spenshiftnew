@@ -44,13 +44,13 @@ export default function ConsentBanner(){
      <strong>Your privacy choices</strong>
      <button className={styles.settingsButton} type="button" aria-expanded={settings} aria-controls="ss-fallback-privacy-details" onClick={()=>setSettings(v=>!v)}>Privacy settings</button>
     </div>
-    <p className={styles.summary}>Basic statistics are off and stay off after any choice here until explicitly enabled. Optional audit/report counts are separate.</p>
+    <p className={styles.summary}>Basic statistics are off. Optional audit/report counts are separate.</p>
     <div className={styles.actions}>
       <button type="button" onClick={()=>saveConsent("granted")}>Accept optional cookies</button>
       <button type="button" onClick={()=>saveConsent("denied")}>Reject optional cookies</button>
     </div>
     <div id="ss-fallback-privacy-details" className={styles.details} hidden={!settings}>
-      <p>The optional-cookie buttons control limited audit and report activity counts on SpendShift's own servers, not essential browser storage. Your answers are not included in the totals. Basic statistics are currently disabled. A choice here keeps basic statistics off until you explicitly enable them under the active notice. Your choice does not affect your savings check or purchased plan.</p>
+      <p>The optional-cookie buttons control limited audit and report activity counts on SpendShift's own servers, not essential browser storage. Your answers are not included in the totals. Basic statistics are currently disabled. A choice saved while basic statistics are disabled does not enable them on a later release. Your choice does not affect your savings check or purchased plan.</p>
       <p className={styles.links}><Link href="/privacy-policy">Privacy Policy</Link><Link href="/cookies">Cookie Policy</Link></p>
     </div>
     <p role="status" className={status||privacyBlocked()?styles.error:styles.visuallyHidden}>{status||(privacyBlocked()?"Statistics are off here because your privacy choice could not be verified. Choose again to save your preference.":"")}</p>
