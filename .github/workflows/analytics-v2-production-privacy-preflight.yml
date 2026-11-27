@@ -1,0 +1,112 @@
+name: SpendShift production privacy preflight
+on:
+  push:
+    branches: [internal-analytics-v2-2026-11-25]
+    paths: ['.github/workflows/analytics-v2-production-privacy-preflight.yml']
+permissions: {}
+jobs:
+  live_preflight:
+    if: github.repository == 'SpendShiftOfficial/Spenshiftnew' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Install browser test client
+        run: |
+          python3 -m venv /tmp/ss-live-privacy
+          source /tmp/ss-live-privacy/bin/activate
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Verify approved live notice and disabled database perimeter
+        shell: bash
+        run: |
+          set -euo pipefail
+          source /tmp/ss-live-privacy/bin/activate
+          python - <<'PY'
+          import urllib.request,urllib.error,json
+          from playwright.sync_api import sync_playwright
+          from urllib.parse import urlsplit
+          base='https://www.spendshift.com.au'
+          approved='We use basic website statistics to improve your experience with SpendShift, not to build personal profiles. These statistics may continue if you reject optional cookies.'
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*args,**kwargs):return None
+          opener=urllib.request.build_opener(NoRedirect())
+          def request(path,method='GET',body=None,extra=None):
+              req=urllib.request.Request(base+path,data=body,method=method,headers={'User-Agent':'SpendShift launch privacy preflight','Cache-Control':'no-cache',**(extra or {})})
+              try:r=opener.open(req,timeout=15)
+              except urllib.error.HTTPError as err:r=err
+              with r:return r.status,r.headers,r.read(1000000)
+          for path in ['/','/audit','/results','/pricing','/privacy-policy','/cookies','/internal/analytics/access']:
+              code,h,body=request(path)
+              assert code==200,(path,code)
+              if not path.startswith('/internal/'):
+                  assert "connect-src 'self';" in h.get('Content-Security-Policy',''),path
+              else:assert 'no-store' in h.get('Cache-Control','') and b'Owner sign-in' in body
+              if path=='/':
+                  assert b'data-ss-privacy-mode="v2"' in body and approved.encode() in body
+              if path in ['/privacy-policy','/cookies']:
+                  assert b'Turn off all statistics' not in body
+              print('PASS live public route '+path+' HTTP '+str(code),flush=True)
+          code,h,body=request('/internal/analytics?format=json&period=today')
+          assert code==401 and h.get('WWW-Authenticate','').lower().startswith('bearer') and not body
+          print('PASS owner dashboard anonymous access denied',flush=True)
+          code,h,body=request('/api/analytics-v2','POST',b'{}',{'Content-Type':'application/json','Origin':base,'Sec-Fetch-Site':'same-origin'})
+          assert code==403,(code,body[:120])
+          print('PASS production firewall deny still enforced',flush=True)
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              def setup(legacy=None,width=375,height=667):
+                  ctx=browser.new_context(viewport={'width':width,'height':height},is_mobile=True,has_touch=True,device_scale_factor=1)
+                  if legacy is not None:ctx.add_init_script("localStorage.setItem('spendshift_cookie_consent',"+json.dumps(legacy)+")")
+                  basic=[];optional=[];external=[]
+                  def route(r):
+                      url=urlsplit(r.request.url)
+                      if url.hostname!='www.spendshift.com.au':
+                          external.append(url.hostname);r.abort()
+                      elif url.path=='/api/analytics-v2':
+                          basic.append(r.request.post_data_json);r.fulfill(status=204)
+                      elif url.path in ['/api/audit-metric','/api/report-metric']:
+                          optional.append(url.path);r.fulfill(status=204)
+                      elif r.request.method not in ('GET','HEAD'):
+                          r.abort()
+                      else:r.continue_()
+                  ctx.route('**/*',route)
+                  page=ctx.new_page();page.goto(base+'/',wait_until='domcontentloaded')
+                  page.evaluate('document.fonts.ready');page.wait_for_timeout(1200)
+                  return ctx,page,basic,optional,external
+              for w,h in [(320,568),(375,667),(390,844),(430,932)]:
+                  ctx,page,basic,optional,external=setup(width=w,height=h)
+                  n=page.locator('[data-ss-privacy-notice="basic"]')
+                  assert n.get_by_text(approved,exact=True).is_visible()
+                  a=n.get_by_role('button',name='Accept optional cookies',exact=True);r=n.get_by_role('button',name='Reject optional cookies',exact=True)
+                  ab,rb=a.bounding_box(),r.bounding_box();bb=n.bounding_box()
+                  cap=0.33 if w==320 else 0.30 if w==375 else 0.25
+                  assert bb and bb['height']<=h*cap,(w,h,bb)
+                  assert ab and rb and abs(ab['width']-rb['width'])<=1 and min(ab['height'],rb['height'])>=44
+                  assert not n.get_by_role('button',name='Turn off all statistics',exact=True).count()
+                  assert any(x.get('event')=='site_entry' for x in basic),basic
+                  r.click();page.wait_for_timeout(400)
+                  saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
+                  assert saved['analytics']=='denied' and saved['basicOff'] is False,saved
+                  n.get_by_role('button',name='Privacy settings',exact=True).click()
+                  assert n.get_by_role('button',name='Turn off basic statistics',exact=True).is_visible()
+                  n.get_by_role('button',name='Turn off basic statistics',exact=True).click()
+                  saved=page.evaluate("JSON.parse(localStorage.getItem('spendshift_privacy_v2'))")
+                  assert saved['basicOff'] is True and saved['analytics']=='denied'
+                  count=len(basic)
+                  page.locator('[data-ss-cta=hero]').click();page.wait_for_url('**/audit');page.get_by_text('Question 1 of 8',exact=True).wait_for()
+                  page.get_by_role('button',name='Almost daily',exact=True).click();page.get_by_role('button',name='Next question',exact=True).click();page.get_by_text('Question 2 of 8',exact=True).wait_for()
+                  page.wait_for_timeout(700)
+                  assert len(basic)==count and not optional and not external,(len(basic),count,optional,external)
+                  print('PASS live mobile '+str(w)+'x'+str(h)+' approved copy, equal choices, opt-out and audit; analytics requests intercepted',flush=True)
+                  ctx.close()
+              for prior in ['granted','denied']:
+                  ctx,page,basic,optional,external=setup(legacy=prior,width=390,height=844)
+                  assert not basic and not external
+                  n=page.locator('[data-ss-privacy-notice="basic"]')
+                  n.get_by_role('button',name='Reject optional cookies',exact=True).click()
+                  page.wait_for_timeout(500);assert not basic and not optional
+                  print('PASS live saved legacy '+prior+' preserved',flush=True)
+                  ctx.close()
+              browser.close()
+          print('PASS production privacy preflight; no synthetic event sent to production database',flush=True)
+          PY
