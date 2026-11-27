@@ -3,6 +3,7 @@ import {supabaseAdmin} from '@/lib/supabase';
 import {generatePaidReport} from '@/lib/report-fulfillment';
 import {releaseCapabilities} from '@/lib/analytics-v2/release-config.mjs';
 import {releaseAdapter} from '@/lib/analytics-v2/production-server';
+import {prunePurchaseAttribution} from '@/lib/analytics-v2/purchase-attribution-server';
 export const runtime='nodejs';export const maxDuration=180;
 export async function GET(req:Request){
  const secret=process.env.CRON_SECRET;
@@ -21,6 +22,7 @@ export async function GET(req:Request){
  if(releaseCapabilities(process.env).prune){
   try{await (await releaseAdapter()).prune();v2Retention='pruned';console.info('[analytics-v2] retention pruned');}catch{v2Retention='failed';console.error('[analytics-v2] retention failed');}
  }
+ await prunePurchaseAttribution();
  try{
   const now=Date.now();
   const {error:resetError}=await supabaseAdmin.from('report_orders').update({status:'failed',last_error:'Generation interrupted',processing_started_at:null}).eq('status','processing').lt('processing_started_at',new Date(now-20*60*1000).toISOString());

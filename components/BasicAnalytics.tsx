@@ -2,6 +2,7 @@
 import {createContext,useCallback,useContext,useEffect,useId,useRef,useState,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useReportWebVitals} from "next/web-vitals";
+import {ATTR_PERMISSION,attributionPermitted,beginAttributionDocument,clearAttributionContext,rememberAttributionLanding,saveAttributionChoice} from "@/lib/analytics-v2/purchase-attribution-browser";
 import {optionalAllowed,protectRollback} from "@/lib/analytics-v2/optional";
 import {decodePreference,privacyBlocked,stopPrivacyDocument} from "@/lib/analytics-v2/privacy-runtime.mjs";
 import Link from "next/link";
@@ -134,7 +135,7 @@ function VitalObserver({initialPath}:{initialPath:string}){
  useReportWebVitals(callback);
  return null;
 }
-export default function BasicAnalytics({children,fixture=true,granular=false,collectionEnabled=true}:{children:ReactNode;fixture?:boolean;granular?:boolean;collectionEnabled?:boolean}){
+export default function BasicAnalytics({children,fixture=true,granular=false,collectionEnabled=true,attributionEnabled=false}:{children:ReactNode;fixture?:boolean;granular?:boolean;collectionEnabled?:boolean;attributionEnabled?:boolean}){
  const path=usePathname(),initialPath=useRef(path);
  const collector=useRef<Collector|null>(null),notice=useRef<HTMLElement|null>(null);
  const [ready,setReady]=useState(false),[revision,setRevision]=useState(0);
@@ -144,20 +145,27 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
  const [settings,setSettings]=useState(false);
  const settingsId=useId(),privateTrigger=useRef<HTMLButtonElement|null>(null);
  useEffect(()=>{setSettings(false);setStatus("");},[path]);
- const entrySeen=useRef(false),noticeSeen=useRef(false),noticePresented=useRef(false);
+ const entrySeen=useRef(false),noticeSeen=useRef(false),noticePresented=useRef(false),entryAccepted=useRef(false);
  const failed=ready&&privacyBlocked();
  const privateSettings=granular&&!eligible(path)&&!path.startsWith('/internal/');
  const standaloneSettings=privateSettings||path==="/audit"||path==="/results";
  const hasSavedChoice=ready&&storageVerified&&pref!==null&&(pref.analytics==="granted"||pref.analytics==="denied");
  const showNotice=eligible(path)&&(!hasSavedChoice||failed||settings)||privateSettings&&settings;
  useEffect(()=>{
-   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&(noticePresented.current||informedBySavedChoice())});
+   if(attributionEnabled)beginAttributionDocument();
+   collector.current=browserCollector({enabled:collectionEnabled,noticeVisible:()=>eligible(location.pathname)&&(noticePresented.current||informedBySavedChoice()),onAccepted:()=>{
+     // Existing analytics response only. A home-IP WAF denial cannot unlock attribution.
+     if(!attributionEnabled||location.pathname!==initialPath.current||!pageCode(location.pathname))return;
+     entryAccepted.current=true;
+     if(collector.current?.allowed()&&attributionPermitted())rememberAttributionLanding();
+   }});
    const state=collector.current.state();setPref(state.pref);setLegacy(state.legacy);setStorageVerified(state.readable&&state.storageOK);setReady(true);
-   const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"){
+   const sync=(e:StorageEvent)=>{if(e.key===null||e.key==="spendshift_privacy_v2"||e.key==="spendshift_cookie_consent"||e.key===ATTR_PERMISSION){
+     if(attributionEnabled&&(e.key===null||e.key===ATTR_PERMISSION||!attributionPermitted()))clearAttributionContext();
      const c=collector.current?.state();if(c){setPref(c.pref);setLegacy(c.legacy);setStorageVerified(c.readable&&c.storageOK);setRevision(v=>v+1);}
    }};
    window.addEventListener("storage",sync);return()=>{window.removeEventListener("storage",sync);collector.current=null;};
- },[collectionEnabled]);
+ },[collectionEnabled,attributionEnabled]);
  // Count only after the primary disclosure and quick controls have actually been
  // in the visible viewport across two animation frames. This is presentation,
  // not proof of reading/consent. Keep the latch for this document after scrolling.
@@ -205,9 +213,14 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
    // Reject can repair an invalid or failed stored choice only by keeping
    // basic statistics off. Never revive an existing basic opt-out.
    const restrictiveRepair=analytics==="denied"&&(!c.state().storageOK||privacyBlocked());
-   const failed=()=>{stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
+   if(attributionEnabled&&analytics==="denied")saveAttributionChoice(false);
+   const failed=()=>{if(attributionEnabled)saveAttributionChoice(false);stopPrivacyDocument();setStatus("Statistics stopped here. We could not save your choice. Please retry before reopening other tabs.");setRevision(v=>v+1);window.dispatchEvent(new Event("ss-v2-preferences"));};
    try{if(granular)protectRollback(localStorage,analytics,"denied");}catch{failed();return;}
    if(c.choose({analytics,ads:"denied",...(restrictiveRepair?{basicOff:true}:{})})){
+      if(attributionEnabled&&analytics==="granted"&&noticePresented.current&&eligible(location.pathname)&&c.allowed()){
+        saveAttributionChoice(true);
+        if(entryAccepted.current&&location.pathname===initialPath.current&&pageCode(location.pathname))rememberAttributionLanding();
+      }
       const saved=c.state();setPref(saved.pref);setLegacy(saved.legacy);setStorageVerified(saved.readable&&saved.storageOK);setRevision(v=>v+1);
       setStatus(fixture?"Preferences saved for this synthetic test.":"Privacy choices saved.");
       // Close only after a verified write; earlier restrictions are preserved.
@@ -243,13 +256,14 @@ export default function BasicAnalytics({children,fixture=true,granular=false,col
        <strong>Your privacy choices {fixture&&<span className={styles.testLabel}>Test only</span>}</strong>
        <button className={styles.settingsButton} data-ss-privacy-settings type="button" aria-expanded={settings} aria-controls={settingsId} onClick={toggleSettings}>Privacy settings</button>
      </div>
-     <p className={styles.summary} data-ss-disclosure>{summary}</p>
+     <p className={styles.summary} data-ss-disclosure>{summary}{attributionEnabled&&" Accepting optional cookies also permits linking your marketing source to a purchase."}</p>
      <div className={styles.actions} data-ss-privacy-actions>
        <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="granted"} onClick={()=>change("granted")}>Accept optional cookies</button>
        <button type="button" disabled={!ready} aria-pressed={currentAnalytics==="denied"} onClick={()=>change("denied")}>Reject optional cookies</button>
      </div>
      <div id={settingsId} className={styles.details} hidden={!settings}>
        <p>Basic statistics use limited daily counts, including foreground time ranges, homepage sections viewed and CTA displays and clicks, to improve SpendShift, not individual browsing profiles. For website arrivals, the host's IP-based country estimate is reduced to Australia, outside Australia or unknown; no IP or detailed location is stored in analytics. The optional-cookie buttons control separate audit and report activity counts, not essential browser storage. No Google Analytics, Clarity, Meta or TikTok tracking scripts run in this version. Your choices do not affect your savings check or purchased plan.</p>
+       {attributionEnabled&&<p>With your permission we remember approved source, campaign and advert labels in this tab for up to two hours, and associate them with a confirmed purchase in private operational reporting. Rejecting optional cookies stops new attribution. Earlier choices are respected. No marketing labels are sent to advertising platforms or added to Stripe.</p>}
        <p><strong>Basic statistics:</strong> {basicOn?"on for this page":failed?"off; choice not verified":!collectionEnabled?"collection disabled":legacyNeedsTransition?"off; your earlier choice is preserved":canBasic?"waiting for notice presentation":"off or unavailable"}. <strong>Optional first-party activity counts:</strong> {currentAnalytics==="granted"?"allowed":"off"}.</p>
        {(legacyNeedsTransition||pref?.basicOff===true)&&<p>Your previously saved basic-statistics restriction is preserved. Accepting optional cookies does not remove it.</p>}
        <p>Basic statistics operate separately from optional cookies. You can contact SpendShift with any privacy questions.</p>

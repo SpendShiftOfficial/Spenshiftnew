@@ -12,6 +12,7 @@ import { analyseSavings } from "@/lib/savings-engine";
 import { emptyRefinements } from "@/lib/report-refinements";
 import styles from "./results.module.css";
 import {useBasicMetricScope} from "@/components/BasicAnalytics";
+import {readPurchaseAttribution} from "@/lib/analytics-v2/purchase-attribution-browser";
 import {TERMS_VERSION,PLAN_PRICE_CENTS,validateAuditAnswers} from "@/lib/audit-schema";
 
 const firstChecks:Record<PersonalisationArea,string>={
@@ -139,7 +140,7 @@ export default function Results() {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers, additionalArea: additionalArea || null, acceptedTerms, termsVersion: TERMS_VERSION, checkoutRequestId: (()=>{const fingerprint=JSON.stringify({answers,additionalArea});if(checkoutAttempt.current.answers!==fingerprint||!checkoutAttempt.current.id)checkoutAttempt.current={answers:fingerprint,id:crypto.randomUUID()};return checkoutAttempt.current.id;})() }),
+        body: JSON.stringify({ answers, additionalArea: additionalArea || null, acceptedTerms, termsVersion: TERMS_VERSION, ...(document.documentElement.dataset.ssPurchaseAttribution==="v1"?{marketingAttribution:readPurchaseAttribution()}:{}), checkoutRequestId: (()=>{const fingerprint=JSON.stringify({answers,additionalArea});if(checkoutAttempt.current.answers!==fingerprint||!checkoutAttempt.current.id)checkoutAttempt.current={answers:fingerprint,id:crypto.randomUUID()};return checkoutAttempt.current.id;})() }),
       });
       const data = await response.json();
       if (!response.ok || typeof data.url !== "string" ||

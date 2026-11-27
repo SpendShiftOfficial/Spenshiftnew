@@ -4,6 +4,8 @@ import {productionOwnerAllowed,releaseAdapter} from "@/lib/analytics-v2/producti
 import {analyticsFixtureEnabled,BRIDGE_ORIGIN,FIXTURE_ORIGIN} from "@/lib/analytics-v2/fixture-mode";
 import {rangeFor,renderDashboard,dashboardData} from "@/lib/analytics-v2/dashboard.mjs";
 import {operationalData} from "@/lib/analytics-v2/operational.mjs";
+import {purchaseAttributionEnabled} from "@/lib/analytics-v2/purchase-attribution.mjs";
+import {readPurchaseAttributionReport} from "@/lib/analytics-v2/purchase-attribution-server";
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
 const headers={"Cache-Control":"private, no-store","Referrer-Policy":"no-referrer","X-Robots-Tag":"noindex, nofollow","Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"};
@@ -27,8 +29,10 @@ export async function GET(req:Request){
     // A missing financial migration/feed must not silently create zeros or partial totals.
     let financial:{operations:unknown;coverage:unknown}={operations:data.operations,coverage:null};
     try{financial=await adapter.financial(range,data.operations);}catch{}
-    if(format==="json")return Response.json({range,dashboard:dashboardData(data.rows),operations:operationalData(financial.operations),coverage:financial.coverage,synthetic:false},{headers});
-    return new Response(renderDashboard(data.rows,period,range,financial.operations,false),{headers:{...headers,"Content-Type":"text/html; charset=utf-8"}});
+    const attributionOn=purchaseAttributionEnabled(process.env);
+    const attribution=attributionOn?await readPurchaseAttributionReport(range):null;
+    if(format==="json")return Response.json({range,dashboard:dashboardData(data.rows),operations:operationalData(financial.operations),coverage:financial.coverage,synthetic:false,...(attributionOn?{purchaseAttribution:attribution}:{})},{headers});
+    return new Response(renderDashboard(data.rows,period,range,financial.operations,false,attributionOn?attribution:undefined),{headers:{...headers,"Content-Type":"text/html; charset=utf-8"}});
   }
   const response=await fetch(BRIDGE_ORIGIN+"/report?period="+period,{headers:{"Authorization":"Bearer synthetic-only"},cache:"no-store",redirect:"error",signal:AbortSignal.timeout(3000)});
   if(!response.ok)throw Error("fixture unavailable");const data=await response.json();if(!data||!Array.isArray(data.rows))throw Error("invalid fixture");

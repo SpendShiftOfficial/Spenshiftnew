@@ -1,0 +1,15 @@
+export type Labels={source:string;campaign:string;creative:string};
+export type PurchaseAttributionReport={total_orders:number;attributed:number;unattributed:number;groups:(Labels&{count:number})[]};
+export const PURCHASE_ATTRIBUTION_AUTHORIZED:boolean;
+export const NOTICE:string;
+export const SOURCES:readonly string[];
+export const CREATIVES:readonly string[];
+export const CAMPAIGNS:readonly string[];
+export const MAX_AGE_MS:number;
+export function schemaReady(env:Record<string,string|undefined>):boolean;
+export function purchaseAttributionEnabled(env:Record<string,string|undefined>,approved?:boolean):boolean;
+export function parseLabels(x:unknown):Labels|null;
+export function landingLabels(ref:string,origin:string,search:string):Labels|null;
+export function checkoutLabels(x:unknown):Labels|null;
+export function parseContext(raw:string|null,now?:number):Labels|null;
+export function validatedReport(x:unknown):PurchaseAttributionReport|null;

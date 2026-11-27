@@ -5,6 +5,7 @@ import ConsentBanner from "@/components/ConsentBanner";
 import BasicAnalytics from "@/components/BasicAnalytics";
 import {analyticsFixtureEnabled} from "@/lib/analytics-v2/fixture-mode";
 import {releaseCapabilities} from "@/lib/analytics-v2/release-config.mjs";
+import {purchaseAttributionEnabled} from "@/lib/analytics-v2/purchase-attribution.mjs";
 
 const inter = Inter({
 subsets: ["latin"],
@@ -92,15 +93,16 @@ export default function RootLayout({
 }) {
   const fixture=analyticsFixtureEnabled(),release=releaseCapabilities(process.env);
   const granular=fixture||release.privacy;
+  const attribution=fixture?process.env.SPENDSHIFT_PURCHASE_ATTRIBUTION_FIXTURE==="true":purchaseAttributionEnabled(process.env);
   return (
-    <html data-ss-privacy-mode={granular?'v2':undefined} lang="en" className={`${inter.variable} ${monaSans.variable}`}>
+    <html data-ss-privacy-mode={granular?'v2':undefined} data-ss-purchase-attribution={attribution?'v1':undefined} lang="en" className={`${inter.variable} ${monaSans.variable}`}>
       <head>
         
        
       </head>
 
       <body>
-        {fixture||release.privacy ? <BasicAnalytics fixture={fixture} granular={granular} collectionEnabled={fixture||release.collect}>{children}</BasicAnalytics> : <><ConsentBanner />{children}</>}
+        {fixture||release.privacy ? <BasicAnalytics fixture={fixture} granular={granular} collectionEnabled={fixture||release.collect} attributionEnabled={attribution}>{children}</BasicAnalytics> : <><ConsentBanner />{children}</>}
 {/* First-party-only candidate: no browser measurement provider is mounted. */}
 
 
