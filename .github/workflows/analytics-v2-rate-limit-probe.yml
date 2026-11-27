@@ -1,0 +1,50 @@
+name: Disabled analytics bounded rate-limit probe
+on:
+  push:
+    branches: [internal-analytics-v2-2026-11-25]
+    paths: ['.github/workflows/analytics-v2-rate-limit-probe.yml']
+permissions: {}
+jobs:
+  bounded_probe:
+    if: github.repository == 'SpendShiftOfficial/Spenshiftnew' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Verify disabled handler and 60 per minute IP limit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import concurrent.futures, collections, time, urllib.request, urllib.error
+          url = 'https://www.spendshift.com.au/api/analytics-v2'
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*args,**kwargs): return None
+          # No auth, cookies, visitor identifiers, or valid events. At most 70 requests.
+          def probe(i):
+              req = urllib.request.Request(url, data=b'{}', method='POST', headers={
+                  'User-Agent': 'SpendShift bounded disabled rate limit probe',
+                  'Content-Type': 'application/json', 'Origin': 'https://www.spendshift.com.au',
+                  'Sec-Fetch-Site': 'same-origin', 'Cache-Control': 'no-cache'})
+              try:
+                  with urllib.request.build_opener(NoRedirect()).open(req,timeout=8) as r: return r.status
+              except urllib.error.HTTPError as err:
+                  status=err.code
+                  err.close()
+                  return status
+              except Exception: return 0
+          # Stay clear of the next UTC minute boundary to reduce fixed-window splits.
+          now = time.time() % 60
+          if now > 28: time.sleep(61-now)
+          first = probe(0)
+          print('Initial HTTP status:', first, flush=True)
+          if first != 204: raise SystemExit('Expected disabled handler to return 204; stopping without burst.')
+          start=time.monotonic()
+          counts=collections.Counter([first])
+          with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+              for status in pool.map(probe, range(1,70)): counts[status]+=1
+          print('Bounded response counts:', dict(sorted(counts.items())), flush=True)
+          print('Duration seconds:', round(time.monotonic()-start,2), flush=True)
+          if counts[204] < 1 or counts[429] < 1 or any(k not in (204,429) for k in counts):
+              raise SystemExit('Rate-limit enforcement not confirmed.')
+          print('PASS: disabled handler and actual HTTP 429 limit confirmed; no valid event submitted.')
+          PY
